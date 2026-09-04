@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Hotelzz Admin Access</title>
+  <link rel="icon" type="image/png" href="jpg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #0F172A;
+      --primary-dark: #1E293B;
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --radius: 12px;
+      --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #0F172A 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    .auth-header {
+      height: 70px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand-logo { font-weight: 800; font-size: 22px; color: #fff; text-decoration: none; }
+    .brand-logo span { color: #94A3B8; }
+    .auth-main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+    .auth-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow); width: 100%; max-width: 420px; overflow: hidden;
+    }
+    .auth-body { padding: 32px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-weight: 700; font-size: 12.5px; color: var(--text-muted); margin-bottom: 4px; }
+    .form-control {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 14px; outline: none; font-weight: 500; transition: border-color 0.2s;
+    }
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15,23,42,0.12); }
+    .btn-submit {
+      width: 100%; background: var(--primary); color: #FFF; border: none; padding: 12px;
+      border-radius: 8px; font-weight: 700; font-size: 14.5px; cursor: pointer; transition: background 0.2s; margin-top: 8px;
+    }
+    .btn-submit:hover { background: var(--primary-dark); }
+    .btn-submit[disabled] { opacity: .6; cursor: not-allowed; }
+    .auth-alert {
+      padding: 11px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      margin-bottom: 16px; line-height: 1.5;
+      background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA;
+    }
+    .auth-alert.success { background: #ECFDF5; color: #047857; border-color: #A7F3D0; }
+    .auth-footer { text-align: center; padding: 20px; font-size: 12.5px; color: #94A3B8; }
+  </style>
+</head>
+<body>
+
+  <header class="auth-header">
+    <a href="index.html" class="brand-logo">Hotelzz<span>.in</span></a>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <div class="auth-body">
+        <h2 style="font-size:20px; font-weight:800; margin-bottom:4px;">🔒 Hotelzz Admin Access</h2>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Platform management and campaign operations console. Not for traveler or hotel-owner accounts.</p>
+
+        <div id="authAlert" class="auth-alert" style="display:none;"></div>
+
+        <form id="formAdminLogin">
+          <div class="form-group"><label>Admin Username / Email</label><input type="text" name="identifier" class="form-control" placeholder="admin@hotelzz.in" autocomplete="username" required /></div>
+          <div class="form-group"><label>Admin Secret Key</label><input type="password" name="password" class="form-control" placeholder="••••••••" autocomplete="current-password" required /></div>
+          <button type="submit" class="btn-submit">Login to Admin Operations →</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="auth-footer">
+    <span>© 2026 Hotelzz.in — All rights reserved.</span>
+  </footer>
+
+  <script src="api-client.js"></script>
+  <script>
+    var API = window.HotelzzAPI;
+
+    function alertBox(msg, type) {
+      var el = document.getElementById('authAlert');
+      el.textContent = msg;
+      el.className = 'auth-alert ' + (type || 'error');
+      el.style.display = 'block';
+    }
+    function clearAlert() { document.getElementById('authAlert').style.display = 'none'; }
+
+    function nextUrl(fallback) {
+      var next = new URLSearchParams(window.location.search).get('next');
+      // Only allow same-site relative paths — never an attacker-supplied origin.
+      if (next && /^\/[^/\\]/.test(next)) return next;
+      return fallback;
+    }
+
+    var form = document.getElementById('formAdminLogin');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      clearAlert();
+      var btn = form.querySelector('button[type=submit]');
+      var label = btn.textContent;
+      btn.disabled = true; btn.textContent = 'Please wait…';
+      var d = {};
+      new FormData(form).forEach(function (v, k) { d[k] = String(v).trim(); });
+
+      API.auth.login('admin', d.identifier, d.password)
+        .then(function (r) { window.location.href = nextUrl(r.redirect || '/admin.html'); })
+        .catch(function (err) {
+          alertBox(err.message || 'Something went wrong. Try again.');
+          btn.disabled = false; btn.textContent = label;
+        });
+    });
+
+    // Already signed in as admin — skip the form. A different role's session
+    // stays here rather than being bounced into a portal they didn't ask for.
+    API.auth.me().then(function (r) {
+      if (r && r.user && r.user.role === 'admin') {
+        window.location.replace(nextUrl('/admin.html'));
+      }
+    }).catch(function () { /* no session — show the form as normal */ });
+  </script>
+</body>
+</html>

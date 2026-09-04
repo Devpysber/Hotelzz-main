@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hotelzz Portal Login & Registration — Traveler, Hotel Owner & Admin</title>
+  <link rel="icon" type="image/png" href="jpg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #2563EB;
+      --primary-dark: #1D4ED8;
+      --primary-light: #EFF6FF;
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --radius: 12px;
+      --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 50%, #ECFDF5 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    .auth-header {
+      height: 70px; background: #FFF; border-bottom: 1px solid var(--border);
+      padding: 0 32px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand-logo { font-weight: 800; font-size: 22px; color: var(--primary); text-decoration: none; }
+    .brand-logo span { color: var(--text); }
+    .auth-main {
+      flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px;
+    }
+    .auth-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow); width: 100%; max-width: 480px; overflow: hidden;
+    }
+    .auth-tabs {
+      display: flex; border-bottom: 1px solid var(--border); background: #F8FAFC;
+    }
+    .auth-tab-btn {
+      flex: 1; padding: 14px; text-align: center; font-weight: 700; font-size: 13px;
+      color: var(--text-muted); cursor: pointer; border: none; background: none; transition: all 0.2s;
+    }
+    .auth-tab-btn.active {
+      background: #FFF; color: var(--primary); border-bottom: 2px solid var(--primary);
+    }
+    .auth-body { padding: 32px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-weight: 700; font-size: 12.5px; color: var(--text-muted); margin-bottom: 4px; }
+    .form-control {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 14px; outline: none; font-weight: 500; transition: border-color 0.2s;
+    }
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+    .btn-submit {
+      width: 100%; background: var(--primary); color: #FFF; border: none; padding: 12px;
+      border-radius: 8px; font-weight: 700; font-size: 14.5px; cursor: pointer; transition: background 0.2s; margin-top: 8px;
+    }
+    .btn-submit:hover { background: var(--primary-dark); }
+    .auth-alert {
+      padding: 11px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      margin-bottom: 16px; line-height: 1.5;
+      background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA;
+    }
+    .auth-alert.success { background: #ECFDF5; color: #047857; border-color: #A7F3D0; }
+    .auth-alert.dev { background: #FFFBEB; color: #92400E; border-color: #FDE68A; }
+    .btn-submit[disabled] { opacity: .6; cursor: not-allowed; }
+    .toggle-subform { text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+    .toggle-subform a { color: var(--primary); font-weight: 700; text-decoration: none; cursor: pointer; }
+    .auth-footer { text-align: center; padding: 20px; font-size: 13px; color: var(--text-muted); }
+    .auth-footer a { color: var(--text-muted); text-decoration: underline; margin: 0 8px; }
+  </style>
+</head>
+<body>
+
+  <header class="auth-header">
+    <a href="index.html" class="brand-logo">Hotelzz<span>.in</span></a>
+    <a href="index.html" style="font-size:13.5px; font-weight:600; color:var(--text-muted); text-decoration:none;">← Back to Home</a>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tabBtnTraveler" onclick="switchAuthTab('traveler')">🧳 Traveler Login</button>
+        <button class="auth-tab-btn" id="tabBtnOwner" onclick="switchAuthTab('owner')">🏨 Hotel Owner</button>
+      </div>
+
+      <div class="auth-body">
+
+        <div id="authAlert" class="auth-alert" style="display:none;"></div>
+
+        <!-- 1. TRAVELER LOGIN / SIGNUP -->
+        <div id="authSectionTraveler">
+          <!-- Traveler Sign In Form -->
+          <div id="travelerLoginForm">
+            <h2 style="font-size:20px; font-weight:800; margin-bottom:4px;">Traveler Sign In</h2>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Access your saved enquiries, reviews, and favorite hotels.</p>
+
+            <form id="formTravelerLogin">
+              <div class="form-group"><label>Email Address or Phone</label><input type="text" name="identifier" id="trvEmailInput" class="form-control" placeholder="rahul@example.com" autocomplete="username" required /></div>
+              <div class="form-group"><label>Password</label><input type="password" name="password" id="trvPassInput" class="form-control" placeholder="••••••••" autocomplete="current-password" required /></div>
+              <button type="submit" class="btn-submit">Sign In as Traveler →</button>
+            </form>
+
+            <div id="googleDividerTraveler" class="oauth-divider" style="display:none; align-items:center; gap:10px; margin:16px 0; color:var(--text-muted); font-size:12px;">
+              <div style="flex:1; height:1px; background:#E2E8F0;"></div>OR<div style="flex:1; height:1px; background:#E2E8F0;"></div>
+            </div>
+            <a id="googleBtnTraveler" href="#" style="display:none; align-items:center; justify-content:center; gap:10px; width:100%; box-sizing:border-box; padding:11px; border:1px solid #E2E8F0; border-radius:8px; background:#fff; color:#0F172A; font-weight:700; font-size:14px; text-decoration:none;">
+              <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 009 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 013.68 9c0-.59.1-1.17.27-1.7V4.97H.98A9 9 0 000 9c0 1.45.35 2.82.98 4.03l2.97-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 00.98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+              Continue with Google
+            </a>
+
+            <div class="toggle-subform">
+              <a onclick="openForgot('traveler')">Forgot password?</a>
+            </div>
+            <div class="toggle-subform">
+              Don't have an account? <a onclick="toggleTravelerSubform('signup')">Create Free Traveler Account</a>
+            </div>
+          </div>
+
+          <!-- Traveler Sign Up Form -->
+          <div id="travelerSignupForm" style="display:none;">
+            <h2 style="font-size:20px; font-weight:800; margin-bottom:4px;">Create Traveler Account</h2>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Free forever. Enquire directly with hotels — no commission.</p>
+
+            <form id="formTravelerSignup">
+              <div class="form-group"><label>Full Name</label><input type="text" name="name" id="trvRegName" class="form-control" placeholder="Rahul Sharma" required /></div>
+              <div class="form-group"><label>Email Address</label><input type="email" name="email" id="trvRegEmail" class="form-control" placeholder="rahul@example.com" required /></div>
+              <div class="form-group"><label>Phone Number (WhatsApp)</label><input type="text" name="phone" id="trvRegPhone" class="form-control" placeholder="+91 98201 44512" required /></div>
+              <div class="form-group"><label>City (optional)</label><input type="text" name="city" id="trvRegCity" class="form-control" placeholder="Mumbai" /></div>
+              <div class="form-group"><label>Create Password</label><input type="password" name="password" id="trvRegPass" class="form-control" placeholder="Minimum 8 characters" minlength="8" autocomplete="new-password" required /></div>
+              <button type="submit" class="btn-submit">Create Free Account &amp; Continue →</button>
+            </form>
+
+            <div class="toggle-subform">
+              Already have an account? <a onclick="toggleTravelerSubform('login')">Sign In Instead</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. HOTEL OWNER LOGIN / REGISTRATION -->
+        <div id="authSectionOwner" style="display:none;">
+          <!-- Owner Login Form -->
+          <div id="ownerLoginForm">
+            <h2 style="font-size:20px; font-weight:800; margin-bottom:4px;">Hotel Owner Sign In</h2>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Manage your hotel listing, leads, and marketing campaigns.</p>
+
+            <form id="formOwnerLogin">
+              <div class="form-group"><label>Registered Email or Phone</label><input type="text" name="identifier" class="form-control" placeholder="owner@grandpalace.com" autocomplete="username" required /></div>
+              <div class="form-group"><label>Password</label><input type="password" name="password" class="form-control" placeholder="••••••••" autocomplete="current-password" required /></div>
+              <button type="submit" class="btn-submit" style="background:#10B981;">Sign In to Owner Portal →</button>
+            </form>
+
+            <div id="googleDividerOwner" class="oauth-divider" style="display:none; align-items:center; gap:10px; margin:16px 0; color:var(--text-muted); font-size:12px;">
+              <div style="flex:1; height:1px; background:#E2E8F0;"></div>OR<div style="flex:1; height:1px; background:#E2E8F0;"></div>
+            </div>
+            <a id="googleBtnOwner" href="#" style="display:none; align-items:center; justify-content:center; gap:10px; width:100%; box-sizing:border-box; padding:11px; border:1px solid #E2E8F0; border-radius:8px; background:#fff; color:#0F172A; font-weight:700; font-size:14px; text-decoration:none;">
+              <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 009 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 013.68 9c0-.59.1-1.17.27-1.7V4.97H.98A9 9 0 000 9c0 1.45.35 2.82.98 4.03l2.97-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 00.98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+              Continue with Google
+            </a>
+
+            <div class="toggle-subform">
+              <a onclick="toggleOwnerSubform('otp')">Sign in with a one-time code instead</a>
+            </div>
+            <div class="toggle-subform">
+              <a onclick="openForgot('owner')">Forgot password?</a>
+            </div>
+            <div class="toggle-subform">
+              Want to register your hotel? <a onclick="toggleOwnerSubform('register')">Register Your Hotel Business</a>
+            </div>
+          </div>
+
+          <!-- Owner OTP Login -->
+          <div id="ownerOtpForm" style="display:none;">
+            <h2 style="font-size:20px; font-weight:800; margin-bottom:4px;">Sign in with a code</h2>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">We email a 6-digit code to your registered address.</p>
+
+            <form id="formOtpRequest">
+              <div class="form-group"><label>Registered Email or Phone</label><input type="text" name="identifier" id="otpIdentifier" class="form-control" placeholder="owner@grandpalace.com" required /></div>
+              <button type="submit" class="btn-submit" style="background:#10B981;">Send me a code →</button>
+            </form>
+
+            <form id="formOtpVerify" style="display:none; margin-top:16px;">
+              <div class="form-group"><label>6-digit code</label><input type="text" name="code" id="otpCode" class="form-control" placeholder="123456" inputmode="numeric" maxlength="6" required /></div>
+              <button type="submit" class="btn-submit" style="background:#10B981;">Verify &amp; Sign In →</button>
+            </form>
+
+            <div class="toggle-subform">
+              <a onclick="toggleOwnerSubform('login')">Use password instead</a>
+            </div>
+          </div>
+
+          <!-- Owner Business Registration Form -->
+          <div id="ownerRegisterForm" style="display:none;">
+            <h2 style="font-size:20px; font-weight:800; margin-bottom:4px;">Register Hotel Business</h2>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">List your hotel on Hotelzz to get direct guest enquiries.</p>
+
+            <form id="formOwnerRegister">
+              <div class="form-group"><label>Hotel / Property Name *</label><input type="text" name="hotelName" class="form-control" placeholder="e.g. Royal Residency Mumbai" required /></div>
+              <div class="form-group"><label>City / Location *</label><input type="text" name="city" class="form-control" placeholder="e.g. Mumbai, Goa, Pune" required /></div>
+              <div class="form-group"><label>Owner / Manager Name *</label><input type="text" name="name" class="form-control" placeholder="e.g. Vikram Malhotra" required /></div>
+              <div class="form-group"><label>Phone Number (WhatsApp) *</label><input type="text" name="phone" class="form-control" placeholder="+91 98000 12345" required /></div>
+              <div class="form-group"><label>Work Email *</label><input type="email" name="email" class="form-control" placeholder="vikram@hotel.com" required /></div>
+              <div class="form-group"><label>Create Password *</label><input type="password" name="password" class="form-control" placeholder="Minimum 8 characters" minlength="8" autocomplete="new-password" required /></div>
+              <button type="submit" class="btn-submit" style="background:#10B981;">Complete Business Registration →</button>
+            </form>
+
+            <div class="toggle-subform">
+              Already registered? <a onclick="toggleOwnerSubform('login')">Sign In to Owner Portal</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Forgot password -->
+        <div id="forgotForm" style="display:none;">
+          <h2 style="font-size:20px; font-weight:800; margin-bottom:4px;">Reset your password</h2>
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">We email you a secure link, valid for 60 minutes.</p>
+
+          <form id="formForgot">
+            <div class="form-group"><label>Account Email</label><input type="email" name="email" class="form-control" placeholder="you@example.com" required /></div>
+            <input type="hidden" name="role" id="forgotRole" value="traveler" />
+            <button type="submit" class="btn-submit">Send reset link →</button>
+          </form>
+
+          <div class="toggle-subform">
+            <a onclick="closeForgot()">← Back to sign in</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="auth-footer">
+    <span>© 2026 Hotelzz.in — All rights reserved.</span>
+  </footer>
+
+  <script src="api-client.js"></script>
+  <script>
+    var API = window.HotelzzAPI;
+    var currentTab = 'traveler';
+
+    // Already signed in (session cookie from an earlier visit) — skip the
+    // form and go straight to their portal instead of asking them to log in
+    // again.
+    (function redirectIfAlreadyLoggedIn() {
+      API.auth.me().then(function (r) {
+        if (!r || !r.user) return;
+        var portal = r.user.role === 'admin' ? 'admin.html' : r.user.role === 'owner' ? 'owner.html' : 'user-portal.html';
+        window.location.href = portal;
+      }).catch(function () { /* no session — show the form as normal */ });
+    })();
+
+    // Every panel follows the same <h2> + <p> + <form> layout — move the one
+    // shared alert element into whichever panel is actually visible right
+    // now, right below its heading/description and above the form, instead
+    // of leaving it pinned at the top of the whole card (which reads oddly:
+    // message first, heading after).
+    var ALERT_HOME_IDS = ['travelerLoginForm', 'travelerSignupForm', 'ownerLoginForm', 'ownerOtpForm',
+                           'ownerRegisterForm', 'forgotForm'];
+    function repositionAlert(el) {
+      var target = ALERT_HOME_IDS.map(function (id) { return document.getElementById(id); })
+        .find(function (c) { return c && c.offsetParent !== null; });
+      if (target && target.children[2] !== el) target.insertBefore(el, target.children[2] || null);
+    }
+
+    function alertBox(msg, type) {
+      var el = document.getElementById('authAlert');
+      repositionAlert(el);
+      el.textContent = msg;
+      el.className = 'auth-alert ' + (type || 'error');
+      el.style.display = 'block';
+      el.scrollIntoView({ block: 'nearest' });
+    }
+    function clearAlert() { document.getElementById('authAlert').style.display = 'none'; }
+
+    function show(id, visible) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = visible ? 'block' : 'none';
+    }
+
+    function nextUrl(fallback) {
+      var next = new URLSearchParams(window.location.search).get('next');
+      // Only allow same-site relative paths — never an attacker-supplied origin.
+      if (next && /^\/[^/\\]/.test(next)) return next;
+      return fallback;
+    }
+
+    /** Wraps a submit handler: disables the button, shows errors, re-enables. */
+    function onSubmit(formId, handler) {
+      var form = document.getElementById(formId);
+      if (!form) return;
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearAlert();
+        var btn = form.querySelector('button[type=submit]');
+        var label = btn ? btn.textContent : '';
+        if (btn) { btn.disabled = true; btn.textContent = 'Please wait…'; }
+        var data = {};
+        new FormData(form).forEach(function (v, k) { data[k] = String(v).trim(); });
+
+        Promise.resolve()
+          .then(function () { return handler(data, form); })
+          .catch(function (err) {
+            alertBox(err.message || 'Something went wrong. Try again.');
+            if (err.field) {
+              var input = form.querySelector('[name="' + err.field + '"]');
+              if (input) input.focus();
+            }
+          })
+          .then(function () { if (btn) { btn.disabled = false; btn.textContent = label; } });
+      });
+    }
+
+    function switchAuthTab(role) {
+      clearAlert();
+      closeForgot(true);
+      document.querySelectorAll('.auth-tab-btn').forEach(function (b) { b.classList.remove('active'); });
+      show('authSectionTraveler', false);
+      show('authSectionOwner', false);
+
+      if (role === 'owner' || role === 'owner-register') {
+        currentTab = 'owner';
+        document.getElementById('tabBtnOwner').classList.add('active');
+        show('authSectionOwner', true);
+        toggleOwnerSubform(role === 'owner-register' ? 'register' : 'login');
+        return;
+      }
+      // Admin has its own dedicated, unlisted login page — this shared page
+      // covers traveler and owner only, so anything else (including a stray
+      // ?type=admin) falls back to traveler rather than a role this page no
+      // longer knows how to show.
+      currentTab = 'traveler';
+      document.getElementById('tabBtnTraveler').classList.add('active');
+      show('authSectionTraveler', true);
+      toggleTravelerSubform(role === 'traveler-signup' ? 'signup' : 'login');
+    }
+
+    function toggleTravelerSubform(type) {
+      clearAlert();
+      show('travelerLoginForm', type === 'login');
+      show('travelerSignupForm', type === 'signup');
+    }
+
+    function toggleOwnerSubform(type) {
+      clearAlert();
+      show('ownerLoginForm', type === 'login');
+      show('ownerRegisterForm', type === 'register');
+      show('ownerOtpForm', type === 'otp');
+      if (type !== 'otp') show('formOtpVerify', false);
+    }
+
+    function openForgot(role) {
+      clearAlert();
+      document.getElementById('forgotRole').value = role;
+      show('authSectionTraveler', false);
+      show('authSectionOwner', false);
+      show('forgotForm', true);
+    }
+
+    function closeForgot(silent) {
+      show('forgotForm', false);
+      if (!silent) switchAuthTab(currentTab);
+    }
+
+    function afterLogin(res, fallback) {
+      window.location.href = nextUrl(res.redirect || fallback);
+    }
+
+    onSubmit('formTravelerLogin', function (d) {
+      return API.auth.login('traveler', d.identifier, d.password)
+        .then(function (r) { afterLogin(r, '/user-portal.html'); });
+    });
+
+    onSubmit('formTravelerSignup', function (d) {
+      return API.auth.registerTraveler({
+        name: d.name, email: d.email, phone: d.phone, password: d.password, city: d.city || undefined
+      }).then(function (r) { afterLogin(r, '/user-portal.html'); });
+    });
+
+    onSubmit('formOwnerLogin', function (d) {
+      return API.auth.login('owner', d.identifier, d.password)
+        .then(function (r) { afterLogin(r, '/owner.html'); });
+    });
+
+    onSubmit('formOwnerRegister', function (d) {
+      return API.auth.registerOwner({
+        hotelName: d.hotelName, city: d.city, name: d.name,
+        phone: d.phone, email: d.email, password: d.password
+      }).then(function (r) { afterLogin(r, '/owner.html'); });
+    });
+
+    onSubmit('formOtpRequest', function (d) {
+      return API.auth.requestOtp(d.identifier, 'owner').then(function (r) {
+        show('formOtpVerify', true);
+        document.getElementById('otpCode').focus();
+        if (r.devCode) {
+          alertBox('⚠ DEV MODE — this code is shown on-screen only because the server has OTP_DEV_ECHO on. It is also emailed normally: ' + r.devCode, 'dev');
+        } else {
+          alertBox('Code sent. Check your email — it expires in ' + r.expiresInMinutes + ' minutes.', 'success');
+        }
+      });
+    });
+
+    onSubmit('formOtpVerify', function (d) {
+      var identifier = document.getElementById('otpIdentifier').value.trim();
+      return API.auth.verifyOtp(identifier, d.code, 'owner')
+        .then(function (r) { afterLogin(r, '/owner.html'); });
+    });
+
+    onSubmit('formForgot', function (d) {
+      return API.auth.forgotPassword(d.email, d.role).then(function (r) {
+        alertBox(r.message, 'success');
+      });
+    });
+
+    // Reveal the Google buttons only when the server has it configured, and
+    // carry ?next= through so Google sign-in lands wherever a plain login would.
+    (function setupGoogleButtons() {
+      fetch('/api/health').then(function (r) { return r.json(); }).then(function (h) {
+        if (!h || h.googleAuth !== 'configured') return;
+        var next = new URLSearchParams(window.location.search).get('next');
+        ['Traveler', 'Owner'].forEach(function (who) {
+          var role = who.toLowerCase();
+          var btn = document.getElementById('googleBtn' + who);
+          var divider = document.getElementById('googleDivider' + who);
+          if (!btn) return;
+          btn.href = '/api/auth/google/start?role=' + role + (next ? '&next=' + encodeURIComponent(next) : '');
+          btn.style.display = 'inline-flex';
+          if (divider) divider.style.display = 'flex';
+        });
+      }).catch(function () {});
+    })();
+
+    if (new URLSearchParams(window.location.search).get('error') === 'google_failed') {
+      alertBox('Google sign-in did not complete. Try again, or use email/password.', 'error');
+    }
+
+    // Deep link: login.html?type=owner-register | admin | traveler-signup
+    (function init() {
+      var type = new URLSearchParams(window.location.search).get('type') || 'traveler';
+      switchAuthTab(type);
+
+      // Already signed in? Go straight to the right portal.
+      API.auth.me().then(function (r) {
+        if (r.user) {
+          var home = r.user.role === 'admin' ? '/admin.html'
+                   : r.user.role === 'owner' ? '/owner.html' : '/user-portal.html';
+          // Only honor ?next= when it actually matches this account's own
+          // portal — otherwise a stray/mismatched next (e.g. a traveler
+          // session sitting on a ?type=admin&next=/admin.html link) sends
+          // them somewhere requireAuth immediately rejects, which bounces
+          // straight back here and loops. Go to their real home instead.
+          var target = nextUrl(home);
+          window.location.replace(target.indexOf(home) === 0 ? target : home);
+        }
+      }).catch(function () {});
+    })();
+  </script>
+</body>
+</html>

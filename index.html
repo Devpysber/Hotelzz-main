@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#2563EB" />
+<title>Hotelzz.in — Book Hotels Across India | 3,000+ Stays, Direct WhatsApp Bookings</title>
+<meta name="description" content="Browse 3,000+ hand-picked hotels, villas & homestays across India — Goa beaches, Rajasthan palaces, Himalayan hill stations (Manali, Shimla, Ladakh), Kerala backwaters, North-East valleys, Andaman & Lakshadweep. Book direct on WhatsApp. Zero booking fees." />
+<meta name="keywords" content="book hotels in India, hotels Goa Jaipur Delhi Manali Munnar Udaipur, hotel marketplace India, direct WhatsApp hotel booking, list hotel online India, hotelzz" />
+<link rel="canonical" href="https://hotelzz.in/" />
+<link rel="icon" type="image/png" href="jpg.png" />
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Hotelzz.in — Book Hotels Across India | 3,000+ Stays" />
+<meta property="og:description" content="3,000+ hand-picked hotels & stays across 51 destinations — Goa, Rajasthan, Himalayas, Kerala, North-East & islands. Book direct on WhatsApp. Zero booking fees." />
+<meta property="og:url" content="https://hotelzz.in/" />
+<meta property="og:image" content="https://hotelzz.in/og-image.jpg" />
+<meta property="og:image:width" content="1080" />
+<meta property="og:image:height" content="1080" />
+<meta property="og:site_name" content="Hotelzz.in" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://hotelzz.in/og-image.jpg" />
+
+<!-- Schema.org -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "Hotelzz.in",
+  "image": "https://hotelzz.in/jpg.png",
+  "url": "https://hotelzz.in",
+  "telephone": "+91-9930090487",
+  "description": "B2B hotel marketing & booking directory platform helping Indian hotels, resorts, and homestays get direct bookings.",
+  "address": { "@type": "PostalAddress", "addressCountry": "IN" },
+  "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "512" }
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- Google tag (gtag.js) - GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-S3XDVMFR2D"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-S3XDVMFR2D');
+</script>
+
+<style>
+  :root {
+    --primary: #2563EB;
+    --primary-dark: #1D4ED8;
+    --primary-light: #EFF6FF;
+    --bg: #FFFFFF;
+    --bg-alt: #F9FAFB;
+    --text: #1F2937;
+    --text-muted: #6B7280;
+    --text-light: #9CA3AF;
+    --success: #10B981;
+    --whatsapp: #25D366;
+    --whatsapp-dark: #1DA851;
+    --warning: #F59E0B;
+    --border: #E5E7EB;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 12px 32px rgba(0,0,0,0.10);
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; font-size: 16px; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: var(--primary); text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+  .container { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+
+  /* HEADER */
+  .header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.96); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); border-bottom: 1px solid var(--border); }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; line-height: 1; }
+  .brand-mark { display: flex; flex-direction: column; }
+  .brand-name { font-weight: 800; font-size: 24px; color: var(--primary); letter-spacing: -0.5px; line-height: 1; }
+  .brand-name .tld { color: var(--text); }
+  .brand-tag { font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
+  .header-nav { display: flex; align-items: center; gap: 8px; }
+  .header-nav a.nav-link { color: var(--text); font-weight: 500; font-size: 14px; padding: 8px 12px; border-radius: 8px; }
+  .header-nav a.nav-link:hover { background: var(--bg-alt); }
+  .header-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--whatsapp); color: #fff !important; padding: 10px 18px; border-radius: var(--radius); font-weight: 600; font-size: 14px; transition: background 0.2s, transform 0.2s; box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .header-cta:hover { background: var(--whatsapp-dark); transform: translateY(-1px); }
+  .header-cta svg { width: 18px; height: 18px; }
+
+  /* FOR BUSINESS DROPDOWN */
+  .nav-dropdown { position: relative; display: inline-block; }
+  .dropdown-trigger {
+    color: var(--text); font-weight: 600; font-size: 14px; padding: 8px 12px;
+    border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+    background: transparent; border: none; font-family: inherit; transition: background 0.15s;
+  }
+  .dropdown-trigger:hover { background: var(--bg-alt); color: var(--primary); }
+  .dropdown-menu {
+    position: absolute; top: 100%; right: 0; min-width: 250px;
+    background: #ffffff; border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12); opacity: 0; visibility: hidden;
+    transform: translateY(8px); transition: all 0.2s ease; z-index: 1000;
+    padding: 8px 0; margin-top: 4px;
+  }
+  .nav-dropdown:hover .dropdown-menu, .nav-dropdown:focus-within .dropdown-menu {
+    opacity: 1; visibility: visible; transform: translateY(0);
+  }
+  .dropdown-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+    color: var(--text); font-size: 13.5px; font-weight: 600; text-decoration: none;
+    transition: background 0.15s;
+  }
+  .dropdown-item:hover { background: var(--primary-light); color: var(--primary); }
+  .dropdown-divider { height: 1px; background: var(--border); margin: 6px 0; }
+
+  /* TRAVELER HERO (Search) */
+  .traveler-hero { background: linear-gradient(135deg, #1E40AF 0%, #2563EB 60%, #3B82F6 100%); color: #fff; padding: 64px 0 88px; position: relative; overflow: hidden; }
+  .traveler-hero::after { content: ""; position: absolute; right: -100px; top: 30px; width: 520px; height: 320px; background: radial-gradient(ellipse at center, rgba(255,255,255,0.12), transparent 60%); pointer-events: none; }
+  .traveler-hero h1 { font-size: clamp(28px, 4.5vw, 44px); font-weight: 800; line-height: 1.1; letter-spacing: -1px; max-width: 720px; margin-bottom: 12px; }
+  .traveler-hero p.lead { color: rgba(255,255,255,0.9); font-size: 17px; max-width: 600px; margin-bottom: 32px; }
+  .search-card { background: #fff; border-radius: 999px; box-shadow: 0 24px 60px rgba(15,23,42,0.18); display: flex; align-items: stretch; padding: 8px; max-width: 980px; gap: 4px; }
+  .search-field { flex: 1; padding: 12px 18px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+  .search-field + .search-field { border-left: 1px solid var(--border); }
+  .search-field label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 2px; }
+  .search-field input, .search-field select { border: none; outline: none; background: transparent; font-size: 15px; font-weight: 600; color: var(--text); width: 100%; font-family: inherit; padding: 0; }
+  .search-field input::placeholder { color: var(--text-light); font-weight: 500; }
+  .search-btn { background: var(--warning); color: #1F2937; border-radius: 999px; padding: 0 28px; font-weight: 700; font-size: 16px; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; min-height: 56px; }
+  .search-btn:hover { background: #FBBF24; }
+  .search-btn svg { width: 18px; height: 18px; }
+
+  /* POPULAR DESTINATIONS */
+  .destinations { padding: 56px 0 24px; background: #fff; }
+  .destinations h2 { font-size: 22px; font-weight: 700; margin-bottom: 24px; color: var(--text); }
+  .dest-grid { display: grid; gap: 18px 24px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .dest-item { display: flex; align-items: center; gap: 14px; padding: 8px; border-radius: 12px; transition: background 0.2s; cursor: pointer; }
+  .dest-item:hover { background: var(--primary-light); }
+  .dest-circle { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #DBEAFE, #BFDBFE); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; }
+  .dest-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .dest-info strong { display: block; font-size: 15px; color: var(--text); font-weight: 600; }
+  .dest-info span { font-size: 12px; color: var(--text-muted); }
+
+  /* B2B HERO */
+  .hero { padding: 56px 0 64px; background: radial-gradient(ellipse at top right, rgba(37,99,235,0.08), transparent 60%), radial-gradient(ellipse at bottom left, rgba(16,185,129,0.06), transparent 60%), #fff; position: relative; overflow: hidden; }
+  .hero h1 { font-size: clamp(28px, 5.5vw, 52px); font-weight: 800; line-height: 1.1; letter-spacing: -1px; color: var(--text); margin-bottom: 18px; max-width: 880px; }
+  .hero h1 .accent { color: var(--primary); }
+  .hero .subhead { font-size: clamp(16px, 2vw, 19px); color: var(--text-muted); max-width: 720px; margin-bottom: 32px; }
+  .hero-ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 28px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 28px; border-radius: var(--radius); font-weight: 600; font-size: 16px; transition: all 0.2s; white-space: nowrap; }
+  .btn-whatsapp { background: var(--whatsapp); color: #fff !important; box-shadow: 0 8px 20px rgba(37,211,102,0.3); }
+  .btn-whatsapp:hover { background: var(--whatsapp-dark); transform: translateY(-2px); box-shadow: 0 12px 24px rgba(37,211,102,0.4); }
+  .btn-whatsapp svg { width: 22px; height: 22px; }
+  .btn-outline { background: #fff; color: var(--primary) !important; border: 2px solid var(--primary); }
+  .btn-outline:hover { background: var(--primary); color: #fff !important; }
+  .btn-primary { background: var(--primary); color: #fff !important; box-shadow: 0 8px 20px rgba(37,99,235,0.25); }
+  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+  .trust-badges { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-top: 12px; }
+  .trust-badge { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 14px; font-weight: 500; }
+  .trust-badge .check { width: 18px; height: 18px; border-radius: 50%; background: var(--success); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
+  .hero-strip { margin-top: 44px; display: flex; gap: 16px; flex-wrap: wrap; padding: 20px 24px; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+  .hero-strip .stat { flex: 1 1 150px; min-width: 120px; }
+  .hero-strip .stat strong { display: block; font-size: clamp(20px, 3vw, 28px); color: var(--primary); font-weight: 800; line-height: 1.1; }
+  .hero-strip .stat span { color: var(--text-muted); font-size: 13px; }
+
+  section { padding: 72px 0; }
+  .section-head { text-align: center; max-width: 700px; margin: 0 auto 48px; }
+  .section-eyebrow { display: inline-block; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); margin-bottom: 12px; }
+  .section-head h2 { font-size: clamp(26px, 4vw, 38px); font-weight: 800; letter-spacing: -0.5px; color: var(--text); margin-bottom: 14px; line-height: 1.2; }
+  .section-head p { color: var(--text-muted); font-size: 17px; }
+
+  /* VALUE CARDS */
+  .value-grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .value-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px 28px; transition: all 0.25s; }
+  .value-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: rgba(37,99,235,0.3); }
+  .value-icon { width: 56px; height: 56px; border-radius: 14px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 18px; }
+  .value-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+  .value-card p { color: var(--text-muted); font-size: 15px; }
+
+  /* HOW IT WORKS */
+  .steps { background: var(--bg-alt); }
+  .steps-grid { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .step-card { background: #fff; padding: 36px 28px; border-radius: var(--radius-lg); border: 1px solid var(--border); text-align: center; box-shadow: var(--shadow-sm); }
+  .step-num { width: 44px; height: 44px; border-radius: 50%; background: var(--primary); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; margin-bottom: 18px; box-shadow: 0 6px 14px rgba(37,99,235,0.35); }
+  .step-card h3 { font-size: 19px; margin-bottom: 8px; font-weight: 700; }
+  .step-card p { color: var(--text-muted); font-size: 15px; }
+
+  /* SOCIAL PROOF */
+  .logos-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 28px 44px; opacity: 0.85; margin-bottom: 56px; align-items: center; }
+  .logo-item { color: var(--text-light); font-weight: 700; font-size: 16px; letter-spacing: 0.5px; opacity: 0.7; }
+  .testimonials { display: grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .testimonial { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow-sm); }
+  .testimonial .stars { color: #FBBF24; margin-bottom: 12px; font-size: 16px; }
+  .testimonial blockquote { font-size: 16px; color: var(--text); line-height: 1.6; margin-bottom: 16px; font-weight: 500; }
+  .testimonial cite { color: var(--text-muted); font-size: 14px; font-style: normal; display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--success)); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+  .stats-row { margin-top: 56px; display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); text-align: center; }
+  .stat-big strong { display: block; font-size: clamp(28px, 4vw, 40px); color: var(--primary); font-weight: 800; }
+  .stat-big span { color: var(--text-muted); font-size: 14px; }
+
+  /* PREMIUM */
+  .premium { background: linear-gradient(135deg, #EFF6FF 0%, #ECFDF5 100%); }
+  .premium-card { background: #fff; border-radius: var(--radius-lg); padding: 48px; box-shadow: var(--shadow); display: grid; gap: 36px; align-items: center; grid-template-columns: 1fr 1fr; max-width: 1000px; margin: 0 auto; }
+  .premium-badge { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #FBBF24, #F59E0B); color: #fff; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 16px; }
+  .premium h3 { font-size: 26px; font-weight: 800; margin-bottom: 14px; line-height: 1.2; letter-spacing: -0.5px; }
+  .premium-list { list-style: none; margin: 18px 0 24px; }
+  .premium-list li { padding: 8px 0; color: var(--text); font-size: 15px; display: flex; align-items: center; gap: 10px; }
+  .premium-list li::before { content: "✓"; color: var(--success); font-weight: 800; background: #ECFDF5; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
+  .premium-visual { background: linear-gradient(135deg, var(--primary), #6366F1); border-radius: var(--radius-lg); aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; padding: 24px; text-align: center; position: relative; overflow: hidden; }
+  .premium-visual .glow-card { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); padding: 24px; border-radius: 12px; max-width: 240px; z-index: 1; }
+
+  /* FAQ */
+  .faq-list { max-width: 780px; margin: 0 auto; }
+  details.faq-item { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; }
+  details.faq-item[open] { box-shadow: var(--shadow); border-color: rgba(37,99,235,0.3); }
+  details.faq-item summary { list-style: none; cursor: pointer; padding: 20px 24px; font-weight: 600; font-size: 16px; color: var(--text); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  details.faq-item summary::-webkit-details-marker { display: none; }
+  details.faq-item summary::after { content: "+"; font-size: 24px; color: var(--primary); font-weight: 400; line-height: 1; }
+  details.faq-item[open] summary::after { content: "−"; }
+  details.faq-item .faq-answer { padding: 0 24px 22px; color: var(--text-muted); font-size: 15px; }
+
+  /* FINAL CTA */
+  .final-cta { background: linear-gradient(135deg, var(--primary) 0%, #1E3A8A 100%); color: #fff; text-align: center; position: relative; overflow: hidden; }
+  .final-cta::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1), transparent 40%), radial-gradient(circle at 80% 70%, rgba(16,185,129,0.15), transparent 40%); }
+  .final-cta .container { position: relative; z-index: 1; }
+  .final-cta h2 { color: #fff; font-size: clamp(28px, 4.5vw, 42px); font-weight: 800; letter-spacing: -0.5px; margin-bottom: 14px; line-height: 1.15; }
+  .final-cta p { color: rgba(255,255,255,0.85); font-size: 18px; margin-bottom: 32px; max-width: 560px; margin-left: auto; margin-right: auto; }
+  .final-cta .hero-ctas { justify-content: center; }
+  .final-cta .btn-outline { background: transparent; color: #fff !important; border-color: rgba(255,255,255,0.5); }
+  .final-cta .btn-outline:hover { background: #fff; color: var(--primary) !important; }
+  .micro-copy { color: rgba(255,255,255,0.7); font-size: 13px; margin-top: 20px; }
+
+  /* URGENCY BAR */
+  .urgency-bar { background: #FEF3C7; color: #92400E; text-align: center; padding: 10px 16px; font-size: 14px; font-weight: 600; }
+  .urgency-bar .pulse { display: inline-block; width: 8px; height: 8px; background: #DC2626; border-radius: 50%; margin-right: 8px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* FOOTER */
+  footer { background: #0F172A; color: #94A3B8; padding: 48px 0 24px; font-size: 14px; }
+  footer .footer-grid { display: grid; gap: 32px; grid-template-columns: 1.5fr 1fr 1fr 1fr; margin-bottom: 36px; }
+  footer h4 { color: #fff; font-size: 14px; margin-bottom: 14px; font-weight: 600; }
+  footer ul { list-style: none; }
+  footer li { margin-bottom: 10px; }
+  footer a { color: #94A3B8; }
+  footer a:hover { color: #fff; }
+  footer .footer-logo { color: #fff; font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  footer .tagline { font-size: 13px; line-height: 1.6; max-width: 280px; }
+  footer .footer-bottom { border-top: 1px solid #1E293B; padding-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 13px; }
+
+  /* FLOATING WHATSAPP */
+  .float-wa { position: fixed; z-index: 99; bottom: 20px; right: 20px; background: var(--whatsapp); color: #fff; padding: 14px 22px; border-radius: 999px; font-weight: 600; font-size: 15px; box-shadow: 0 12px 32px rgba(37,211,102,0.45); display: inline-flex; align-items: center; gap: 10px; transition: transform 0.2s, box-shadow 0.2s; animation: float-in 0.5s 0.5s both; }
+  .float-wa:hover { transform: translateY(-3px) scale(1.03); background: var(--whatsapp-dark); }
+  .float-wa svg { width: 24px; height: 24px; }
+  @keyframes float-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* EXIT INTENT */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.7); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: var(--radius-lg); max-width: 460px; width: 100%; padding: 36px 32px; text-align: center; position: relative; box-shadow: var(--shadow-lg); }
+  .modal h3 { font-size: 24px; margin-bottom: 10px; font-weight: 800; }
+  .modal p { color: var(--text-muted); margin-bottom: 24px; font-size: 15px; }
+  .modal .modal-close { position: absolute; top: 12px; right: 14px; width: 32px; height: 32px; border-radius: 50%; color: var(--text-muted); font-size: 22px; background: transparent; }
+  .modal-icon { font-size: 40px; margin-bottom: 12px; }
+
+  /* MOBILE */
+  @media (max-width: 900px) {
+    .header-nav .nav-link { display: none; }
+  }
+  @media (max-width: 768px) {
+    section { padding: 56px 0; }
+    .traveler-hero { padding: 40px 0 56px; }
+    .search-card { flex-direction: column; border-radius: 18px; padding: 12px; gap: 6px; }
+    .search-field { padding: 12px 14px; }
+    .search-field + .search-field { border-left: none; border-top: 1px solid var(--border); }
+    .search-btn { width: 100%; justify-content: center; padding: 14px; border-radius: 12px; }
+    .hero { padding: 36px 0 48px; }
+    .hero h1 { font-size: 30px; }
+    .premium-card { grid-template-columns: 1fr; padding: 28px; }
+    footer .footer-grid { grid-template-columns: 1fr 1fr; }
+    .header-cta span { display: none; }
+    .header-cta { padding: 10px 12px; }
+    .float-wa { bottom: 16px; right: 16px; padding: 12px 18px; font-size: 14px; }
+    .btn { padding: 14px 22px; font-size: 15px; }
+    .hero-ctas { flex-direction: column; align-items: stretch; }
+    .hero-ctas .btn { width: 100%; }
+  }
+  @media (max-width: 480px) { footer .footer-grid { grid-template-columns: 1fr; } }
+  @media (min-width: 769px) { .float-wa { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="urgency-bar">
+  <span class="pulse"></span>
+  Limited slots for Featured Listings this month — Early-bird commission rates ending soon.
+</div>
+
+<header class="header">
+  <div class="container header-inner">
+    <a href="index.html" class="brand" aria-label="Hotelzz.in home">
+      <span class="brand-mark">
+        <span class="brand-name">Hotelzz<span class="tld">.in</span></span>
+        <span class="brand-tag">Hotel Marketplace</span>
+      </span>
+    </a>
+    <nav class="header-nav">
+      <a href="city.html" class="nav-link" style="color:var(--primary); font-weight:700;">🔍 Search Hotels</a>
+      
+      <!-- TRAVELER LOGIN BUTTON -->
+      <a href="login.html?type=traveler" class="nav-link" style="background:#EFF6FF; color:#2563EB; font-weight:700; border:1px solid #BFDBFE;">👤 Traveler Login</a>
+
+      <!-- FOR HOTEL OWNERS DROPDOWN -->
+      <div class="nav-dropdown">
+        <button class="dropdown-trigger" aria-haspopup="true">
+          <span>🏢 For Hotel Owners</span>
+          <span style="font-size:10px; margin-left:2px;">▼</span>
+        </button>
+        <div class="dropdown-menu" role="menu">
+          <a href="login.html?type=owner-register" class="dropdown-item">
+            <span>🏨 Register Your Business</span>
+          </a>
+          <a href="claim.html" class="dropdown-item">
+            <span>🔍 Find & Claim Your Business</span>
+          </a>
+        </div>
+      </div>
+
+      <button data-search-trigger aria-label="Search hotels" title="Search hotels (press /)" style="background:var(--bg-alt);border:1px solid var(--border);color:var(--text);width:38px;height:38px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+
+      <a href="https://wa.me/919930090487?text=Hi%20Hotelzz!%20I%20want%20to%20list%20my%20property...&utm_source=website&utm_medium=header&utm_campaign=hotel_signup" class="header-cta" target="_blank" rel="noopener" data-cta="header">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.607zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.149-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.289.173-1.413z"/></svg>
+        <span>List My Property</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<!-- TRAVELER SEARCH HERO -->
+<section class="traveler-hero">
+  <div class="container">
+    <h1>India's hand-picked hotels &amp; stays — book direct on WhatsApp</h1>
+    <p class="lead">3,000+ properties across 51 destinations — Goa beaches · Rajasthan palaces · Himalayan hill stations · Kerala backwaters · North-East valleys · the Andamans &amp; more. Zero booking fees. Best rate on WhatsApp.</p>
+
+    <form class="search-card" id="searchForm" onsubmit="event.preventDefault(); doSearch();">
+      <div class="search-field">
+        <label for="searchCity">Where to?</label>
+        <input list="cityList" id="searchCity" placeholder="Search city or area in Goa" autocomplete="off" />
+        <datalist id="cityList">
+          <option value="Calangute"></option><option value="Baga"></option>
+          <option value="Anjuna"></option><option value="Candolim"></option>
+          <option value="Vagator"></option><option value="Panaji"></option>
+          <option value="North Goa"></option>
+          <option value="Bandra"></option><option value="Khar"></option>
+          <option value="Santacruz"></option><option value="Vile Parle"></option>
+          <option value="Andheri"></option><option value="Jogeshwari"></option>
+          <option value="Goregaon"></option><option value="Malad"></option>
+          <option value="Kandivali"></option><option value="Borivali"></option>
+          <option value="Dahisar"></option>
+          <option value="Gorai"></option><option value="Manori"></option>
+          <option value="Uttan"></option>
+          <option value="Colaba"></option><option value="Fort"></option>
+          <option value="Marine Drive"></option><option value="Mahalaxmi"></option>
+          <option value="Worli"></option><option value="Lower Parel"></option>
+          <option value="Prabhadevi"></option><option value="Dadar"></option>
+          <option value="Thane"></option>
+          <option value="Vashi"></option><option value="Nerul"></option>
+          <option value="Belapur"></option><option value="Kharghar"></option>
+          <option value="Panvel"></option>
+          <option value="Manali"></option><option value="Shimla"></option>
+          <option value="Kasol"></option><option value="Dharamshala"></option>
+          <option value="McLeodganj"></option><option value="Dalhousie"></option>
+          <option value="Bir"></option><option value="Tosh"></option>
+          <option value="Kheerganga"></option><option value="Kaza"></option>
+          <option value="Chail"></option><option value="Solan"></option>
+          <option value="Palampur"></option><option value="Jibhi"></option>
+          <option value="Narkanda"></option><option value="Kalpa"></option>
+          <option value="Delhi"></option><option value="Agra"></option>
+          <option value="Varanasi"></option><option value="Amritsar"></option>
+          <option value="Jaipur"></option><option value="Udaipur"></option>
+          <option value="Jodhpur"></option><option value="Jaisalmer"></option>
+          <option value="Pushkar"></option><option value="Mt Abu"></option>
+          <option value="Rishikesh"></option><option value="Mussoorie"></option>
+          <option value="Nainital"></option><option value="Auli"></option>
+          <option value="Dhanaulti"></option>
+          <option value="Munnar"></option><option value="Alleppey"></option>
+          <option value="Wayanad"></option><option value="Kovalam"></option>
+          <option value="Bangalore"></option><option value="Mysore"></option>
+          <option value="Coorg"></option><option value="Hampi"></option>
+          <option value="Chikmagalur"></option><option value="Gokarna"></option>
+          <option value="Pondicherry"></option><option value="Ooty"></option>
+          <option value="Kodaikanal"></option>
+          <option value="Pune"></option><option value="Lonavala"></option>
+          <option value="Mahabaleshwar"></option>
+          <option value="Shillong"></option><option value="Gangtok"></option>
+          <option value="Darjeeling"></option><option value="Ziro"></option>
+          <option value="Tawang"></option>
+          <option value="Leh"></option><option value="Port Blair"></option>
+          <option value="Lakshadweep"></option><option value="Khajuraho"></option>
+        </datalist>
+      </div>
+      <div class="search-field">
+        <label for="searchDates">Check-in &amp; check-out</label>
+        <input id="searchDates" type="text" placeholder="Select dates" onfocus="(this.type='date')" />
+      </div>
+      <div class="search-field">
+        <label for="searchGuests">Guests</label>
+        <select id="searchGuests">
+          <option>1 guest</option>
+          <option selected>2 guests</option>
+          <option>3 guests</option>
+          <option>4 guests</option>
+          <option>5+ guests</option>
+        </select>
+      </div>
+      <button type="submit" class="search-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search
+      </button>
+    </form>
+    <p style="margin-top:20px;color:rgba(255,255,255,0.85);font-size:14px;">
+      Looking for a specific hotel?
+      <button data-search-trigger style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);color:#fff;padding:6px 14px;border-radius:999px;font-weight:600;font-size:13px;cursor:pointer;margin-left:6px;display:inline-flex;align-items:center;gap:6px;transition:all .15s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        Search 3,000+ hotels by name →
+      </button>
+    </p>
+  </div>
+</section>
+
+<!-- POPULAR DESTINATIONS -->
+<section class="destinations">
+  <div class="container">
+    <h2>Popular destinations</h2>
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:18px 0 10px;">Goa</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=calangute"><span class="dest-circle">🏖️</span><span class="dest-info"><strong>Calangute</strong><span>20+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=baga"><span class="dest-circle">🌅</span><span class="dest-info"><strong>Baga</strong><span>15+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=anjuna"><span class="dest-circle">🌊</span><span class="dest-info"><strong>Anjuna</strong><span>20+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=candolim"><span class="dest-circle">🏝️</span><span class="dest-info"><strong>Candolim</strong><span>18+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=vagator"><span class="dest-circle">🌴</span><span class="dest-info"><strong>Vagator</strong><span>15+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=panaji"><span class="dest-circle">🕌</span><span class="dest-info"><strong>Panaji</strong><span>20+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=north-goa"><span class="dest-circle">🌄</span><span class="dest-info"><strong>North Goa</strong><span>6+ villas</span></span></a>
+    </div>
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">Mumbai · Western Suburbs</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=bandra"><span class="dest-circle">🌆</span><span class="dest-info"><strong>Bandra</strong><span>12+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=khar"><span class="dest-circle">🏙️</span><span class="dest-info"><strong>Khar</strong><span>6+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=santacruz"><span class="dest-circle">🛬</span><span class="dest-info"><strong>Santacruz</strong><span>6+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=vile-parle"><span class="dest-circle">✈️</span><span class="dest-info"><strong>Vile Parle</strong><span>8+ stays · Airport</span></span></a>
+      <a class="dest-item" href="city.html?city=andheri"><span class="dest-circle">🏢</span><span class="dest-info"><strong>Andheri</strong><span>15+ stays · Airport</span></span></a>
+      <a class="dest-item" href="city.html?city=jogeshwari"><span class="dest-circle">🌇</span><span class="dest-info"><strong>Jogeshwari</strong><span>5+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=goregaon"><span class="dest-circle">🎬</span><span class="dest-info"><strong>Goregaon</strong><span>10+ stays · Film City</span></span></a>
+      <a class="dest-item" href="city.html?city=malad"><span class="dest-circle">🛍️</span><span class="dest-info"><strong>Malad</strong><span>10+ stays · Inorbit</span></span></a>
+      <a class="dest-item" href="city.html?city=kandivali"><span class="dest-circle">🌃</span><span class="dest-info"><strong>Kandivali</strong><span>8+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=borivali"><span class="dest-circle">🌳</span><span class="dest-info"><strong>Borivali</strong><span>10+ stays · SGNP</span></span></a>
+      <a class="dest-item" href="city.html?city=dahisar"><span class="dest-circle">🌉</span><span class="dest-info"><strong>Dahisar</strong><span>5+ stays</span></span></a>
+    </div>
+
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">Mumbai · Beach Suburbs</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=gorai"><span class="dest-circle">🏖️</span><span class="dest-info"><strong>Gorai</strong><span>7+ stays · Esselworld</span></span></a>
+      <a class="dest-item" href="city.html?city=manori"><span class="dest-circle">⛵</span><span class="dest-info"><strong>Manori</strong><span>6+ stays · Beach</span></span></a>
+      <a class="dest-item" href="city.html?city=uttan"><span class="dest-circle">🌊</span><span class="dest-info"><strong>Uttan</strong><span>5+ stays · Beach</span></span></a>
+    </div>
+
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">South &amp; Central Mumbai</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=colaba"><span class="dest-circle">⛴️</span><span class="dest-info"><strong>Colaba</strong><span>9+ stays · Gateway</span></span></a>
+      <a class="dest-item" href="city.html?city=fort"><span class="dest-circle">🏛️</span><span class="dest-info"><strong>Fort</strong><span>7+ stays · CST</span></span></a>
+      <a class="dest-item" href="city.html?city=marine-drive"><span class="dest-circle">🌅</span><span class="dest-info"><strong>Marine Drive</strong><span>6+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=mahalaxmi"><span class="dest-circle">🏇</span><span class="dest-info"><strong>Mahalaxmi</strong><span>4+ stays · Race Course</span></span></a>
+      <a class="dest-item" href="city.html?city=worli"><span class="dest-circle">🌉</span><span class="dest-info"><strong>Worli</strong><span>6+ stays · Sea Face</span></span></a>
+      <a class="dest-item" href="city.html?city=lower-parel"><span class="dest-circle">🏙️</span><span class="dest-info"><strong>Lower Parel</strong><span>7+ stays · Phoenix</span></span></a>
+      <a class="dest-item" href="city.html?city=prabhadevi"><span class="dest-circle">🛕</span><span class="dest-info"><strong>Prabhadevi</strong><span>4+ stays · Siddhivinayak</span></span></a>
+      <a class="dest-item" href="city.html?city=dadar"><span class="dest-circle">🚉</span><span class="dest-info"><strong>Dadar</strong><span>7+ stays · Shivaji Park</span></span></a>
+    </div>
+
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">Thane &amp; Navi Mumbai</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=thane"><span class="dest-circle">🌆</span><span class="dest-info"><strong>Thane</strong><span>12+ stays · Ghodbunder</span></span></a>
+      <a class="dest-item" href="city.html?city=vashi"><span class="dest-circle">🛍️</span><span class="dest-info"><strong>Vashi</strong><span>8+ stays · Inorbit</span></span></a>
+      <a class="dest-item" href="city.html?city=nerul"><span class="dest-circle">🌴</span><span class="dest-info"><strong>Nerul</strong><span>6+ stays · Seawoods</span></span></a>
+      <a class="dest-item" href="city.html?city=belapur"><span class="dest-circle">🏢</span><span class="dest-info"><strong>CBD Belapur</strong><span>6+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=kharghar"><span class="dest-circle">🌳</span><span class="dest-info"><strong>Kharghar</strong><span>6+ stays · Central Park</span></span></a>
+      <a class="dest-item" href="city.html?city=panvel"><span class="dest-circle">✈️</span><span class="dest-info"><strong>Panvel</strong><span>7+ stays · NMIA Airport</span></span></a>
+    </div>
+
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">North India · Iconic Cities</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=delhi"><span class="dest-circle">🏛️</span><span class="dest-info"><strong>Delhi</strong><span>100+ stays · CP, Aerocity</span></span></a>
+      <a class="dest-item" href="city.html?city=agra"><span class="dest-circle">🕌</span><span class="dest-info"><strong>Agra</strong><span>100+ stays · Taj Mahal</span></span></a>
+      <a class="dest-item" href="city.html?city=varanasi"><span class="dest-circle">🪔</span><span class="dest-info"><strong>Varanasi</strong><span>100+ stays · Ghats</span></span></a>
+      <a class="dest-item" href="city.html?city=amritsar"><span class="dest-circle">☬</span><span class="dest-info"><strong>Amritsar</strong><span>100+ stays · Golden Temple</span></span></a>
+    </div>
+
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">Rajasthan · Royal Cities</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=jaipur"><span class="dest-circle">🏰</span><span class="dest-info"><strong>Jaipur</strong><span>100+ stays · Pink City</span></span></a>
+      <a class="dest-item" href="city.html?city=udaipur"><span class="dest-circle">🏞️</span><span class="dest-info"><strong>Udaipur</strong><span>100+ stays · City of Lakes</span></span></a>
+      <a class="dest-item" href="city.html?city=jodhpur"><span class="dest-circle">🌅</span><span class="dest-info"><strong>Jodhpur</strong><span>70+ stays · Blue City</span></span></a>
+      <a class="dest-item" href="city.html?city=jaisalmer"><span class="dest-circle">🐫</span><span class="dest-info"><strong>Jaisalmer</strong><span>70+ stays · Golden City</span></span></a>
+      <a class="dest-item" href="city.html?city=pushkar"><span class="dest-circle">🛕</span><span class="dest-info"><strong>Pushkar</strong><span>30+ stays · Holy Lake</span></span></a>
+      <a class="dest-item" href="city.html?city=mt-abu"><span class="dest-circle">⛰️</span><span class="dest-info"><strong>Mt Abu</strong><span>30+ stays · Nakki Lake</span></span></a>
+    </div>
+
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">Himachal Pradesh · Hill Stations</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=manali"><span class="dest-circle">⛰️</span><span class="dest-info"><strong>Manali</strong><span>15+ stays · Solang &amp; Old Manali</span></span></a>
+      <a class="dest-item" href="city.html?city=shimla"><span class="dest-circle">🏔️</span><span class="dest-info"><strong>Shimla</strong><span>12+ stays · Mall Rd &amp; Ridge</span></span></a>
+      <a class="dest-item" href="city.html?city=kasol"><span class="dest-circle">🏞️</span><span class="dest-info"><strong>Kasol</strong><span>10+ stays · Parvati Valley</span></span></a>
+      <a class="dest-item" href="city.html?city=dharamshala"><span class="dest-circle">☸️</span><span class="dest-info"><strong>Dharamshala</strong><span>8+ stays</span></span></a>
+      <a class="dest-item" href="city.html?city=mcleodganj"><span class="dest-circle">🛕</span><span class="dest-info"><strong>McLeodganj</strong><span>8+ stays · Bhagsu</span></span></a>
+      <a class="dest-item" href="city.html?city=dalhousie"><span class="dest-circle">🌲</span><span class="dest-info"><strong>Dalhousie</strong><span>6+ stays · Khajjiar</span></span></a>
+      <a class="dest-item" href="city.html?city=bir"><span class="dest-circle">🪂</span><span class="dest-info"><strong>Bir</strong><span>5+ stays · Paragliding</span></span></a>
+      <a class="dest-item" href="city.html?city=tosh"><span class="dest-circle">🌄</span><span class="dest-info"><strong>Tosh</strong><span>4+ stays · Parvati</span></span></a>
+      <a class="dest-item" href="city.html?city=kheerganga"><span class="dest-circle">♨️</span><span class="dest-info"><strong>Kheerganga</strong><span>3+ stays · Hot springs</span></span></a>
+      <a class="dest-item" href="city.html?city=kaza"><span class="dest-circle">🏛️</span><span class="dest-info"><strong>Kaza</strong><span>5+ stays · Spiti Valley</span></span></a>
+      <a class="dest-item" href="city.html?city=chail"><span class="dest-circle">🌳</span><span class="dest-info"><strong>Chail</strong><span>4+ stays · Heritage Palace</span></span></a>
+      <a class="dest-item" href="city.html?city=solan"><span class="dest-circle">🍷</span><span class="dest-info"><strong>Solan</strong><span>4+ stays · Kandaghat</span></span></a>
+      <a class="dest-item" href="city.html?city=palampur"><span class="dest-circle">🍵</span><span class="dest-info"><strong>Palampur</strong><span>5+ stays · Tea Estates</span></span></a>
+      <a class="dest-item" href="city.html?city=jibhi"><span class="dest-circle">🌿</span><span class="dest-info"><strong>Jibhi</strong><span>5+ stays · Tirthan Valley</span></span></a>
+      <a class="dest-item" href="city.html?city=narkanda"><span class="dest-circle">🎿</span><span class="dest-info"><strong>Narkanda</strong><span>3+ stays · Hatu Peak</span></span></a>
+      <a class="dest-item" href="city.html?city=kalpa"><span class="dest-circle">🍎</span><span class="dest-info"><strong>Kalpa</strong><span>3+ stays · Kinnaur</span></span></a>
+    </div>
+
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">Uttarakhand · Devbhoomi</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=rishikesh"><span class="dest-circle">🧘</span><span class="dest-info"><strong>Rishikesh</strong><span>100+ stays · Yoga Capital</span></span></a>
+      <a class="dest-item" href="city.html?city=mussoorie"><span class="dest-circle">🌫️</span><span class="dest-info"><strong>Mussoorie</strong><span>100+ stays · Mall Rd</span></span></a>
+      <a class="dest-item" href="city.html?city=nainital"><span class="dest-circle">🛶</span><span class="dest-info"><strong>Nainital</strong><span>100+ stays · Naini Lake</span></span></a>
+      <a class="dest-item" href="city.html?city=auli"><span class="dest-circle">⛷️</span><span class="dest-info"><strong>Auli</strong><span>30+ stays · Skiing</span></span></a>
+      <a class="dest-item" href="city.html?city=dhanaulti"><span class="dest-circle">🌲</span><span class="dest-info"><strong>Dhanaulti</strong><span>30+ stays · Eco Park</span></span></a>
+    </div>
+
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">Kerala · God's Own Country</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=munnar"><span class="dest-circle">🍵</span><span class="dest-info"><strong>Munnar</strong><span>100+ stays · Tea Estates</span></span></a>
+      <a class="dest-item" href="city.html?city=alleppey"><span class="dest-circle">🚣</span><span class="dest-info"><strong>Alleppey</strong><span>70+ stays · Backwaters</span></span></a>
+      <a class="dest-item" href="city.html?city=wayanad"><span class="dest-circle">🌴</span><span class="dest-info"><strong>Wayanad</strong><span>70+ stays · Hills</span></span></a>
+      <a class="dest-item" href="city.html?city=kovalam"><span class="dest-circle">🏖️</span><span class="dest-info"><strong>Kovalam</strong><span>30+ stays · Lighthouse Beach</span></span></a>
+    </div>
+
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">Karnataka · Hills, Coast &amp; Heritage</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=bangalore"><span class="dest-circle">🏙️</span><span class="dest-info"><strong>Bangalore</strong><span>100+ stays · Tech &amp; Pubs</span></span></a>
+      <a class="dest-item" href="city.html?city=coorg"><span class="dest-circle">☕</span><span class="dest-info"><strong>Coorg</strong><span>100+ stays · Coffee Hills</span></span></a>
+      <a class="dest-item" href="city.html?city=mysore"><span class="dest-circle">🏯</span><span class="dest-info"><strong>Mysore</strong><span>70+ stays · Palace</span></span></a>
+      <a class="dest-item" href="city.html?city=hampi"><span class="dest-circle">🗿</span><span class="dest-info"><strong>Hampi</strong><span>30+ stays · UNESCO Ruins</span></span></a>
+      <a class="dest-item" href="city.html?city=chikmagalur"><span class="dest-circle">⛰️</span><span class="dest-info"><strong>Chikmagalur</strong><span>30+ stays · Coffee Estates</span></span></a>
+      <a class="dest-item" href="city.html?city=gokarna"><span class="dest-circle">🌊</span><span class="dest-info"><strong>Gokarna</strong><span>30+ stays · Om Beach</span></span></a>
+    </div>
+
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">Tamil Nadu &amp; Puducherry</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=pondicherry"><span class="dest-circle">🥖</span><span class="dest-info"><strong>Pondicherry</strong><span>100+ stays · French Quarter</span></span></a>
+      <a class="dest-item" href="city.html?city=ooty"><span class="dest-circle">🌹</span><span class="dest-info"><strong>Ooty</strong><span>70+ stays · Nilgiri Queen</span></span></a>
+      <a class="dest-item" href="city.html?city=kodaikanal"><span class="dest-circle">🏞️</span><span class="dest-info"><strong>Kodaikanal</strong><span>70+ stays · Princess of Hills</span></span></a>
+    </div>
+
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">Maharashtra · Outside Mumbai</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=pune"><span class="dest-circle">🎓</span><span class="dest-info"><strong>Pune</strong><span>100+ stays · Oxford of East</span></span></a>
+      <a class="dest-item" href="city.html?city=lonavala"><span class="dest-circle">🌧️</span><span class="dest-info"><strong>Lonavala</strong><span>70+ stays · Monsoon Hills</span></span></a>
+      <a class="dest-item" href="city.html?city=mahabaleshwar"><span class="dest-circle">🍓</span><span class="dest-info"><strong>Mahabaleshwar</strong><span>70+ stays · Strawberry Hills</span></span></a>
+    </div>
+
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">North-East &amp; Eastern Himalayas</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=shillong"><span class="dest-circle">💧</span><span class="dest-info"><strong>Shillong</strong><span>70+ stays · Scotland of East</span></span></a>
+      <a class="dest-item" href="city.html?city=gangtok"><span class="dest-circle">🏔️</span><span class="dest-info"><strong>Gangtok</strong><span>70+ stays · Sikkim Capital</span></span></a>
+      <a class="dest-item" href="city.html?city=darjeeling"><span class="dest-circle">🚂</span><span class="dest-info"><strong>Darjeeling</strong><span>70+ stays · Toy Train</span></span></a>
+      <a class="dest-item" href="city.html?city=ziro"><span class="dest-circle">🌾</span><span class="dest-info"><strong>Ziro Valley</strong><span>30+ stays · Apatani</span></span></a>
+      <a class="dest-item" href="city.html?city=tawang"><span class="dest-circle">🛕</span><span class="dest-info"><strong>Tawang</strong><span>30+ stays · Monastery</span></span></a>
+    </div>
+
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:32px 0 10px;">Islands, Ladakh &amp; Heritage</p>
+    <div class="dest-grid">
+      <a class="dest-item" href="city.html?city=leh"><span class="dest-circle">🏞️</span><span class="dest-info"><strong>Ladakh / Leh</strong><span>70+ stays · Monasteries</span></span></a>
+      <a class="dest-item" href="city.html?city=port-blair"><span class="dest-circle">🏝️</span><span class="dest-info"><strong>Andaman</strong><span>30+ stays · Port Blair</span></span></a>
+      <a class="dest-item" href="city.html?city=lakshadweep"><span class="dest-circle">🐠</span><span class="dest-info"><strong>Lakshadweep</strong><span>30+ stays · Coral Islands</span></span></a>
+      <a class="dest-item" href="city.html?city=khajuraho"><span class="dest-circle">🛕</span><span class="dest-info"><strong>Khajuraho</strong><span>30+ stays · UNESCO Temples</span></span></a>
+    </div>
+  </div>
+</section>
+
+<!-- B2B HERO -->
+<section class="hero" id="b2b">
+  <div class="container">
+    <h1>Hotel Owner? Get More <span class="accent">Direct Bookings.</span> Zero Commission Until You Earn.</h1>
+    <p class="subhead">List your hotel, resort, or homestay on Hotelzz.in — India's fastest-growing travel directory with AI-powered visibility & direct WhatsApp bookings. No setup fees. No long contracts.</p>
+
+    <div class="hero-ctas">
+      <a href="https://wa.me/919930090487?text=Hi%20Hotelzz!%20I%20want%20to%20list%20my%20property...&utm_source=website&utm_medium=hero&utm_campaign=hotel_signup" class="btn btn-whatsapp" target="_blank" rel="noopener" data-cta="hero_primary">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.607z"/></svg>
+        List My Property Free →
+      </a>
+      <a href="#how-it-works" class="btn btn-outline" data-cta="hero_secondary">See How It Works</a>
+    </div>
+
+    <div class="trust-badges">
+      <span class="trust-badge"><span class="check">✓</span> No upfront cost</span>
+      <span class="trust-badge"><span class="check">✓</span> Direct guest chats</span>
+      <span class="trust-badge"><span class="check">✓</span> Featured in Google Travel</span>
+      <span class="trust-badge"><span class="check">✓</span> AI-Powered Visibility</span>
+    </div>
+
+    <div class="hero-strip">
+      <div class="stat"><strong id="statPropCount1">1,200+</strong><span>Properties Listed</span></div>
+      <div class="stat"><strong>₹2.3 Cr+</strong><span>Direct Bookings</span></div>
+      <div class="stat"><strong>4.9/5</strong><span>Owner Rating</span></div>
+      <div class="stat"><strong>0%</strong><span>Setup Fee</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUE PROPS -->
+<section id="benefits">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">Why Hotelzz.in</span>
+      <h2>Built for Hoteliers Who Want to Keep More Revenue</h2>
+      <p>Stop losing 20-30% to OTAs. Start owning your guests, your data, and your margins.</p>
+    </div>
+    <div class="value-grid">
+      <div class="value-card"><div class="value-icon">🚀</div><h3>AI-Powered Visibility</h3><p>Get discovered by travelers searching "best resorts in Goa" or "boutique stays in Kerala" — we optimize your listing for SEO and Google Travel automatically.</p></div>
+      <div class="value-card"><div class="value-icon">💰</div><h3>Keep More Revenue</h3><p>Pay commission ONLY on confirmed bookings. No subscriptions. No hidden fees. Compare your real payouts vs. OTAs and see the difference.</p></div>
+      <div class="value-card"><div class="value-icon">📱</div><h3>Direct WhatsApp Bookings</h3><p>Guests message you directly. Build relationships, upsell experiences like airport pickups and dinners, and avoid OTA commissions forever.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works" class="steps">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">How It Works</span>
+      <h2>From Sign-Up to First Booking in 3 Simple Steps</h2>
+      <p>The whole process takes less than a day. No paperwork. No tech skills needed.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card"><div class="step-num">1</div><h3>Submit Your Property</h3><p>Send us photos & details on WhatsApp — or fill our 60-second form. We'll handle the rest.</p></div>
+      <div class="step-card"><div class="step-num">2</div><h3>We Optimize & Feature</h3><p>Our team SEO-optimizes your listing, adds AI-tagged keywords, and pushes you to Google Travel & social.</p></div>
+      <div class="step-card"><div class="step-num">3</div><h3>Get Direct Bookings</h3><p>Guests WhatsApp you directly. You confirm. Pay a small commission only when paid by guest.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section id="proof">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">Trusted By Indian Hoteliers</span>
+      <h2><span id="statPropCountHeadline">500+</span> Properties Already Filling Rooms Through Hotelzz</h2>
+    </div>
+    <div class="stats-row">
+      <div class="stat-big"><strong id="statPropCount2">1,200+</strong><span>Properties Listed</span></div>
+      <div class="stat-big"><strong>₹2.3 Cr+</strong><span>Direct Bookings Facilitated</span></div>
+      <div class="stat-big"><strong>4.9/5</strong><span>Owner Satisfaction</span></div>
+      <div class="stat-big"><strong>30 sec</strong><span>To Get Listed</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PREMIUM -->
+<section class="premium" id="premium">
+  <div class="container">
+    <div class="premium-card">
+      <div>
+        <span class="premium-badge">⭐ FEATURED LISTING</span>
+        <h3>Get 5x More Bookings with Premium Visibility</h3>
+        <p style="color:var(--text-muted);">Stand out from the crowd with our Featured Listing package — designed for hotels serious about growth.</p>
+        <ul class="premium-list">
+          <li>Top of search results in your city</li>
+          <li>Instagram Reels & Stories promotion</li>
+          <li>Google Ads boost (we run them for you)</li>
+          <li>Priority WhatsApp lead routing</li>
+          <li>Monthly performance dashboard</li>
+        </ul>
+        <a href="https://wa.me/919930090487?text=Hi%20Hotelzz!%20I%20want%20Featured%20Listing%20details...&utm_source=website&utm_medium=premium&utm_campaign=featured_listing" class="btn btn-primary" target="_blank" rel="noopener" data-cta="premium">Upgrade for 5x Visibility →</a>
+      </div>
+      <div class="premium-visual">
+        <div class="glow-card">
+          <div style="font-size:32px;margin-bottom:8px;">📈</div>
+          <div style="font-size:24px;font-weight:800;margin-bottom:4px;">+512%</div>
+          <div style="font-size:13px;opacity:0.9;">Avg. Visibility Lift<br/>for Featured Listings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">FAQ</span>
+      <h2>Questions Hoteliers Ask Us Most</h2>
+      <p>Quick answers. Honest pricing. Zero fine print.</p>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item" open><summary>Is there a setup fee or monthly cost?</summary><div class="faq-answer">Nope. Listing is 100% free. You only pay a small commission (8-12%) when you receive a confirmed paid booking through us. No monthly fees, no setup charges, no surprises.</div></details>
+      <details class="faq-item"><summary>How do payments and commissions work?</summary><div class="faq-answer">Guest contacts you on WhatsApp → You confirm the booking and collect payment directly → You pay us 8-12% commission via UPI/bank transfer after the guest checks in.</div></details>
+      <details class="faq-item"><summary>Can I list multiple properties?</summary><div class="faq-answer">Absolutely! We offer bulk listing discounts for chains and owners with multiple properties. Just chat with us on WhatsApp and we'll set it up.</div></details>
+      <details class="faq-item"><summary>What if I'm already on MakeMyTrip, Booking.com, or Agoda?</summary><div class="faq-answer">List with us TOO — we drive direct bookings that OTAs can't. Hotelzz works alongside your existing channels and helps you reduce dependence on high-commission platforms.</div></details>
+      <details class="faq-item"><summary>How long does it take to start receiving bookings?</summary><div class="faq-answer">Most properties get their first inquiry within 5-7 days of going live. Featured listings often see traction in 24-48 hours.</div></details>
+      <details class="faq-item"><summary>Who owns the guest data and contact info?</summary><div class="faq-answer">You do. 100%. Hotelzz never hides guest contact details. Build your customer database, run your own marketing, own your relationships.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta" id="final">
+  <div class="container">
+    <h2>Ready to Fill Your Rooms with Direct Guests?</h2>
+    <p>Join 500+ smart hoteliers across India. Zero risk. Zero setup. Start today.</p>
+    <div class="hero-ctas">
+      <a href="https://wa.me/919930090487?text=Hi%20Hotelzz!%20I%20want%20to%20list%20my%20property...&utm_source=website&utm_medium=final_cta&utm_campaign=hotel_signup" class="btn btn-whatsapp" target="_blank" rel="noopener" data-cta="final_primary">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885z"/></svg>
+        Chat to List Now (30 sec)
+      </a>
+      <a href="tel:+919930090487" class="btn btn-outline" data-cta="call">📞 Call +91 99300 90487</a>
+    </div>
+    <p class="micro-copy">No spam. No calls. Just WhatsApp.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Hotelzz<span style="color:#60A5FA;">.in</span></div>
+        <p class="tagline">Direct Bookings. Happy Hoteliers.<br/>India's smartest hotel marketplace built for owners who want to keep more revenue.</p>
+      </div>
+      <div>
+        <h4>Browse Hotels</h4>
+        <ul>
+          <li><a href="city.html?city=calangute">Goa Beaches</a></li>
+          <li><a href="city.html?city=bandra">Bandra · Mumbai</a></li>
+          <li><a href="city.html?city=andheri">Andheri · Mumbai</a></li>
+          <li><a href="city.html?city=colaba">South Mumbai</a></li>
+          <li><a href="city.html?city=gorai">Gorai · Manori · Uttan</a></li>
+          <li><a href="city.html?city=thane">Thane</a></li>
+          <li><a href="city.html?city=vashi">Navi Mumbai</a></li>
+          <li><a href="city.html?city=panvel">Panvel · NMIA Airport</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <ul>
+          <li><a href="https://wa.me/919930090487" target="_blank" rel="noopener">WhatsApp Us</a></li>
+          <li><a href="tel:+919930090487">+91 99300 90487</a></li>
+          <li><a href="mailto:hello@hotelzz.in">hello@hotelzz.in</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Hotelzz.in — All rights reserved.</span>
+      <span>Made with ❤ for Indian Hospitality</span>
+    </div>
+  </div>
+</footer>
+
+<a href="https://wa.me/919930090487?text=Hi%20Hotelzz!%20I%20want%20to%20list%20my%20property...&utm_source=website&utm_medium=float_button&utm_campaign=hotel_signup" class="float-wa" target="_blank" rel="noopener" aria-label="Chat on WhatsApp" data-cta="float">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>
+  <span>Chat to Get Started</span>
+</a>
+
+<div class="modal-overlay" id="exitModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <button class="modal-close" id="closeModal" aria-label="Close">×</button>
+    <div class="modal-icon">🎁</div>
+    <h3>Wait! Get a FREE Visibility Audit</h3>
+    <p>We'll personally review your property and share a custom growth plan — no cost, no commitment.</p>
+    <a href="https://wa.me/919930090487?text=Hi%20Hotelzz!%20I%20want%20a%20FREE%20visibility%20audit...&utm_source=website&utm_medium=exit_intent&utm_campaign=audit" class="btn btn-whatsapp" style="width:100%;" target="_blank" rel="noopener" data-cta="exit_intent">Get My Free Audit →</a>
+    <p style="margin-top:12px;font-size:12px;color:var(--text-light);">No spam. We respond within 30 minutes.</p>
+  </div>
+</div>
+
+<script>
+  function doSearch() {
+    var city = document.getElementById('searchCity').value.trim().toLowerCase().replace(/\s+/g, '-');
+    var dates = document.getElementById('searchDates').value;
+    var guests = document.getElementById('searchGuests').value;
+    if (!city) city = 'calangute';
+    var url = 'city.html?city=' + encodeURIComponent(city);
+    if (dates) url += '&checkIn=' + encodeURIComponent(dates);
+    if (guests) url += '&guests=' + encodeURIComponent(guests);
+    window.location.href = url;
+  }
+
+  (function(){
+    if (window.innerWidth < 1024) return;
+    if (sessionStorage.getItem('exitShown')) return;
+    var modal = document.getElementById('exitModal');
+    var closeBtn = document.getElementById('closeModal');
+    function show(){ modal.classList.add('show'); sessionStorage.setItem('exitShown','1'); }
+    function close(){ modal.classList.remove('show'); }
+    document.addEventListener('mouseout', function(e){ if (!e.toElement && !e.relatedTarget && e.clientY < 10) show(); });
+    closeBtn.addEventListener('click', close);
+    modal.addEventListener('click', function(e){ if (e.target === modal) close(); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
+  })();
+</script>
+
+<script src="hotels-data.js" defer></script>
+<script src="hotels-loader.js" defer></script>
+<script src="search.js" defer></script>
+<script src="api-client.js" defer></script>
+<script src="session-nav.js" defer></script>
+<script>
+  // Real property counts, not hardcoded copy — rounded down to a clean
+  // hundred so it still reads as a marketing "+" number. Runs once against
+  // the bundled snapshot (instant) and again once hotels-loader.js merges
+  // in the live database, via the same hotelsUpdated event every listing
+  // page already listens for.
+  (function () {
+    function updatePropertyCounts() {
+      var total = (window.HOTELS || []).length;
+      if (!total) return;
+      var rounded = Math.floor(total / 100) * 100;
+      var label = rounded.toLocaleString('en-IN') + '+';
+      ['statPropCount1', 'statPropCount2', 'statPropCountHeadline'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = label;
+      });
+    }
+    document.addEventListener('DOMContentLoaded', updatePropertyCounts);
+    window.addEventListener('hotelsUpdated', updatePropertyCounts);
+  })();
+</script>
+  <script src="cookie-consent.js"></script>
+</body>
+</html>

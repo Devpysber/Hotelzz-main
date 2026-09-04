@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hotelzz Traveler Portal — My Enquiries & Stays</title>
+  <link rel="icon" type="image/png" href="jpg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="user-portal.css" />
+</head>
+<body class="user-body">
+
+  <div class="user-shell">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="user-sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-brand">
+          <div class="brand-icon">H</div>
+          <span class="brand-text">Hotelzz</span>
+          <span class="brand-badge">TRAVELER</span>
+        </a>
+      </div>
+
+      <nav class="user-nav">
+        <a class="user-nav-item active" data-view="overview">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span>🏠 Overview</span>
+        </a>
+        <a class="user-nav-item" data-view="search">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <span>🔍 Search Hotels</span>
+        </a>
+        <a class="user-nav-item" data-view="enquiries">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <span>📩 My Enquiries</span>
+        </a>
+        <a class="user-nav-item" data-view="reviews">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+          <span>⭐ My Reviews</span>
+        </a>
+        <a class="user-nav-item" data-view="saved">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+          <span>❤️ Saved Hotels</span>
+        </a>
+        <a class="user-nav-item" data-view="profile">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          <span>👤 My Profile</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-user-card">
+        <div class="user-avatar" id="userAvatarDisplay">R</div>
+        <div>
+          <div style="font-weight:700; font-size:13px;" id="userNameDisplay">Loading…</div>
+          <div style="font-size:11px; color:var(--user-text-muted);">Verified Traveler</div>
+        </div>
+        <button onclick="hzLogout()" title="Sign out" style="margin-left:auto; background:none; border:none; cursor:pointer; font-size:16px;">⏻</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="user-main">
+      
+      <!-- TOP HEADER -->
+      <header class="user-header">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <button id="mobileToggleBtn" style="background:none; border:none; font-size:20px; cursor:pointer;" class="mobile-toggle-btn">☰</button>
+          <div style="font-weight:800; font-size:16px;">Traveler Portal</div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:12px;">
+          <a href="index.html" class="btn-primary" style="text-decoration:none; font-size:13px;">Browse Hotels →</a>
+        </div>
+      </header>
+
+      <!-- BODY VIEWS -->
+      <main class="user-body-content">
+
+        <!-- 1. OVERVIEW VIEW -->
+        <section class="user-page-view active" id="view-overview">
+          <div class="user-welcome-card">
+            <div>
+              <h2 id="welcomeHeaderTitle">Welcome back 👋</h2>
+              <p>Find your next stay and keep track of your hotel enquiries in real-time.</p>
+            </div>
+            <a href="index.html" class="btn-secondary" style="text-decoration:none; background:#FFF; color:#1E40AF; border:none;">Explore Destinations →</a>
+          </div>
+
+          <!-- KPI Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-label">Enquiries Sent</div>
+              <div class="kpi-value" id="kpiSent">—</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Opened by Hotel</div>
+              <div class="kpi-value" style="color:#D97706;" id="kpiOpened">—</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Hotel Responses</div>
+              <div class="kpi-value" style="color:#10B981;" id="kpiResponses">—</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Reviews Given</div>
+              <div class="kpi-value" style="color:#2563EB;" id="kpiReviews">—</div>
+            </div>
+          </div>
+
+          <!-- Recent Enquiries -->
+          <div style="background:#FFF; border:1px solid var(--user-border); border-radius:12px; padding:24px; box-shadow:var(--shadow-sm);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <h3 style="font-size:17px; font-weight:800;">Recent Hotel Enquiries</h3>
+              <button class="btn-secondary" onclick="switchView('enquiries')">View All Enquiries →</button>
+            </div>
+            <div class="table-responsive">
+              <table class="user-table" style="width:100%; border-collapse:collapse; text-align:left; font-size:13.5px;">
+                <thead>
+                  <tr style="background:#F8FAFC; border-bottom:1px solid var(--user-border);">
+                    <th style="padding:10px 14px;">Hotel Property</th>
+                    <th style="padding:10px 14px;">Stay Dates</th>
+                    <th style="padding:10px 14px;">Sent Date</th>
+                    <th style="padding:10px 14px;">Status</th>
+                    <th style="padding:10px 14px;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="recentEnquiriesTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. SEARCH HOTELS VIEW (INSIDE PORTAL) -->
+        <section class="user-page-view" id="view-search">
+          <div style="margin-bottom:20px;">
+            <h1 style="font-size:24px; font-weight:800;">🔍 Find & Book Hotels</h1>
+            <p style="font-size:13.5px; color:var(--user-text-muted);">Search verified hotels across India and send instant 1-click enquiries.</p>
+          </div>
+
+          <!-- Search Filter Bar -->
+          <div style="background:#FFF; border:1px solid var(--user-border); border-radius:12px; padding:18px; margin-bottom:20px; box-shadow:var(--shadow-sm);">
+            <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap:12px; align-items:flex-end;">
+              <div>
+                <label style="font-size:12px; font-weight:700; color:var(--user-text-muted); display:block; margin-bottom:4px;">DESTINATION / CITY</label>
+                <input type="text" id="portalSearchCityInput" placeholder="Where do you want to stay? (e.g. Mumbai, Goa)" style="width:100%; padding:9px 12px; border:1px solid var(--user-border); border-radius:8px; font-size:13.5px;" onkeyup="filterPortalSearchHotels()" />
+              </div>
+              <div>
+                <label style="font-size:12px; font-weight:700; color:var(--user-text-muted); display:block; margin-bottom:4px;">CHECK-IN</label>
+                <input type="date" id="portalSearchCheckIn" style="width:100%; padding:8px; border:1px solid var(--user-border); border-radius:8px; font-size:12.5px;" />
+              </div>
+              <div>
+                <label style="font-size:12px; font-weight:700; color:var(--user-text-muted); display:block; margin-bottom:4px;">CHECK-OUT</label>
+                <input type="date" id="portalSearchCheckOut" style="width:100%; padding:8px; border:1px solid var(--user-border); border-radius:8px; font-size:12.5px;" />
+              </div>
+              <div>
+                <label style="font-size:12px; font-weight:700; color:var(--user-text-muted); display:block; margin-bottom:4px;">GUESTS</label>
+                <select id="portalSearchGuests" style="width:100%; padding:8.5px; border:1px solid var(--user-border); border-radius:8px; font-size:12.5px;">
+                  <option value="1">1 Guest</option>
+                  <option value="2" selected>2 Guests</option>
+                  <option value="3">3 Guests</option>
+                  <option value="4">4+ Guests</option>
+                </select>
+              </div>
+              <button class="btn-primary" style="padding:10px 20px;" onclick="filterPortalSearchHotels()">Search</button>
+            </div>
+
+            <!-- Quick City Pills -->
+            <div style="display:flex; gap:8px; margin-top:14px; padding-top:12px; border-top:1px solid var(--user-border); flex-wrap:wrap;">
+              <span style="font-size:12px; font-weight:700; color:var(--user-text-muted); align-self:center;">Popular Cities:</span>
+              <button class="btn-secondary portal-city-pill active" onclick="selectPortalCityPill('all', this)">All Cities</button>
+              <span id="portalCityPills"></span>
+            </div>
+          </div>
+
+          <!-- Hotel Search Results Grid -->
+          <div id="portalSearchResultsContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:20px;"></div>
+        </section>
+
+        <!-- 3. MY ENQUIRIES VIEW -->
+        <section class="user-page-view" id="view-enquiries">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <div>
+              <h1 style="font-size:24px; font-weight:800;">My Hotel Enquiries</h1>
+              <p style="font-size:13.5px; color:var(--user-text-muted);">Track real-time status: Sent → Delivered → Opened → Responded</p>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; margin-bottom:20px;">
+            <button class="btn-secondary enq-filter-btn active" onclick="filterEnquiriesStatus('All')">All Enquiries</button>
+            <button class="btn-secondary enq-filter-btn" onclick="filterEnquiriesStatus('Sent')">Sent</button>
+            <button class="btn-secondary enq-filter-btn" onclick="filterEnquiriesStatus('Opened')">Opened by Hotel</button>
+            <button class="btn-secondary enq-filter-btn" onclick="filterEnquiriesStatus('Responded')">Hotel Responded</button>
+          </div>
+
+          <div id="enquiriesContainer"></div>
+        </section>
+
+        <!-- 3. MY REVIEWS VIEW -->
+        <section class="user-page-view" id="view-reviews">
+          <div style="margin-bottom:20px;">
+            <h1 style="font-size:24px; font-weight:800;">My Published Reviews</h1>
+            <p style="font-size:13.5px; color:var(--user-text-muted);">Reviews you have shared for verified hotel stays.</p>
+          </div>
+          <div id="userReviewsContainer"></div>
+        </section>
+
+        <!-- 4. SAVED HOTELS VIEW -->
+        <section class="user-page-view" id="view-saved">
+          <div style="margin-bottom:20px;">
+            <h1 style="font-size:24px; font-weight:800;">Saved Favorite Hotels</h1>
+            <p style="font-size:13.5px; color:var(--user-text-muted);">Quickly send enquiries to your favorite properties.</p>
+          </div>
+          <div id="savedHotelsContainer"></div>
+        </section>
+
+        <!-- 5. MY PROFILE VIEW -->
+        <section class="user-page-view" id="view-profile">
+          <div style="margin-bottom:20px;">
+            <h1 style="font-size:24px; font-weight:800;">My Profile & Auto-Fill Settings</h1>
+            <p style="font-size:13.5px; color:var(--user-text-muted);">Save your contact details for 1-click hotel enquiries.</p>
+          </div>
+
+          <div style="background:#FFF; border:1px solid var(--user-border); border-radius:12px; padding:24px; max-width:540px;">
+            <div style="margin-bottom:14px;"><label style="font-weight:700; font-size:13px; display:block; margin-bottom:4px;">Full Name</label><input type="text" id="profNameInput" class="form-control" style="width:100%; padding:10px; border:1px solid var(--user-border); border-radius:6px;" /></div>
+            <div style="margin-bottom:14px;"><label style="font-weight:700; font-size:13px; display:block; margin-bottom:4px;">Email Address</label><input type="email" id="profEmailInput" class="form-control" readonly title="Email is the account identifier and cannot be changed here." style="width:100%; padding:10px; border:1px solid var(--user-border); border-radius:6px; background:#F1F5F9; color:#64748B;" /></div>
+            <div style="margin-bottom:14px;"><label style="font-weight:700; font-size:13px; display:block; margin-bottom:4px;">Phone Number (WhatsApp)</label><input type="text" id="profPhoneInput" class="form-control" style="width:100%; padding:10px; border:1px solid var(--user-border); border-radius:6px;" /></div>
+            <div style="margin-bottom:14px;"><label style="font-weight:700; font-size:13px; display:block; margin-bottom:4px;">City</label><input type="text" id="profCityInput" class="form-control" style="width:100%; padding:10px; border:1px solid var(--user-border); border-radius:6px;" /></div>
+            <button class="btn-primary" onclick="saveProfileForm()">Save Profile Details</button>
+          </div>
+
+          <div style="background:#FFF; border:1px solid var(--user-border); border-radius:12px; padding:24px; max-width:540px; margin-top:20px;">
+            <h3 style="font-size:16px; font-weight:800; margin-bottom:4px;">Change password</h3>
+            <p style="font-size:12.5px; color:var(--user-text-muted); margin-bottom:14px;">We email you a confirmation whenever it changes.</p>
+            <div style="margin-bottom:14px;"><label style="font-weight:700; font-size:13px; display:block; margin-bottom:4px;">Current Password</label><input type="password" id="pwCurrentInput" autocomplete="current-password" style="width:100%; padding:10px; border:1px solid var(--user-border); border-radius:6px;" /></div>
+            <div style="margin-bottom:14px;"><label style="font-weight:700; font-size:13px; display:block; margin-bottom:4px;">New Password</label><input type="password" id="pwNewInput" autocomplete="new-password" minlength="8" style="width:100%; padding:10px; border:1px solid var(--user-border); border-radius:6px;" /></div>
+            <button class="btn-primary" onclick="changePasswordForm()">Update Password</button>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ENQUIRY DETAIL DRAWER -->
+  <div class="user-drawer" id="enquiryDrawer">
+    <div style="padding:20px; border-bottom:1px solid var(--user-border); display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="font-size:17px; font-weight:800;">Enquiry Detail & Tracking</h3>
+      <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeUserDrawer()">×</button>
+    </div>
+    <div style="padding:24px; flex:1; overflow-y:auto;" id="enquiryDrawerBody"></div>
+  </div>
+
+  <!-- WRITE A REVIEW MODAL -->
+  <div class="user-modal-overlay" id="reviewModal">
+    <div class="user-modal">
+      <div style="padding:16px 20px; border-bottom:1px solid var(--user-border); display:flex; justify-content:space-between; align-items:center;">
+        <h3>Write Guest Review</h3>
+        <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeModal('reviewModal')">×</button>
+      </div>
+      <div style="padding:24px;">
+        <input type="hidden" id="reviewPropId" />
+        <h4 style="font-size:16px; font-weight:800; margin-bottom:10px;" id="reviewPropName"></h4>
+        <div style="margin-bottom:14px;">
+          <label style="font-weight:700; font-size:13px; display:block; margin-bottom:4px;">Overall Rating</label>
+          <select id="reviewRatingSelect" style="width:100%; padding:8px; border:1px solid var(--user-border); border-radius:6px;">
+            <option value="5">⭐⭐⭐⭐⭐ Excellent (5/5)</option>
+            <option value="4">⭐⭐⭐⭐ Very Good (4/5)</option>
+            <option value="3">⭐⭐⭐ Average (3/5)</option>
+          </select>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="font-weight:700; font-size:13px; display:block; margin-bottom:4px;">Your Stay Review</label>
+          <textarea id="reviewCommentInput" style="width:100%; height:90px; padding:10px; border:1px solid var(--user-border); border-radius:6px;" placeholder="Share your stay experience with other travelers..."></textarea>
+        </div>
+        <button class="btn-primary" style="width:100%;" onclick="saveUserReviewForm()">Submit Review</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="api-client.js"></script>
+  <script src="enquiry-store.js"></script>
+  <script src="user-portal.js"></script>
+</body>
+</html>

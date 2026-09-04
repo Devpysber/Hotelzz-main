@@ -1,0 +1,34 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Dev artifacts (Python generators were temporary, deleted after use)
+_*.py
+__pycache__/
+*.pyc
+
+# Tooling
+.claude/
+.cache/
+
+# Local server / build (none used yet, future-proof)
+node_modules/
+dist/
+.env
+.env.local
+*.log
+
+# Original source CSVs kept locally for reference only
+# (delete this block if you want them in the repo)
+# Hotelzz_goa.csv
+# Builders in goa.csv
+# WedEazzy.com - Goa.csv
+data/

@@ -1,0 +1,150 @@
+[
+  {
+    "id": "pkg-whatsapp",
+    "name": "Get WhatsApp Enquiries",
+    "description": "Generate direct customer enquiries through targeted Facebook and Instagram campaigns managed by Hotelzz marketing experts.",
+    "startingPrice": 4999,
+    "recommended": false,
+    "active": true,
+    "platforms": [
+      "Facebook",
+      "Instagram",
+      "WhatsApp"
+    ],
+    "estimatedReach": "1,00,000+",
+    "estimatedImpressions": "4,00,000+",
+    "estimatedLeads": "150–250",
+    "estimatedWhatsAppEnquiries": "100–200",
+    "durations": [
+      {
+        "label": "10 Days",
+        "price": 4999,
+        "origPrice": 5999,
+        "recommended": false
+      },
+      {
+        "label": "20 Days",
+        "price": 8999,
+        "origPrice": 10999,
+        "recommended": false
+      },
+      {
+        "label": "30 Days",
+        "price": 13999,
+        "origPrice": 16999,
+        "recommended": true
+      },
+      {
+        "label": "3 Months",
+        "price": 34999,
+        "origPrice": 42999,
+        "recommended": false
+      },
+      {
+        "label": "Custom Campaign",
+        "price": 20000,
+        "origPrice": null,
+        "custom": true
+      }
+    ]
+  },
+  {
+    "id": "pkg-leads",
+    "name": "Get More Leads",
+    "description": "Reach travelers actively interested in hotel stays and generate qualified enquiries for your property.",
+    "startingPrice": 8999,
+    "recommended": true,
+    "active": true,
+    "platforms": [
+      "Facebook",
+      "Instagram",
+      "Google Ads"
+    ],
+    "estimatedReach": "2,50,000+",
+    "estimatedImpressions": "8,50,000+",
+    "estimatedLeads": "300–450",
+    "estimatedWhatsAppEnquiries": "200–350",
+    "durations": [
+      {
+        "label": "10 Days",
+        "price": 8999,
+        "origPrice": 10999,
+        "recommended": false
+      },
+      {
+        "label": "20 Days",
+        "price": 15999,
+        "origPrice": 18999,
+        "recommended": false
+      },
+      {
+        "label": "30 Days",
+        "price": 22999,
+        "origPrice": 27999,
+        "recommended": true
+      },
+      {
+        "label": "3 Months",
+        "price": 59999,
+        "origPrice": 72999,
+        "recommended": false
+      },
+      {
+        "label": "Custom Campaign",
+        "price": 35000,
+        "origPrice": null,
+        "custom": true
+      }
+    ]
+  },
+  {
+    "id": "pkg-website",
+    "name": "Increase Website Sales",
+    "description": "Drive high-intent travelers to your hotel's website and increase direct booking opportunities.",
+    "startingPrice": 20000,
+    "recommended": false,
+    "active": true,
+    "platforms": [
+      "Google Search",
+      "Facebook",
+      "Instagram",
+      "Remarketing"
+    ],
+    "estimatedReach": "5,00,000+",
+    "estimatedImpressions": "15,00,000+",
+    "estimatedLeads": "500–800",
+    "estimatedWhatsAppEnquiries": "350–500",
+    "durations": [
+      {
+        "label": "10 Days",
+        "price": 20000,
+        "origPrice": 24000,
+        "recommended": false
+      },
+      {
+        "label": "20 Days",
+        "price": 35000,
+        "origPrice": 42000,
+        "recommended": false
+      },
+      {
+        "label": "30 Days",
+        "price": 48000,
+        "origPrice": 58000,
+        "recommended": true
+      },
+      {
+        "label": "3 Months",
+        "price": 125000,
+        "origPrice": 150000,
+        "recommended": false
+      },
+      {
+        "label": "Custom Campaign",
+        "price": 50000,
+        "origPrice": null,
+        "custom": true
+      }
+    ]
+  }
+]

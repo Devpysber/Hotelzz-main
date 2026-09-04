@@ -1,0 +1,31 @@
+name: Deploy to VPS
+
+# Push to main -> app updates on the live server automatically.
+# Requires repo secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY, VPS_APP_DIR
+# (see DEPLOY.md for the one-time server + secrets setup).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd "${{ secrets.VPS_APP_DIR }}"
+            git fetch origin main
+            git reset --hard origin/main
+            npm ci --omit=dev
+            # Reload without downtime if pm2 already manages the process,
+            # otherwise start it for the first time.
+            pm2 reload hotelzz --update-env || pm2 start server/index.js --name hotelzz
+            pm2 save

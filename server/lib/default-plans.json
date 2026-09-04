@@ -1,0 +1,10 @@
+[
+  { "id": "free", "name": "Free Listing", "price": 0, "period": "forever",
+    "features": ["Basic directory listing", "Standard contact form", "Public reviews display"] },
+  { "id": "starter", "name": "Starter Plan", "price": 999, "period": "month",
+    "features": ["Enhanced profile with photos", "Phone & WhatsApp visibility", "Basic analytics"] },
+  { "id": "professional", "name": "Professional Plan", "price": 2499, "period": "month",
+    "features": ["Priority listing", "Lead CRM", "Views & clicks analytics", "Offers publishing"] },
+  { "id": "premium", "name": "Premium Plan", "price": 4999, "period": "month",
+    "features": ["Top destination slot", "Priority leads", "Google reviews sync", "Account manager"] }
+]

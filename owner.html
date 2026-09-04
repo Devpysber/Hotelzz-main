@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hotelzz Owner Portal — Hotel Management</title>
+  <link rel="icon" type="image/png" href="jpg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="owner.css" />
+</head>
+<body class="owner-body">
+
+  <div class="owner-shell" id="ownerShell">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="owner-sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="owner.html" class="sidebar-brand">
+          <div class="brand-icon">H</div>
+          <span class="brand-text">Hotelzz</span>
+          <span class="brand-badge">OWNER</span>
+        </a>
+      </div>
+
+      <!-- Active Property Card in Sidebar -->
+      <div class="sidebar-property-card">
+        <div class="sidebar-prop-name" id="sidebarPropName">Loading…</div>
+        <div class="sidebar-prop-city" id="sidebarPropCity"></div>
+        <div class="sidebar-prop-status">
+          <span class="status-dot"></span>
+          <span>Published & Claimed</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-label">OVERVIEW</div>
+        <a class="owner-nav-item active" data-view="dashboard">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          <span>Dashboard</span>
+        </a>
+
+        <div class="nav-label">MY PROPERTY</div>
+        <a class="owner-nav-item" data-view="property-details">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0H7m4-4h4m-4 0H7"/></svg>
+          <span>Property Details</span>
+        </a>
+        <a class="owner-nav-item" data-view="photos">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <span>Photos Gallery</span>
+        </a>
+        <a class="owner-nav-item" data-view="amenities">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+          <span>Amenities</span>
+        </a>
+        <a class="owner-nav-item" data-view="rooms">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span>Rooms & Accommodation</span>
+        </a>
+
+        <div class="nav-label">BUSINESS</div>
+        <a class="owner-nav-item" data-view="leads">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <span>Guest Leads</span>
+        </a>
+        <a class="owner-nav-item" data-view="reviews">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+          <span>Guest Reviews</span>
+        </a>
+        <a class="owner-nav-item" data-view="offers">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+          <span>Offers & Deals</span>
+        </a>
+
+        <div class="nav-label">GROWTH</div>
+        <a class="owner-nav-item" data-view="grow-business">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span>🚀 Grow Business</span>
+        </a>
+        <a class="owner-nav-item" data-view="performance">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          <span>Performance Insights</span>
+        </a>
+        <a class="owner-nav-item" data-view="visibility">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          <span>Listing Visibility</span>
+        </a>
+
+        <div class="nav-label">SUBSCRIPTION</div>
+        <a class="owner-nav-item" data-view="subscription">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5zM5 13a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 002-2H5z"/></svg>
+          <span>My Subscription</span>
+        </a>
+        <a class="owner-nav-item" data-view="billing">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 14l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Billing & Invoices</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-user-footer">
+        <div class="user-footer-avatar">R</div>
+        <div>
+          <div class="user-footer-name" id="ownerProfileName">Loading…</div>
+          <div class="user-footer-role" id="ownerProfileEmail"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="owner-main">
+      
+      <!-- TOP HEADER -->
+      <header class="owner-header">
+        <div class="header-left-group">
+          <button class="mobile-toggle-btn" id="mobileToggleBtn">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+
+          <!-- Multi-Property Selector -->
+          <div class="property-selector-box">
+            <button class="property-selector-btn" id="propertySelectorBtn">
+              <span id="headerPropNameDisplay">Loading…</span>
+              <span style="font-size:10px;">▼</span>
+            </button>
+
+            <div class="property-selector-dropdown" id="propertySelectorDropdown"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="header-right-group">
+          <button class="btn-preview-listing" onclick="openPublicPreviewModal()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <span>Preview Listing</span>
+          </button>
+
+          <button class="header-icon-btn" title="Notifications">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span class="icon-badge"></span>
+          </button>
+
+          <a href="index.html" class="btn-secondary" style="font-size:12.5px; padding:6px 10px;">Public Site</a>
+        </div>
+      </header>
+
+      <!-- PAGE VIEWS -->
+      <main class="owner-body-content">
+
+        <!-- 1. DASHBOARD VIEW -->
+        <section class="owner-page-view active" id="view-dashboard">
+          <div class="welcome-banner">
+            <div>
+              <h2 id="welcomeHeaderTitle">Good morning, Rahul 👋</h2>
+              <p>Here's how <strong id="welcomePropName">your property</strong> is performing on Hotelzz.</p>
+            </div>
+            <button class="btn-secondary" style="background:#FFF; color:#1E40AF; border:none;" onclick="openPublicPreviewModal()">Preview Listing →</button>
+          </div>
+
+          <!-- Status & Completeness Card -->
+          <div class="status-completeness-card">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <h3 style="font-size:18px; font-weight:800;" id="statusPropName">Loading…</h3>
+                <span class="sidebar-prop-status"><span class="status-dot"></span> 🟢 Published</span>
+              </div>
+              <p style="font-size:13px; color:var(--owner-text-muted);" id="statusPropCity"></p>
+            </div>
+
+            <div style="min-width: 280px;">
+              <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:700;">
+                <span>Profile Completeness</span>
+                <span id="completenessPctText" style="color:var(--owner-primary);">—</span>
+              </div>
+              <div class="completeness-bar-container">
+                <div class="completeness-bar-fill" id="completenessProgressBar"></div>
+              </div>
+              <div style="font-size:11.5px; color:var(--owner-text-muted);">Complete your profile to boost property views.</div>
+            </div>
+          </div>
+
+          <!-- Quick Actions Bar -->
+          <div class="quick-actions-bar">
+            <span style="font-weight:700; font-size:12px; color:var(--owner-text-muted); text-transform:uppercase;">Quick Actions:</span>
+            <button class="btn-secondary" onclick="switchView('property-details')">Edit Property</button>
+            <button class="btn-secondary" onclick="switchView('photos')">Add Photos</button>
+            <button class="btn-secondary" onclick="openAddRoomModal()">+ Add Room</button>
+            <button class="btn-secondary" onclick="openCreateOfferModal()">Create Offer</button>
+            <button class="btn-secondary" onclick="switchView('leads')">View Leads</button>
+          </div>
+
+          <!-- KPI Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-label">Profile Views</div>
+              <div class="kpi-value" id="kpiViews">—</div>
+              <div class="kpi-subtext" id="kpiViewsGrowth">—</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Phone Clicks</div>
+              <div class="kpi-value" id="kpiPhoneClicks">—</div>
+              <div class="kpi-subtext" id="kpiPhoneClicksGrowth">—</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Guest Leads</div>
+              <div class="kpi-value" id="kpiLeads">—</div>
+              <div class="kpi-subtext" id="kpiLeadsGrowth">—</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Favorites</div>
+              <div class="kpi-value" id="kpiFavorites">—</div>
+              <div class="kpi-subtext" id="kpiFavoritesGrowth">—</div>
+            </div>
+          </div>
+
+          <!-- Performance Chart -->
+          <div class="owner-card">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Property Performance Trend</div>
+                <div class="card-subtitle">Track profile views and guest inquiries over time</div>
+              </div>
+              <div style="display:flex; gap:4px;">
+                <button class="btn-secondary tf-btn active" data-tf="30d" style="padding:4px 8px; font-size:12px;">30D</button>
+                <button class="btn-secondary tf-btn" data-tf="3m" style="padding:4px 8px; font-size:12px;">3M</button>
+              </div>
+            </div>
+            <div id="performanceChartContainer" style="height:220px;"></div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="owner-card">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Recent Activity</div>
+                <div class="card-subtitle">Your latest guest enquiries and reviews</div>
+              </div>
+            </div>
+            <div id="activityTimelineContainer"></div>
+          </div>
+
+          <!-- Completeness Checklist -->
+          <div class="owner-card">
+            <div class="owner-card-header">
+              <div class="card-title">Complete your property profile</div>
+            </div>
+            <div class="completeness-checklist">
+              <div class="checklist-item done"><span>✓ Property Name & Location</span><span class="checklist-action">Done</span></div>
+              <div class="checklist-item done"><span>✓ Cover & Gallery Photos</span><span class="checklist-action">Done</span></div>
+              <div class="checklist-item done"><span>✓ Property Amenities</span><span class="checklist-action">Done</span></div>
+              <div class="checklist-item done"><span>✓ Check-in / Check-out Times</span><span class="checklist-action">Done</span></div>
+              <div class="checklist-item"><span>○ Add Deluxe & Suite Rooms</span><span class="checklist-action" onclick="switchView('rooms')">Complete →</span></div>
+              <div class="checklist-item"><span>○ Add Cancellation & Child Policy</span><span class="checklist-action" onclick="switchView('property-details')">Complete →</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. PROPERTY DETAILS VIEW -->
+        <section class="owner-page-view" id="view-property-details">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Property Details</h1>
+              <p>Manage the information guests see on your Hotelzz listing.</p>
+            </div>
+            <button class="btn-primary" onclick="savePropertyDetails()">Save Changes</button>
+          </div>
+
+          <div class="owner-card">
+            <div class="owner-card-header"><div class="card-title">Basic Information</div></div>
+            <div class="form-group"><label>Property Name</label><input type="text" id="editPropName" class="form-control" /></div>
+            <div class="form-group">
+              <label>Property Category</label>
+              <select id="editPropType" class="form-control">
+                <option value="Hotel">Hotel</option>
+                <option value="Resort">Resort</option>
+                <option value="Boutique Hotel">Boutique Hotel</option>
+                <option value="Homestay">Homestay</option>
+                <option value="Villa">Villa</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Property Description</label><textarea id="editPropDesc" class="form-control" style="height:110px;"></textarea></div>
+          </div>
+
+          <div class="owner-card">
+            <div class="owner-card-header"><div class="card-title">Verified Contact Information</div></div>
+            <div class="form-group">
+              <label>Verified Phone Number</label>
+              <input type="text" id="editPropPhone" class="form-control" readonly style="background:#F1F5F9;" />
+              <small style="color:var(--owner-text-muted); font-size:11.5px;">Verified number associated with listing claim.</small>
+            </div>
+            <div class="form-group"><label>Public Contact Email</label><input type="email" id="editPropEmail" class="form-control" /></div>
+            <div class="form-group"><label>Official Website URL</label><input type="text" id="editPropWebsite" class="form-control" /></div>
+          </div>
+
+          <div class="owner-card">
+            <div class="owner-card-header"><div class="card-title">Location & Address</div></div>
+            <div class="form-group"><label>Street Address</label><input type="text" id="editPropAddress" class="form-control" /></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <div class="form-group"><label>City</label><input type="text" id="editPropCity" class="form-control" /></div>
+              <div class="form-group"><label>PIN Code</label><input type="text" id="editPropPincode" class="form-control" /></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. PHOTOS VIEW -->
+        <section class="owner-page-view" id="view-photos">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Photos Gallery</h1>
+              <p>Show guests what makes your property special with high-resolution photos.</p>
+            </div>
+            <button class="btn-primary" onclick="simulatePhotoUpload()">+ Upload Photos</button>
+          </div>
+
+          <div class="owner-card">
+            <div class="owner-card-header"><div class="card-title">Featured Cover Photo</div></div>
+            <div style="height:240px; border-radius:10px; overflow:hidden; position:relative;">
+              <img id="coverPhotoPreview" src="" style="width:100%; height:100%; object-fit:cover;" />
+              <div style="position:absolute; bottom:12px; left:12px; background:rgba(0,0,0,0.7); color:#FFF; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:700;">Cover Image</div>
+            </div>
+          </div>
+
+          <div class="owner-card">
+            <div style="display:flex; gap:10px; margin-bottom:16px;">
+              <button class="btn-secondary" onclick="filterPhotoCategory('All')">All Photos</button>
+              <button class="btn-secondary" onclick="filterPhotoCategory('Exterior')">Exterior</button>
+              <button class="btn-secondary" onclick="filterPhotoCategory('Rooms')">Rooms</button>
+              <button class="btn-secondary" onclick="filterPhotoCategory('Dining')">Dining</button>
+              <button class="btn-secondary" onclick="filterPhotoCategory('Amenities')">Amenities</button>
+            </div>
+            <div class="photo-gallery-grid" id="photoGalleryGrid"></div>
+          </div>
+        </section>
+
+        <!-- 4. AMENITIES VIEW -->
+        <section class="owner-page-view" id="view-amenities">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Property Amenities</h1>
+              <p>Select amenities available at your hotel to help guests filter search results.</p>
+            </div>
+            <button class="btn-primary" onclick="saveAmenities()">Save Amenities</button>
+          </div>
+          <div class="owner-card" id="amenitiesCategoryContainer"></div>
+        </section>
+
+        <!-- 5. ROOMS VIEW -->
+        <section class="owner-page-view" id="view-rooms">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Rooms & Accommodation</h1>
+              <p>Add and manage room types, bed configurations, and pricing options.</p>
+            </div>
+            <button class="btn-primary" onclick="openAddRoomModal()">+ Add Room</button>
+          </div>
+          <div class="rooms-grid" id="roomsGrid"></div>
+        </section>
+
+        <!-- 6. LEADS VIEW -->
+        <section class="owner-page-view" id="view-leads">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Guest Leads & Booking Inquiries</h1>
+              <p>Direct inquiries received from travelers browsing your Hotelzz listing.</p>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="owner-table">
+              <thead>
+                <tr>
+                  <th>Guest Name</th>
+                  <th>Contact Info</th>
+                  <th>Message / Inquiry</th>
+                  <th>Inquiry Date</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="leadsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 7. REVIEWS VIEW -->
+        <section class="owner-page-view" id="view-reviews">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Guest Reviews</h1>
+              <p>View guest ratings and post official hotel manager responses.</p>
+            </div>
+          </div>
+          <div id="reviewsContainer"></div>
+        </section>
+
+        <!-- 8. OFFERS VIEW -->
+        <section class="owner-page-view" id="view-offers">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Offers & Promotional Campaigns</h1>
+              <p>Publish special seasonal discounts and weekend packages to drive bookings.</p>
+            </div>
+            <button class="btn-primary" onclick="openCreateOfferModal()">+ Create Offer</button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="owner-table">
+              <thead>
+                <tr>
+                  <th>Offer Title</th>
+                  <th>Discount</th>
+                  <th>Validity Dates</th>
+                  <th>Views</th>
+                  <th>Clicks</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="offersTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 9. SUBSCRIPTION VIEW -->
+        <section class="owner-page-view" id="view-subscription">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>My Subscription Plan</h1>
+              <p>Manage your Hotelzz subscription tier and feature access.</p>
+            </div>
+          </div>
+
+          <div class="owner-card" style="background:#F0F9FF; border-color:#BFDBFE;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <span class="sidebar-prop-status">🟢 Active Plan</span>
+                <h2 style="font-size:22px; font-weight:800; margin-top:4px;" id="subPlanName">Professional Plan</h2>
+                <div style="font-size:13.5px; color:var(--owner-text-muted);">Renewal Date: <strong id="subRenewalDate">15 October 2026</strong></div>
+              </div>
+              <div style="font-size:24px; font-weight:800; color:var(--owner-primary);" id="subPlanPrice">₹2,499 / Monthly</div>
+            </div>
+            <ul id="subFeaturesList" style="margin-top:14px; padding-top:14px; border-top:1px solid #BFDBFE; font-size:13px; list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:6px 16px;"></ul>
+          </div>
+
+          <h3 style="font-size:16px; font-weight:700; margin:24px 0 14px;">Available Upgrade Plans</h3>
+          <div class="rooms-grid" id="plansComparisonGrid">
+            <div class="room-card" style="padding:20px;" data-plan-card="Starter Plan">
+              <h3>Starter Plan</h3>
+              <div style="font-size:22px; font-weight:800; color:var(--owner-primary); margin:8px 0;">₹999 / mo</div>
+              <button class="btn-secondary" onclick="openUpgradeModal('Starter Plan', '₹999 / month')">Select Plan</button>
+            </div>
+            <div class="room-card" style="padding:20px;" data-plan-card="Professional Plan">
+              <h3>Professional Plan</h3>
+              <div style="font-size:22px; font-weight:800; color:var(--owner-primary); margin:8px 0;">₹2,499 / mo</div>
+              <button class="btn-secondary" onclick="openUpgradeModal('Professional Plan', '₹2,499 / month')">Select Plan</button>
+            </div>
+            <div class="room-card" style="padding:20px;" data-plan-card="Premium Plan">
+              <h3>Premium Plan</h3>
+              <div style="font-size:22px; font-weight:800; color:var(--owner-primary); margin:8px 0;">₹4,999 / mo</div>
+              <button class="btn-primary" onclick="openUpgradeModal('Premium Plan', '₹4,999 / month')">Upgrade to Premium →</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 10. BILLING VIEW -->
+        <section class="owner-page-view" id="view-billing">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Billing & Invoices</h1>
+              <p>Download past subscription invoices and manage payment records.</p>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="owner-table">
+              <thead>
+                <tr>
+                  <th>Invoice ID</th>
+                  <th>Billing Date</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Download</th>
+                </tr>
+              </thead>
+              <tbody id="invoicesTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- OTHER VIEWS: VISIBILITY, PERFORMANCE -->
+        <section class="owner-page-view" id="view-visibility">
+          <div class="page-header"><h1>Listing Visibility Score</h1></div>
+          <div class="owner-card" style="text-align:center; padding:36px;">
+            <div style="font-size:42px; font-weight:800; color:var(--owner-primary);" id="visibilityScoreText">78 / 100</div>
+            <p style="color:var(--owner-text-muted);">Good visibility score! Complete missing recommendations below to reach 95+.</p>
+          </div>
+        </section>
+
+        <section class="owner-page-view" id="view-performance">
+          <div class="page-header"><h1>Performance Insights</h1></div>
+          <div class="owner-card"><div id="performanceChartContainer" style="height:220px;"></div></div>
+        </section>
+
+        <!-- GROW BUSINESS / MARKETING VIEW -->
+        <section class="owner-page-view" id="view-grow-business">
+          <!-- HERO BANNER -->
+          <div class="grow-hero-card">
+            <div class="grow-hero-tag">🚀 GROW YOUR BUSINESS</div>
+            <h1 class="grow-hero-title">Grow Your Hotel. Get More Guests.</h1>
+            <p class="grow-hero-desc">Reach more travelers, generate qualified enquiries, increase bookings, and grow your hotel's revenue with Hotelzz Managed Marketing Solutions.</p>
+          </div>
+
+          <!-- 6 MARKETING SERVICE HIGHLIGHTS -->
+          <div class="owner-card" style="margin-bottom: 24px;">
+            <div style="font-size:12px; font-weight:700; color:var(--owner-primary); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px;">MANAGED BY HOTELZZ EXPERTS</div>
+            <h3 style="font-size:17px; font-weight:800; margin-bottom:16px;">What We Handle For Your Hotel</h3>
+            <div class="marketing-services-grid">
+              <div class="mkt-service-item">
+                <div class="mkt-service-icon">🎨</div>
+                <div class="mkt-service-name">Ad Designing</div>
+                <div class="mkt-service-desc">Eye-catching photo & video ad banners created for your hotel.</div>
+              </div>
+              <div class="mkt-service-item">
+                <div class="mkt-service-icon">✍️</div>
+                <div class="mkt-service-name">Content Writing</div>
+                <div class="mkt-service-desc">Persuasive ad copy highlighting your key amenities & offers.</div>
+              </div>
+              <div class="mkt-service-item">
+                <div class="mkt-service-icon">🎯</div>
+                <div class="mkt-service-name">Audience Targeting</div>
+                <div class="mkt-service-desc">Reaching travelers visiting your city based on intent & interest.</div>
+              </div>
+              <div class="mkt-service-item">
+                <div class="mkt-service-icon">⚡</div>
+                <div class="mkt-service-name">Campaign Optimization</div>
+                <div class="mkt-service-desc">Daily monitoring & budget optimization for peak ROI.</div>
+              </div>
+              <div class="mkt-service-item">
+                <div class="mkt-service-icon">📲</div>
+                <div class="mkt-service-name">Lead Generation</div>
+                <div class="mkt-service-desc">Direct WhatsApp messages & inquiries delivered straight to you.</div>
+              </div>
+              <div class="mkt-service-item">
+                <div class="mkt-service-icon">🤝</div>
+                <div class="mkt-service-name">Growth Support</div>
+                <div class="mkt-service-desc">Dedicated Hotelzz marketing strategist backing your campaign.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- GROW BUSINESS SUB TABS -->
+          <div style="display:flex; gap:10px; margin-bottom:20px; border-bottom:1px solid var(--owner-border); padding-bottom:12px;">
+            <button class="btn-secondary active-grow-tab" id="tabGrowPackages" onclick="switchGrowSubTab('packages')">Marketing Packages</button>
+            <button class="btn-secondary" id="tabGrowCampaigns" onclick="switchGrowSubTab('campaigns')">My Active Campaigns</button>
+            <button class="btn-secondary" id="tabGrowLeads" onclick="switchGrowSubTab('leads')">Marketing Leads</button>
+          </div>
+
+          <!-- TAB 1: MARKETING PACKAGES (ONLY 3 PACKAGES) -->
+          <div id="growSubTabPackages">
+            <h3 style="font-size:18px; font-weight:800; margin-bottom:16px;">Select a Marketing Package</h3>
+            <div class="marketing-packages-grid" id="ownerPackagesGrid"></div>
+          </div>
+
+          <!-- TAB 2: MY CAMPAIGNS -->
+          <div id="growSubTabCampaigns" style="display:none;">
+            <div class="owner-card">
+              <div class="owner-card-header">
+                <div>
+                  <div class="card-title">My Purchased Marketing Campaigns</div>
+                  <div class="card-subtitle">Track live campaign status, progress, and performance managed by Hotelzz</div>
+                </div>
+              </div>
+              <div id="ownerCampaignsContainer"></div>
+            </div>
+          </div>
+
+          <!-- TAB 3: MARKETING LEADS -->
+          <div id="growSubTabLeads" style="display:none;">
+            <div class="owner-card">
+              <div class="owner-card-header">
+                <div>
+                  <div class="card-title">Marketing Campaign Leads</div>
+                  <div class="card-subtitle">Inquiries generated specifically from your active marketing campaigns</div>
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table class="owner-table">
+                  <thead>
+                    <tr>
+                      <th>Guest Name</th>
+                      <th>Contact</th>
+                      <th>Ad Channel Source</th>
+                      <th>Campaign ID</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="mktLeadsTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- LEAD DETAIL DRAWER -->
+  <div class="lead-drawer" id="leadDrawer">
+    <div class="drawer-header">
+      <h3>Guest Lead Detail</h3>
+      <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeLeadDrawer()">×</button>
+    </div>
+    <div class="drawer-body" id="leadDrawerBody"></div>
+  </div>
+
+  <!-- ROOM MODAL -->
+  <div class="owner-modal-overlay" id="roomModal">
+    <div class="owner-modal">
+      <div class="modal-header">
+        <h3 id="roomModalTitle">Add New Room</h3>
+        <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeModal('roomModal')">×</button>
+      </div>
+      <div style="padding:24px;">
+        <div class="form-group"><label>Room Name</label><input type="text" id="roomFormName" class="form-control" placeholder="e.g. Deluxe Sea View Suite" /></div>
+        <div class="form-group"><label>Base Price per Night (₹)</label><input type="number" id="roomFormPrice" class="form-control" value="4999" /></div>
+        <button class="btn-primary" style="width:100%;" onclick="saveRoomForm()">Save Room</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OFFER MODAL -->
+  <div class="owner-modal-overlay" id="offerModal">
+    <div class="owner-modal">
+      <div class="modal-header">
+        <h3>Create Promotional Offer</h3>
+        <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeModal('offerModal')">×</button>
+      </div>
+      <div style="padding:24px;">
+        <div class="form-group"><label>Offer Title</label><input type="text" id="offerTitleInput" class="form-control" placeholder="e.g. Monsoon Staycation 20% OFF" /></div>
+        <div class="form-group"><label>Discount Amount / %</label><input type="text" id="offerDiscInput" class="form-control" placeholder="20% OFF" /></div>
+        <button class="btn-primary" style="width:100%;" onclick="saveOfferForm()">Publish Offer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PUBLIC PROPERTY PREVIEW MODAL -->
+  <div class="owner-modal-overlay" id="previewModal">
+    <div class="owner-modal" style="max-width:720px;">
+      <div class="modal-header">
+        <h3>Public Listing Preview (How Guests See Your Hotel)</h3>
+        <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeModal('previewModal')">×</button>
+      </div>
+      <div style="padding:24px;" id="previewModalBody"></div>
+    </div>
+  </div>
+
+  <!-- CAMPAIGN PURCHASE MULTI-STEP MODAL -->
+  <div class="owner-modal-overlay" id="campaignPurchaseModal">
+    <div class="owner-modal" style="max-width:760px;">
+      <div class="modal-header">
+        <h3 id="campModalTitle">Launch Marketing Campaign</h3>
+        <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeModal('campaignPurchaseModal')">×</button>
+      </div>
+
+      <!-- Stepper Pill Indicator -->
+      <div class="modal-stepper-header">
+        <div class="modal-step-pill active" id="campStepPill1"><span class="step-num">1</span> Choose Plan</div>
+        <div class="step-arrow">→</div>
+        <div class="modal-step-pill" id="campStepPill2"><span class="step-num">2</span> Campaign Settings</div>
+        <div class="step-arrow">→</div>
+        <div class="modal-step-pill" id="campStepPill3"><span class="step-num">3</span> Payment</div>
+      </div>
+
+      <div style="padding: 24px;">
+
+        <!-- STEP 1: CHOOSE PLAN & DURATION -->
+        <div id="campStep1Content">
+          <div style="background:#EFF6FF; border:1px solid #BFDBFE; padding:14px 18px; border-radius:8px; margin-bottom:20px;">
+            <div style="font-size:11px; font-weight:700; color:#2563EB; text-transform:uppercase;">SELECTED PACKAGE</div>
+            <h4 style="font-size:18px; font-weight:800; color:#0F172A;" id="campSelectedPkgName">Get WhatsApp Enquiries</h4>
+            <p style="font-size:12.5px; color:#475569;" id="campSelectedPkgDesc">Generate direct customer enquiries through targeted Facebook and Instagram campaigns managed by Hotelzz marketing experts.</p>
+          </div>
+
+          <h4 style="font-size:14px; font-weight:700; margin-bottom:12px;">Select Campaign Duration</h4>
+          <div class="duration-options-grid" id="durationOptionsGrid">
+            <div class="duration-card" onclick="selectDurationOption(this, 10, 4999)">
+              <div class="dur-title">10 Days</div>
+              <div class="dur-price">₹4,999</div>
+            </div>
+            <div class="duration-card" onclick="selectDurationOption(this, 20, 8999)">
+              <div class="dur-title">20 Days</div>
+              <div class="dur-price">₹8,999</div>
+            </div>
+            <div class="duration-card selected" onclick="selectDurationOption(this, 30, 13999)">
+              <span class="dur-badge">RECOMMENDED</span>
+              <div class="dur-title">30 Days</div>
+              <div class="dur-price">₹13,999 <span style="font-size:11px; text-decoration:line-through; color:#94A3B8;">₹16,999</span></div>
+            </div>
+            <div class="duration-card" onclick="selectDurationOption(this, 90, 34999)">
+              <div class="dur-title">3 Months</div>
+              <div class="dur-price">₹34,999</div>
+            </div>
+          </div>
+
+          <!-- Estimated Results -->
+          <div style="background:#FAF5FF; border:1px solid #E9D5FF; border-radius:10px; padding:18px; margin:20px 0;">
+            <div style="font-size:13px; font-weight:700; color:#6B21A8; margin-bottom:10px; text-transform:uppercase;">Estimated Campaign Results</div>
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; text-align:center;">
+              <div style="background:#FFF; padding:10px; border-radius:6px; border:1px solid #E9D5FF;">
+                <div style="font-size:18px; font-weight:800; color:#6B21A8;" id="estReach">1,00,000+</div>
+                <div style="font-size:11px; color:#64748B;">Estimated Reach</div>
+              </div>
+              <div style="background:#FFF; padding:10px; border-radius:6px; border:1px solid #E9D5FF;">
+                <div style="font-size:18px; font-weight:800; color:#6B21A8;" id="estImpressions">4,00,000+</div>
+                <div style="font-size:11px; color:#64748B;">Impressions</div>
+              </div>
+              <div style="background:#FFF; padding:10px; border-radius:6px; border:1px solid #E9D5FF;">
+                <div style="font-size:18px; font-weight:800; color:#10B981;" id="estLeads">150–250</div>
+                <div style="font-size:11px; color:#64748B;">Est. Leads</div>
+              </div>
+              <div style="background:#FFF; padding:10px; border-radius:6px; border:1px solid #E9D5FF;">
+                <div style="font-size:18px; font-weight:800; color:#2563EB;" id="estWhatsapp">100–200</div>
+                <div style="font-size:11px; color:#64748B;">WhatsApp Enquiries</div>
+              </div>
+            </div>
+            <div style="font-size:11px; color:#64748B; margin-top:10px; font-style:italic;">
+              * Results are estimated based on industry averages. Actual performance may vary depending on location, property, audience, duration and market conditions.
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end;">
+            <button class="btn-primary" onclick="goToCampStep(2)">Continue to Campaign Settings →</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: CAMPAIGN SETTINGS -->
+        <div id="campStep2Content" style="display:none;">
+          <h4 style="font-size:16px; font-weight:800; margin-bottom:4px;">Ad Campaign Settings</h4>
+          <p style="font-size:12.5px; color:var(--owner-text-muted); margin-bottom:16px;">Tell us who you want to reach. Our marketing team will handle advanced targeting and optimization.</p>
+
+          <!-- Target Locations -->
+          <div class="form-group">
+            <label style="font-weight:700;">Target Locations (Where do you want to attract guests from?)</label>
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+              <input type="text" id="targetLocationInput" class="form-control" placeholder="Enter city name (e.g. Mumbai, Pune, Ahmedabad)" />
+              <button class="btn-secondary" onclick="addLocationChip()">Add Location</button>
+            </div>
+            <div class="location-chips-container" id="locationChipsContainer"></div>
+            <div id="locationErr" style="color:#EF4444; font-size:12px; display:none; margin-top:4px;">Please add at least one target location.</div>
+          </div>
+
+          <!-- Target Guest Types -->
+          <div class="form-group">
+            <label style="font-weight:700;">Select Guest Type (Target Audience)</label>
+            <div class="amenity-chips-grid">
+              <div class="amenity-chip selected" onclick="toggleAudienceChip(this, 'Families')"><span>✓</span> <span>Families</span></div>
+              <div class="amenity-chip selected" onclick="toggleAudienceChip(this, 'Couples')"><span>✓</span> <span>Couples</span></div>
+              <div class="amenity-chip selected" onclick="toggleAudienceChip(this, 'Business Travelers')"><span>✓</span> <span>Business Travelers</span></div>
+              <div class="amenity-chip" onclick="toggleAudienceChip(this, 'Tourists')"><span>+</span> <span>Tourists</span></div>
+              <div class="amenity-chip" onclick="toggleAudienceChip(this, 'Group Travelers')"><span>+</span> <span>Group Travelers</span></div>
+              <div class="amenity-chip" onclick="toggleAudienceChip(this, 'Wedding Guests')"><span>+</span> <span>Wedding Guests</span></div>
+            </div>
+          </div>
+
+          <!-- Gender Selector -->
+          <div class="form-group">
+            <label style="font-weight:700;">Select Gender</label>
+            <select id="genderSelect" class="form-control" style="width:200px;">
+              <option value="All">All Genders</option>
+              <option value="Male">Male Only</option>
+              <option value="Female">Female Only</option>
+            </select>
+          </div>
+
+          <!-- Ideal Customer Notes -->
+          <div class="form-group">
+            <label style="font-weight:700;">Tell us anything about your ideal customer (Optional)</label>
+            <textarea id="targetingNotesInput" class="form-control" style="height:70px;" placeholder="Example: Families traveling to Mumbai on weekends, business travelers visiting Andheri..."></textarea>
+            <small style="color:var(--owner-text-muted); font-size:11.5px;">Our marketing experts will review these notes when setting up your campaign.</small>
+          </div>
+
+          <!-- Live Campaign Summary Box -->
+          <div style="background:#F8FAFC; border:1px solid var(--owner-border); padding:16px; border-radius:8px; margin:20px 0;">
+            <h5 style="font-size:13px; font-weight:700; text-transform:uppercase; margin-bottom:8px;">Campaign Summary Preview</h5>
+            <div style="font-size:13px; display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+              <div><strong>Property:</strong> <span id="sumPropName">The Grand Palace Mumbai</span></div>
+              <div><strong>Package:</strong> <span id="sumPkgName">Get WhatsApp Enquiries</span></div>
+              <div><strong>Duration:</strong> <span id="sumDuration">30 Days</span></div>
+              <div><strong>Target Price:</strong> <span id="sumPrice">₹13,999</span></div>
+              <div><strong>GST (18%):</strong> <span id="sumGst">₹2,520</span></div>
+              <div><strong>Total Amount:</strong> <strong style="color:var(--owner-primary);" id="sumTotal">₹16,519</strong></div>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between;">
+            <button class="btn-secondary" onclick="goToCampStep(1)">← Back to Plan</button>
+            <button class="btn-primary" onclick="goToCampStep(3)">Continue to Payment →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: PAYMENT & SUCCESS -->
+        <div id="campStep3Content" style="display:none;">
+
+          <!-- PAYMENT VIEW -->
+          <div id="paymentFormState">
+            <h4 style="font-size:18px; font-weight:800; margin-bottom:6px;">Complete Your Campaign</h4>
+            <p style="font-size:13px; color:var(--owner-text-muted); margin-bottom:20px;">Review final breakdown and launch your campaign with Hotelzz Managed Marketing.</p>
+
+            <div style="background:#FFF; border:1px solid var(--owner-border); border-radius:10px; padding:18px; margin-bottom:20px;">
+              <div style="font-size:14px; font-weight:800; border-bottom:1px solid var(--owner-border); padding-bottom:8px; margin-bottom:12px;">Order Summary</div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px;">
+                <div>Package: <strong id="payPkgName">Get WhatsApp Enquiries</strong></div>
+                <div>Duration: <strong id="payDuration">30 Days</strong></div>
+                <div>Target Locations: <strong id="payLocations">Mumbai, Pune</strong></div>
+                <div>Campaign Amount: <strong id="payAmount">₹13,999</strong></div>
+                <div>GST (18%): <strong id="payGst">₹2,520</strong></div>
+                <div>Total Payable: <strong style="font-size:16px; color:var(--owner-primary);" id="payTotal">₹16,519</strong></div>
+              </div>
+            </div>
+
+            <h4 style="font-size:14px; font-weight:700; margin-bottom:10px;">Select Payment Method</h4>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:24px;">
+              <div class="payment-method-card selected" onclick="selectPayMethod(this)">
+                <div style="font-weight:800;">⚡ UPI</div>
+                <div style="font-size:11px; color:#64748B;">GPay, PhonePe, Paytm</div>
+              </div>
+              <div class="payment-method-card" onclick="selectPayMethod(this)">
+                <div style="font-weight:800;">💳 Card</div>
+                <div style="font-size:11px; color:#64748B;">Credit / Debit Card</div>
+              </div>
+              <div class="payment-method-card" onclick="selectPayMethod(this)">
+                <div style="font-weight:800;">🏦 NetBanking</div>
+                <div style="font-size:11px; color:#64748B;">All Indian Banks</div>
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between;">
+              <button class="btn-secondary" onclick="goToCampStep(2)">← Back to Settings</button>
+              <button class="btn-primary" style="padding:10px 24px; font-size:15px;" onclick="simulateLaunchCampaign()">Pay & Launch Campaign →</button>
+            </div>
+          </div>
+
+          <!-- SUCCESS STATE VIEW -->
+          <div id="paymentSuccessState" style="display:none; text-align:center; padding:20px 0;">
+            <div style="width:64px; height:64px; background:#D1FAE5; color:#10B981; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px;">🎉</div>
+            <h2 style="font-size:24px; font-weight:800; color:#0F172A; margin-bottom:6px;">Campaign Request Submitted!</h2>
+            <p style="font-size:14px; color:#475569; max-width:480px; margin:0 auto 20px;">Your marketing campaign has been successfully submitted to Hotelzz Marketing Solutions.</p>
+
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:18px; max-width:440px; margin:0 auto 24px; text-align:left; font-size:13px;">
+              <div style="margin-bottom:6px;"><strong>Campaign ID:</strong> <span id="successCampId" style="font-weight:800; color:#2563EB;">HZ-CMP-20260902-001</span></div>
+              <div style="margin-bottom:6px;"><strong>Payment Status:</strong> <span class="badge badge-success">Payment Successful</span></div>
+              <div style="margin-bottom:6px;"><strong>Campaign Status:</strong> <span class="badge badge-warning">Pending Review</span></div>
+              <div style="font-size:12px; color:#64748B; margin-top:10px;">Our marketing team will review your campaign details and begin preparing your ads within 2 hours.</div>
+            </div>
+
+            <div style="display:flex; justify-content:center; gap:12px;">
+              <button class="btn-secondary" onclick="closeModal('campaignPurchaseModal')">Close Window</button>
+              <button class="btn-primary" onclick="closeModal('campaignPurchaseModal'); switchGrowSubTab('campaigns');">View My Campaigns →</button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+  <script src="api-client.js"></script>
+  <script src="enquiry-store.js"></script>
+  <script src="marketing-store.js"></script>
+  <script src="owner-data.js"></script>
+  <script src="owner-app.js"></script>
+  <input type="file" id="ownerPhotoInput" accept="image/jpeg,image/png,image/webp,image/avif" multiple style="display:none" onchange="uploadSelectedPhotos(this.files)" />
+</body>
+</html>

@@ -1,0 +1,4 @@
+email,name,hotel_name,properties_owned,plan,created_at,last_login,otp_code,otp_expires
+pilot1@example.com,Owner Name 1,Hotel Name 1,,Starter,2026-05-16,,,
+pilot2@example.com,Owner Name 2,Hotel Name 2,,Growth,2026-05-16,,,
+pilot3@example.com,Owner Name 3,Hotel Name 3,,Pro,2026-05-16,,,

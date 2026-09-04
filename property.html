@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#2563EB" />
+<title id="pageTitle">Property Details | Hotelzz.in</title>
+<meta name="description" id="pageDesc" content="Book direct via WhatsApp. Zero booking fees on Hotelzz.in." />
+<link rel="icon" type="image/png" href="jpg.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<!-- Google tag (gtag.js) - GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-S3XDVMFR2D"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-S3XDVMFR2D');
+</script>
+<style>
+  :root {
+    --primary: #2563EB; --primary-dark: #1D4ED8; --primary-light: #EFF6FF;
+    --bg: #FFFFFF; --bg-alt: #F9FAFB;
+    --text: #1F2937; --text-muted: #6B7280; --text-light: #9CA3AF;
+    --success: #10B981; --whatsapp: #25D366; --whatsapp-dark: #1DA851;
+    --warning: #F59E0B; --border: #E5E7EB;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 12px 32px rgba(0,0,0,0.10);
+    --radius: 10px; --radius-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; color: var(--text); background: var(--bg-alt); line-height: 1.5; font-size: 15px; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; display: block; }
+  a { color: var(--primary); text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+  /* HEADER */
+  .header { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; height: 70px; gap: 20px; }
+  .brand { display: flex; align-items: center; gap: 10px; line-height: 1; }
+  .brand-mark { display: flex; flex-direction: column; }
+  .brand-name { font-weight: 800; font-size: 22px; color: var(--primary); letter-spacing: -0.5px; line-height: 1; }
+  .brand-name .tld { color: var(--text); }
+  .brand-tag { font-size: 9px; font-weight: 600; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .header-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--whatsapp); color: #fff !important; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; }
+  .header-cta svg { width: 16px; height: 16px; }
+  .call-link { color: var(--primary); font-weight: 600; font-size: 14px; }
+
+  .breadcrumb { padding: 14px 0 0; font-size: 13px; color: var(--text-muted); }
+  .breadcrumb a { color: var(--text-muted); }
+  .breadcrumb a:hover { color: var(--primary); }
+
+  /* TITLE BLOCK */
+  .title-block { padding: 12px 0 18px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  .title-block h1 { font-size: clamp(22px, 3vw, 30px); font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 6px; }
+  .meta-row { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-muted); flex-wrap: wrap; }
+  .meta-row .rating-pill { background: var(--success); color: #fff; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+  .share-row { display: flex; gap: 8px; }
+  .share-btn { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; }
+  .share-btn:hover { background: var(--bg-alt); }
+
+  /* GALLERY */
+  .gallery { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 220px 220px; gap: 6px; border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px; }
+  .gallery img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; transition: transform 0.3s; }
+  .gallery img:hover { transform: scale(1.04); }
+  .gallery .g0 { grid-row: 1 / 3; grid-column: 1; }
+
+  /* LAYOUT */
+  .pdp-layout { display: grid; grid-template-columns: 1fr 380px; gap: 28px; padding-bottom: 60px; }
+  .pdp-main section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 18px; }
+  .pdp-main h2 { font-size: 18px; font-weight: 700; margin-bottom: 14px; }
+  .pdp-main p { color: var(--text-muted); line-height: 1.7; }
+  .amenity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+  .amenity-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 14px; }
+  .amenity-row svg { width: 18px; height: 18px; color: var(--success); flex-shrink: 0; }
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+
+  /* GOOGLE REVIEWS BLOCK */
+  .greviews-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
+  .greviews-score { background: var(--success); color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 22px; font-weight: 800; line-height: 1; }
+  .greviews-score small { display: block; font-size: 11px; font-weight: 600; opacity: 0.9; margin-top: 2px; }
+  .glogo-big { font-weight: 800; font-size: 18px; letter-spacing: -0.5px; line-height: 1.2; }
+  .glogo-big .gB{color:#4285F4}.glogo-big .go1{color:#EA4335}.glogo-big .go2{color:#FBBC04}.glogo-big .gg{color:#4285F4}.glogo-big .gl{color:#34A853}.glogo-big .ge{color:#EA4335}
+  .glogo-big a { color: var(--primary); font-weight: 600; font-size: 13px; text-decoration: none; display: block; margin-top: 4px; }
+  .glogo-big a:hover { text-decoration: underline; }
+  .recent-row { margin: 18px 0; }
+  .recent-row .label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .recent-squares { display: flex; gap: 6px; flex-wrap: wrap; }
+  .recent-square { width: 32px; height: 32px; border-radius: 6px; border: 1.5px solid; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; background: #fff; }
+  .rs-5{color:#10B981;border-color:#10B981}.rs-4{color:#3B82F6;border-color:#3B82F6}.rs-3{color:#F59E0B;border-color:#F59E0B}.rs-2{color:#F97316;border-color:#F97316}.rs-1{color:#EF4444;border-color:#EF4444}
+  .ai-summary { background: linear-gradient(135deg, #EFF6FF, #ECFDF5); border: 1px solid #BFDBFE; border-radius: 10px; padding: 14px 16px; margin-top: 6px; }
+  .ai-summary .ai-tag { color: var(--primary); font-size: 12px; font-weight: 700; margin-bottom: 6px; display: inline-flex; align-items: center; gap: 5px; }
+  .ai-summary p { color: var(--text); font-size: 14px; margin: 0 !important; line-height: 1.6; }
+  .gmap-embed { width: 100%; height: 280px; border: 0; border-radius: 10px; margin-top: 14px; }
+
+  .info-block { padding: 14px; background: var(--bg-alt); border-radius: 8px; }
+  .info-block strong { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+  .info-block span { font-size: 14px; color: var(--text); font-weight: 600; }
+  .policy-list { list-style: none; }
+  .policy-list li { padding: 10px 0; border-bottom: 1px dashed var(--border); display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+  .policy-list li:last-child { border-bottom: none; }
+  .policy-list li span:first-child { color: var(--text-muted); }
+  .policy-list li span:last-child { color: var(--text); font-weight: 600; text-align: right; }
+
+  /* BOOKING CARD */
+  .booking-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow); position: sticky; top: 90px; height: fit-content; }
+  .price-block { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+  .price-block .now { font-size: 28px; font-weight: 800; color: var(--text); }
+  .price-block .strike { font-size: 16px; color: var(--text-light); text-decoration: line-through; }
+  .price-block .off { background: #ECFDF5; color: var(--success); padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+  .price-tax { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .form-field { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; transition: border-color 0.2s, box-shadow 0.2s; }
+  .form-field:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+  .form-field label { display: block; font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-field input, .form-field select, .form-field textarea { border: none; outline: none; background: transparent; width: 100%; font-family: inherit; font-size: 14px; font-weight: 600; color: var(--text); padding: 4px 0 0; }
+  .form-field textarea { resize: vertical; font-weight: 500; min-height: 60px; }
+  .form-field-full { grid-column: 1 / 3; }
+  .form-error { color: #DC2626; font-size: 12px; margin-top: 6px; display: none; }
+  .form-error.show { display: block; }
+
+  .submit-wa { background: var(--whatsapp); color: #fff !important; width: 100%; padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; margin-top: 6px; box-shadow: 0 8px 20px rgba(37,211,102,0.3); transition: all 0.2s; }
+  .submit-wa:hover { background: var(--whatsapp-dark); transform: translateY(-2px); }
+  .submit-wa svg { width: 20px; height: 20px; }
+  .secondary-call { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; margin-top: 10px; border: 1px solid var(--border); border-radius: 10px; color: var(--primary); font-weight: 700; font-size: 14px; transition: all 0.2s; }
+  .secondary-call:hover { background: var(--primary-light); border-color: var(--primary); }
+
+  .trust-points { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .trust-points li { list-style: none; display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 13px; color: var(--text-muted); }
+  .trust-points li::before { content: "✓"; color: var(--success); font-weight: 800; }
+
+  /* FLOATING WA */
+  .float-wa { position: fixed; z-index: 99; bottom: 20px; right: 20px; background: var(--whatsapp); color: #fff; padding: 14px 22px; border-radius: 999px; font-weight: 600; font-size: 14px; box-shadow: 0 12px 32px rgba(37,211,102,0.45); display: inline-flex; align-items: center; gap: 10px; }
+  .float-wa svg { width: 22px; height: 22px; }
+
+  footer { background: #0F172A; color: #94A3B8; padding: 36px 0 20px; font-size: 14px; }
+  footer .footer-inner { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  footer a { color: #94A3B8; }
+
+  .not-found { background: #fff; border-radius: var(--radius-lg); padding: 60px 20px; text-align: center; margin: 40px 0; }
+  .not-found h2 { font-size: 24px; margin-bottom: 12px; }
+
+  @media (max-width: 980px) {
+    .pdp-layout { grid-template-columns: 1fr; }
+    .booking-card { position: static; }
+    .gallery { grid-template-rows: 200px 100px; }
+  }
+  @media (max-width: 640px) {
+    .gallery { grid-template-columns: 1fr 1fr; grid-template-rows: 200px 100px 100px; }
+    .gallery .g0 { grid-row: 1; grid-column: 1 / 3; }
+    .form-row { grid-template-columns: 1fr; }
+    .form-field-full { grid-column: 1; }
+    .float-wa { bottom: 80px; }
+    .submit-wa { font-size: 15px; padding: 14px; }
+  }
+
+  /* Sticky mobile booking bar */
+  .mobile-book-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--border); padding: 10px 14px; z-index: 95; box-shadow: 0 -4px 14px rgba(0,0,0,0.08); justify-content: space-between; align-items: center; gap: 12px; }
+  .mobile-book-bar .mb-price strong { font-size: 18px; color: var(--text); }
+  .mobile-book-bar .mb-price span { font-size: 12px; color: var(--text-muted); display: block; }
+  .mobile-book-bar .mb-btn { background: var(--whatsapp); color: #fff !important; padding: 12px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; display: inline-flex; gap: 6px; align-items: center; }
+  @media (max-width: 640px) {
+    .mobile-book-bar { display: flex; }
+    .float-wa { display: none; }
+    body { padding-bottom: 70px; }
+  }
+</style>
+</head>
+<body>
+<script src="api-client.js"></script>
+<script src="enquiry-store.js"></script>
+<script src="session-nav.js"></script>
+
+<header class="header">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">
+        <span class="brand-name">Hotelzz<span class="tld">.in</span></span>
+        <span class="brand-tag">Hotel Marketplace</span>
+      </span>
+    </a>
+    <div class="header-right">
+      <a href="user-portal.html" class="call-link">📩 My Enquiries</a>
+      <a href="tel:+919930090487" class="call-link">📞 +91 99300 90487</a>
+      <a href="https://wa.me/919930090487?text=Hi%20Hotelzz!%20I%20have%20an%20inquiry&utm_source=website&utm_medium=header&utm_campaign=direct" class="header-cta" target="_blank" rel="noopener" data-cta="header-wa">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>
+        <span>WhatsApp Us</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<div id="content">
+  <!-- rendered by JS -->
+</div>
+
+<footer>
+  <div class="container footer-inner">
+    <span>© 2026 Hotelzz.in — Direct Bookings. Happy Hoteliers.</span>
+    <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="https://wa.me/919930090487">WhatsApp</a> · <a href="tel:+919930090487">+91 99300 90487</a> · <a href="mailto:hello@hotelzz.in">hello@hotelzz.in</a></span>
+  </div>
+</footer>
+
+<a href="https://wa.me/919930090487?text=Hi%20Hotelzz!%20I%20need%20help%20with%20a%20booking..." class="float-wa" target="_blank" rel="noopener" id="floatWa">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>
+  <span>Help on WhatsApp</span>
+</a>
+
+<div class="mobile-book-bar" id="mobileBar">
+  <div class="mb-price"><strong id="mbPrice">—</strong><span>per night + taxes</span></div>
+  <a href="#bookingForm" class="mb-btn">
+    <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>
+    Book Now
+  </a>
+</div>
+
+<script src="hotels-data.js"></script>
+<script src="hotels-loader.js"></script>
+<script src="search.js" defer></script>
+<script>
+  function qs(name) {
+    var m = new RegExp('[?&]' + name + '=([^&]*)').exec(location.search);
+    return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+  }
+  function titleCase(s) { return s.replace(/(^|[\s-])(\w)/g, function(_,a,b){ return a + b.toUpperCase(); }); }
+  function esc(s) { return (s||'').toString().replace(/[<>&"]/g, function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];}); }
+
+  var IMG_POOL = ['photo-1566073771259-6a8506099945','photo-1582719508461-905c673771fd','photo-1611892440504-42a792e24d32','photo-1564013799919-ab600027ffc6','photo-1542314831-068cd1dbfeeb','photo-1520250497591-112f2f40a3f4','photo-1571003123894-1f0594d2b5d9','photo-1551882547-ff40c63fe5fa','photo-1602002418082-a4443e081dd1','photo-1631049307264-da0ec9d70304','photo-1590490360182-c33d57733427','photo-1568084680786-a84f91d1153c','photo-1540541338287-41700207dee6','photo-1505693416388-ac5ce068fe85','photo-1578683010236-d716f9a3f461','photo-1551918120-9739cb430c6d'];
+  function imgFor(seed, idx, w, h) { var pic = IMG_POOL[(seed + idx) % IMG_POOL.length]; return 'https://images.unsplash.com/' + pic + '?w=' + (w||1000) + '&h=' + (h||700) + '&fit=crop&q=75'; }
+  // Real reviews come from the server (/api/reviews?propertyId=...) — see
+  // loadRealReviews() below, called after the page renders.
+
+  var id = qs('id');
+  var hotel = (window.HOTELS || []).find(function(h){ return h.id === id; });
+  var wasInactive = false;
+  // Treat inactive listings as removed (bundled snapshot may still contain them).
+  if (hotel) {
+    var act = String(hotel.active || 'yes').trim().toLowerCase();
+    if (act && !(act === 'yes' || act === 'y' || act === 'true' || act === '1')) {
+      hotel = null;
+      wasInactive = true;
+    }
+  }
+  var content = document.getElementById('content');
+
+  // If bundled snapshot doesn't have this id, the live CSV may — wait for it once.
+  if (!hotel) {
+    window.addEventListener('hotelsUpdated', function once(){
+      var fresh = (window.HOTELS || []).find(function(h){ return h.id === id; });
+      if (fresh) location.reload();
+    }, { once: true });
+  }
+
+  if (!hotel) {
+    // Block search engines from indexing dead listing URLs
+    var rb = document.createElement('meta'); rb.name = 'robots'; rb.content = 'noindex, nofollow'; document.head.appendChild(rb);
+
+    if (wasInactive) {
+      document.getElementById('pageTitle').textContent = 'Listing no longer available · Hotelzz.in';
+      content.innerHTML = '<div class="container"><div class="not-found"><h2>This listing is no longer available</h2><p>The property you\'re looking for has been removed from Hotelzz.in. We have 3,000+ other hand-picked stays across India — find one you\'ll love.</p><div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;"><a href="index.html" style="background:#2563EB;color:#fff;padding:12px 22px;border-radius:8px;font-weight:700;">Browse all destinations</a><a href="https://wa.me/919930090487?text=Hi%20Hotelzz!%20I%20was%20looking%20at%20a%20listing%20that%27s%20no%20longer%20available%20-%20can%20you%20suggest%20similar%20stays%3F" target="_blank" rel="noopener" style="background:#25D366;color:#fff;padding:12px 22px;border-radius:8px;font-weight:700;">Ask on WhatsApp</a></div></div></div>';
+    } else {
+      content.innerHTML = '<div class="container"><div class="not-found"><h2>Pick a property to view details</h2><p>Browse our hand-picked stays to see room photos, amenities, prices and book direct on WhatsApp.</p><div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;"><a href="city.html?city=calangute" style="background:#2563EB;color:#fff;padding:12px 22px;border-radius:8px;font-weight:700;">Browse hotels in Calangute</a><a href="index.html" style="background:#fff;border:2px solid #2563EB;color:#2563EB;padding:10px 22px;border-radius:8px;font-weight:700;">Back to home</a></div></div></div>';
+    }
+  } else {
+    document.getElementById('pageTitle').textContent = hotel.name + ' — Hotelzz.in';
+    document.getElementById('pageDesc').setAttribute('content', 'Book ' + hotel.name + ' in ' + hotel.location + ' direct on Hotelzz.in. Verified property, real photos, zero booking fees, instant WhatsApp confirmation.');
+
+    var seed = hotel.id.split('').reduce(function(a,c){return a + c.charCodeAt(0);}, 0);
+    var imgs = [imgFor(seed, 0, 1000, 600), imgFor(seed, 1, 600, 400), imgFor(seed, 2, 600, 400), imgFor(seed, 3, 600, 400), imgFor(seed, 4, 600, 400)];
+    // Real rate only — never a fabricated number or a fake discount off a
+    // made-up original price.
+    var priceHtml = hotel.min_price
+      ? '<span class="now">₹' + Math.round(hotel.min_price).toLocaleString("en-IN") + '</span>'
+      : '<span class="now" style="font-size:20px;">Price on request</span>';
+
+    var pickedAmenities = hotel.realAmenities || [];
+
+    content.innerHTML = '\
+      <div class="container">\
+        <div class="breadcrumb"><a href="index.html">Home</a> &nbsp;›&nbsp; <a href="city.html?city=' + esc(hotel.city_slug) + '">Hotels in ' + esc(titleCase(hotel.location)) + '</a> &nbsp;›&nbsp; ' + esc(hotel.name) + '</div>\
+        <div class="title-block">\
+          <div>\
+            <h1>' + esc(hotel.name) + '</h1>\
+            <div class="meta-row">\
+              <span class="rating-pill">★ ' + hotel.rating.toFixed(1) + '</span>\
+              ' + (hotel.google_cid && hotel.google_review_count ? '<a href="https://www.google.com/maps?cid=' + hotel.google_cid + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);padding:3px 8px 3px 5px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text);text-decoration:none;"><span style="background:var(--success);color:#fff;padding:2px 6px;border-radius:4px;font-weight:800;font-size:11px;">' + hotel.rating.toFixed(1) + '/5</span><span class="glogo-big" style="font-size:12px;"><span class="gB">G</span><span class="go1">o</span><span class="go2">o</span><span class="gg">g</span><span class="gl">l</span><span class="ge">e</span></span><span style="color:var(--primary);">View ' + hotel.google_review_count + ' ratings</span></a>' : '') + '\
+              <span>' + (hotel.rating >= 4.7 ? 'Exceptional' : hotel.rating >= 4.3 ? 'Very Good' : 'Good') + (hotel.claim_status === 'verified' ? ' · Verified Property' : '') + '</span>\
+              <span>·</span>\
+              <span>📍 ' + esc(hotel.location) + '</span>\
+            </div>\
+          </div>\
+          <div class="share-row">\
+            <button class="share-btn" onclick="navigator.share ? navigator.share({title: document.title, url: location.href}) : navigator.clipboard.writeText(location.href).then(function(){alert(\'Link copied!\');})">↗ Share</button>\
+            <button class="share-btn" onclick="alert(\'Saved! Sign up coming soon.\')">♡ Save</button>\
+          </div>\
+        </div>\
+        <div class="gallery">\
+          <img class="g0" src="' + imgs[0] + '" alt="' + esc(hotel.name) + ' main view" loading="eager">\
+          <img src="' + imgs[1] + '" alt="Room view" loading="lazy">\
+          <img src="' + imgs[2] + '" alt="Property view" loading="lazy">\
+          <img src="' + imgs[3] + '" alt="Amenity view" loading="lazy">\
+          <img src="' + imgs[4] + '" alt="Surroundings" loading="lazy">\
+        </div>\
+        <div class="pdp-layout">\
+          <div class="pdp-main">\
+            <section>\
+              <h2>About this property</h2>\
+              <p>' + esc(hotel.name) + ' is a verified ' + (hotel.rating >= 4.7 ? 'top-rated' : 'highly-rated') + ' stay located in ' + esc(hotel.location) + '. Perfect for couples, families and groups looking for a comfortable, well-located base to explore the area\'s attractions, restaurants and nightlife. The property offers modern amenities, friendly hosts, and easy WhatsApp coordination — no commission cuts, no middlemen.</p>\
+              <p style="margin-top:14px;">📍 <strong>Address:</strong> ' + esc(hotel.address || hotel.location) + '</p>\
+            </section>\
+            <section>\
+              <h2>Amenities</h2>\
+              ' + (pickedAmenities.length ? '<div class="amenity-grid">' + pickedAmenities.map(function(a){return '<div class="amenity-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>'+esc(a)+'</span></div>';}).join('') + '</div>' : '<p style="color:var(--text-muted);font-size:13.5px;">Not listed yet — ask the host on WhatsApp what\'s included.</p>') + '\
+            </section>\
+            <section>\
+              <h2>Guest reviews</h2>\
+              <div id="realReviewsSummary" style="font-size:13.5px;color:var(--text-muted);margin-bottom:14px;">Loading reviews…</div>\
+              <div id="realReviewsList"></div>\
+            </section>\
+            ' + (hotel.google_cid ? '<section>\
+              <h2>View on Google</h2>\
+              <div class="greviews-head">\
+                <div class="greviews-score">' + hotel.rating.toFixed(1) + '<small>/5</small></div>\
+                <div class="glogo-big">\
+                  <span class="gB">G</span><span class="go1">o</span><span class="go2">o</span><span class="gg">g</span><span class="gl">l</span><span class="ge">e</span><br>\
+                  <a href="https://www.google.com/maps?cid=' + hotel.google_cid + '" target="_blank" rel="noopener">' + (hotel.google_review_count ? 'View ' + hotel.google_review_count + ' ratings →' : 'View on Google Maps →') + '</a>\
+                </div>\
+              </div>\
+              ' + (hotel.google_summary ? '<div class="ai-summary">\
+                <div class="ai-tag">✦ AI generated summary</div>\
+                <p>' + esc(hotel.google_summary) + '</p>\
+              </div>' : '') + '\
+              <iframe class="gmap-embed" loading="lazy" src="https://www.google.com/maps?cid=' + hotel.google_cid + '&output=embed" allowfullscreen></iframe>\
+            </section>' : '') + '\
+            <section>\
+              <h2>Property highlights</h2>\
+              <div class="info-grid">\
+                <div class="info-block"><strong>Location</strong><span>' + esc(hotel.location) + '</span></div>\
+                <div class="info-block"><strong>Pincode</strong><span>' + esc(hotel.pincode || '—') + '</span></div>\
+                <div class="info-block"><strong>Property type</strong><span>' + esc(hotel.property_type || 'Verified Stay') + '</span></div>\
+                <div class="info-block"><strong>Guest rating</strong><span>★ ' + hotel.rating.toFixed(1) + ' / 5</span></div>\
+              </div>\
+            </section>\
+            <section>\
+              <h2>Booking policies</h2>\
+              <ul class="policy-list">\
+                <li><span>Check-in</span><span>2:00 PM onwards</span></li>\
+                <li><span>Check-out</span><span>11:00 AM</span></li>\
+                <li><span>Cancellation</span><span>Free cancellation up to 48hrs before check-in</span></li>\
+                <li><span>Payment</span><span>Pay 25% to confirm · balance at check-in</span></li>\
+                <li><span>ID required</span><span>Valid government photo ID for all guests</span></li>\
+                <li><span>Children</span><span>Allowed · contact host for extra bedding</span></li>\
+              </ul>\
+            </section>\
+            <section>\
+              <h2>Why book direct on Hotelzz.in</h2>\
+              <ul class="amenity-grid" style="list-style:none;">\
+                <li class="amenity-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>No platform booking fees</li>\
+                <li class="amenity-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Direct WhatsApp with property</li>\
+                <li class="amenity-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Best rate guaranteed</li>\
+                <li class="amenity-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Verified properties only</li>\
+                <li class="amenity-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Instant booking confirmation</li>\
+                <li class="amenity-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Local Goa support team</li>\
+              </ul>\
+            </section>\
+          </div>\
+          <aside>\
+            <div class="booking-card" id="bookingForm">\
+              <div class="price-block">' + priceHtml + '</div>\
+              <div class="price-tax">' + (hotel.min_price ? 'per night + taxes & fees' : 'Confirm the rate directly with the host') + '</div>\
+              <a href="https://wa.me/919930090487?text=' + encodeURIComponent("Hi Hotelzz! I want the best rate for " + hotel.name + " in " + hotel.location + ". Please share availability and your best price.") + '&utm_source=website&utm_medium=property_page&utm_campaign=best_rate" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:var(--whatsapp);color:#fff;padding:13px;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;margin:14px 0;box-shadow:0 6px 16px rgba(37,211,102,0.25);transition:all 0.2s;" onmouseover="this.style.background=\'#1DA851\'" onmouseout="this.style.background=\'#25D366\'">\
+                <svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>\
+                Best Rate on WhatsApp →\
+              </a>\
+              <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:16px;">— or fill the form below —</div>\
+              <form id="bookForm" onsubmit="return submitBooking(event)" novalidate>\
+                <div class="form-row">\
+                  <div class="form-field"><label>Check-in</label><input type="date" id="fCheckIn" required></div>\
+                  <div class="form-field"><label>Check-out</label><input type="date" id="fCheckOut" required></div>\
+                </div>\
+                <div class="form-row">\
+                  <div class="form-field"><label>Guests</label><select id="fGuests"><option>1 Guest</option><option selected>2 Guests</option><option>3 Guests</option><option>4 Guests</option><option>5 Guests</option><option>6+ Guests</option></select></div>\
+                  <div class="form-field"><label>Rooms</label><select id="fRooms"><option selected>1 Room</option><option>2 Rooms</option><option>3 Rooms</option><option>4+ Rooms</option></select></div>\
+                </div>\
+                <div class="form-row">\
+                  <div class="form-field form-field-full"><label>Your full name *</label><input type="text" id="fName" required placeholder="e.g. Rohit Sharma"></div>\
+                </div>\
+                <div class="form-row">\
+                  <div class="form-field form-field-full"><label>WhatsApp / Phone *</label><input type="tel" id="fPhone" required pattern="[0-9 +-]{10,15}" placeholder="e.g. +91 98765 43210"></div>\
+                </div>\
+                <div class="form-row">\
+                  <div class="form-field form-field-full"><label>Email (optional)</label><input type="email" id="fEmail" placeholder="you@example.com"></div>\
+                </div>\
+                <div class="form-row">\
+                  <div class="form-field form-field-full"><label>Anything special? (optional)</label><textarea id="fNotes" placeholder="Early check-in, airport pickup, dietary needs, occasion..."></textarea></div>\
+                </div>\
+                <div class="form-error" id="formError"></div>\
+                <button type="submit" class="submit-wa">\
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>\
+                  Book on WhatsApp\
+                </button>\
+                <a href="tel:+919930090487" class="secondary-call">📞 Or call +91 99300 90487</a>\
+              </form>\
+              <ul class="trust-points">\
+                <li>Free cancellation till 48hrs before check-in</li>\
+                <li>Best price guaranteed · No hidden fees</li>\
+                <li>Verified property · Instant confirmation</li>\
+                <li>We respond on WhatsApp within 5 minutes</li>\
+              </ul>\
+            </div>\
+          </aside>\
+        </div>\
+      </div>';
+
+    loadRealReviews();
+
+    document.getElementById('mbPrice').textContent = hotel.min_price ? '₹' + Math.round(hotel.min_price).toLocaleString('en-IN') : 'On request';
+
+    // Default dates: today + 1, today + 2
+    var today = new Date(); var d1 = new Date(today); d1.setDate(d1.getDate()+1);
+    var d2 = new Date(today); d2.setDate(d2.getDate()+2);
+    function fmt(d){ return d.toISOString().slice(0,10); }
+    document.getElementById('fCheckIn').value = fmt(d1);
+    document.getElementById('fCheckIn').min = fmt(today);
+    document.getElementById('fCheckOut').value = fmt(d2);
+    document.getElementById('fCheckOut').min = fmt(d1);
+
+    document.getElementById('fCheckIn').addEventListener('change', function(){
+      var ci = new Date(this.value); var co = new Date(ci); co.setDate(co.getDate()+1);
+      var coEl = document.getElementById('fCheckOut'); coEl.min = fmt(co);
+      if (new Date(coEl.value) <= ci) coEl.value = fmt(co);
+    });
+  }
+
+  // Real traveler reviews for this property — replaces any fabricated rating
+  // data with what actually exists in the database.
+  function loadRealReviews() {
+    var summaryEl = document.getElementById('realReviewsSummary');
+    var listEl = document.getElementById('realReviewsList');
+    if (!summaryEl || !listEl || !window.HotelzzAPI || !hotel) return;
+
+    window.HotelzzAPI.get('/reviews?propertyId=' + encodeURIComponent(hotel.id)).then(function (r) {
+      var reviews = r.reviews || [];
+      if (!reviews.length) {
+        summaryEl.textContent = 'No guest reviews yet — be the first to stay and share one.';
+        listEl.innerHTML = '';
+        return;
+      }
+      summaryEl.innerHTML = '<strong>' + (r.average || '—') + '</strong>/5 average · ' + r.count + ' review' + (r.count === 1 ? '' : 's') + ' from verified stays';
+      listEl.innerHTML = reviews.map(function (rev) {
+        var date = rev.date ? new Date(rev.date.replace(' ', 'T')).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+        return '<div style="border-top:1px solid var(--border);padding:14px 0;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">' +
+          '<strong>' + esc(rev.userName || 'Guest') + '</strong>' +
+          '<span style="font-weight:700;color:#D97706;">★ ' + rev.rating + '/5</span>' +
+          '</div>' +
+          (rev.comment ? '<p style="font-size:13.5px;color:var(--text);margin-bottom:6px;">' + esc(rev.comment) + '</p>' : '') +
+          '<div style="font-size:11.5px;color:var(--text-muted);">' + esc(date) + '</div>' +
+          (rev.ownerReply ? '<div style="margin-top:8px;background:var(--bg-alt);border-radius:8px;padding:10px 12px;font-size:13px;"><strong>Host response:</strong> ' + esc(rev.ownerReply) + '</div>' : '') +
+          '</div>';
+      }).join('');
+    }).catch(function () {
+      summaryEl.textContent = '';
+      listEl.innerHTML = '';
+    });
+  }
+
+  // Counts a listing view / contact click for the owner's dashboard stats.
+  function track(event) {
+    if (!hotel || !hotel.id) return;
+    fetch('/api/properties/' + encodeURIComponent(hotel.id) + '/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: event })
+    }).catch(function () {});
+  }
+
+  // Record the listing view, and contact clicks, for the owner's stats.
+  if (hotel && hotel.id) {
+    track('view');
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest ? e.target.closest('a') : null;
+      if (!a) return;
+      var href = a.getAttribute('href') || '';
+      if (href.indexOf('tel:') === 0) track('phone');
+      else if (href.indexOf('wa.me') !== -1) track('whatsapp');
+      else if (hotel.website && href.indexOf(hotel.website) === 0) track('website');
+      else if (href.indexOf('google.com/maps') !== -1) track('directions');
+    });
+  }
+
+  function submitBooking(ev) {
+    ev.preventDefault();
+    var name = document.getElementById('fName').value.trim();
+    var phone = document.getElementById('fPhone').value.trim();
+    var checkIn = document.getElementById('fCheckIn').value;
+    var checkOut = document.getElementById('fCheckOut').value;
+    var guests = document.getElementById('fGuests').value;
+    var rooms = document.getElementById('fRooms').value;
+    var email = document.getElementById('fEmail').value.trim();
+    var notes = document.getElementById('fNotes').value.trim();
+    var err = document.getElementById('formError');
+
+    if (!name || name.length < 2) { err.textContent = 'Please enter your full name.'; err.classList.add('show'); return false; }
+    if (!phone || phone.replace(/[^0-9]/g,'').length < 10) { err.textContent = 'Please enter a valid 10-digit phone number.'; err.classList.add('show'); return false; }
+    if (!checkIn || !checkOut) { err.textContent = 'Please pick check-in and check-out dates.'; err.classList.add('show'); return false; }
+    if (new Date(checkOut) <= new Date(checkIn)) { err.textContent = 'Check-out must be after check-in.'; err.classList.add('show'); return false; }
+    err.classList.remove('show');
+
+    var msg = "🏨 *New Booking Enquiry — Hotelzz.in*\n\n" +
+      "*Property:* " + hotel.name + "\n" +
+      "*Location:* " + hotel.location + "\n" +
+      "*Property ID:* " + hotel.id + "\n\n" +
+      "*Guest Name:* " + name + "\n" +
+      "*Phone / WhatsApp:* " + phone + "\n" +
+      (email ? "*Email:* " + email + "\n" : "") +
+      "\n*Check-in:* " + checkIn + "\n" +
+      "*Check-out:* " + checkOut + "\n" +
+      "*Guests:* " + guests + "\n" +
+      "*Rooms:* " + rooms + "\n" +
+      (notes ? "\n*Special requests:* " + notes + "\n" : "") +
+      "\nPlease confirm availability & best rate. Thanks!";
+
+    var btn = ev.target && ev.target.querySelector ? ev.target.querySelector('button[type=submit]') : null;
+    var btnLabel = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending enquiry...'; }
+
+    // The enquiry is stored on the server, which emails the hotel, the guest
+    // and the Hotelzz team. WhatsApp opens as a second, optional channel.
+    window.HotelzzEnquiryStore.sendEnquiry({
+      name: name,
+      email: email,
+      phone: phone,
+      propertyId: hotel.id,
+      propertyName: hotel.name,
+      propertyCity: hotel.location || '',
+      checkIn: checkIn,
+      checkOut: checkOut,
+      guests: parseInt(guests, 10) || 2,
+      message: notes || ('Booking enquiry for ' + rooms + ' room(s), ' + guests + ' guest(s).'),
+      source: 'property_form'
+    }).then(function (enq) {
+      if (btn) { btn.disabled = false; btn.textContent = btnLabel; }
+      showEnquirySuccess(enq);
+      var url = 'https://wa.me/919930090487?text=' + encodeURIComponent(msg) + '&utm_source=website&utm_medium=property_form&utm_campaign=booking';
+      window.open(url, '_blank');
+    }).catch(function (error) {
+      if (btn) { btn.disabled = false; btn.textContent = btnLabel; }
+      err.textContent = error.message || 'Could not send the enquiry. Please try again.';
+      err.classList.add('show');
+    });
+
+    return false;
+  }
+
+  function showEnquirySuccess(enq) {
+    var err = document.getElementById('formError');
+    err.classList.remove('show');
+    var form = document.getElementById('bookingForm');
+    var box = document.createElement('div');
+    box.className = 'enquiry-success';
+    box.style.cssText = 'background:#ECFDF5;border:1px solid #A7F3D0;color:#047857;padding:16px;border-radius:10px;font-size:14px;line-height:1.6;';
+    box.innerHTML = '<strong>Enquiry sent to ' + esc(hotel.name) + '.</strong><br/>' +
+      'Reference <strong>' + esc(enq.id) + '</strong>. The hotel replies to you directly — we emailed you a copy. ' +
+      '<a href="user-portal.html#enquiries" style="color:#047857;font-weight:700;">Track it in your portal →</a>';
+    if (form) { form.style.display = 'none'; form.parentNode.insertBefore(box, form); }
+  }
+</script>
+
+
+  <script src="cookie-consent.js"></script>
+</body>
+</html>

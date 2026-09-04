@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find My Listing & Claim Property — Hotelzz.in</title>
+  <link rel="icon" type="image/png" href="jpg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #2563EB;
+      --primary-dark: #1D4ED8;
+      --primary-light: #EFF6FF;
+      --bg: #FFFFFF;
+      --bg-alt: #F8FAFC;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --radius: 12px;
+      --shadow: 0 10px 25px -5px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background-color: var(--bg-alt); color: var(--text); line-height: 1.6; }
+    
+    /* Header */
+    header { background: #FFF; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 20px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-size: 22px; font-weight: 800; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 6px; }
+    .brand span { color: var(--text); }
+    .nav-links { display: flex; align-items: center; gap: 16px; }
+    .nav-links a { color: var(--text); font-weight: 600; font-size: 14px; text-decoration: none; }
+    .btn-claim-nav { background: var(--primary); color: #FFF !important; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13.5px; }
+
+    /* Main Container */
+    .container { max-width: 680px; margin: 40px auto; padding: 0 20px; }
+    .claim-card { background: #FFF; border: 1px solid var(--border); border-radius: var(--radius); padding: 36px; box-shadow: var(--shadow); }
+    
+    /* Steps Progress Bar */
+    .steps-indicator { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; position: relative; }
+    .steps-indicator::before { content: ''; position: absolute; top: 16px; left: 0; right: 0; height: 2px; background: var(--border); z-index: 1; }
+    .step-dot { width: 34px; height: 34px; border-radius: 50%; background: #FFF; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; z-index: 2; color: var(--text-muted); }
+    .step-dot.active { border-color: var(--primary); background: var(--primary); color: #FFF; }
+    .step-dot.completed { border-color: var(--success); background: var(--success); color: #FFF; }
+
+    /* Views */
+    .claim-step-view { display: none; }
+    .claim-step-view.active { display: block; }
+
+    h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+    p.subtitle { color: var(--text-muted); font-size: 14.5px; margin-bottom: 24px; }
+
+    /* Form Controls */
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
+    .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: border 0.2s; font-family: inherit; }
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    
+    .btn-submit { width: 100%; background: var(--primary); color: #FFF; border: none; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    .btn-submit:hover { background: var(--primary-dark); }
+
+    /* Property Result Cards */
+    .property-card { border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; transition: border 0.2s; background: #FFF; }
+    .property-card:hover { border-color: var(--primary); }
+    .property-title { font-weight: 700; font-size: 16px; margin-bottom: 2px; }
+    .property-meta { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
+    .phone-masked-badge { display: inline-flex; align-items: center; gap: 4px; background: #F1F5F9; color: #475569; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; font-family: monospace; }
+
+    .btn-this-is-mine { background: var(--primary-light); color: var(--primary); border: 1px solid #BFDBFE; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .btn-this-is-mine:hover { background: var(--primary); color: #FFF; }
+
+    /* Verification States */
+    .alert-box { padding: 14px 16px; border-radius: 8px; font-size: 13.5px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px; }
+    .alert-danger { background: #FEE2E2; border: 1px solid #FCA5A5; color: #991B1B; }
+    .alert-success { background: #D1FAE5; border: 1px solid #6EE7B7; color: #065F46; }
+
+    /* Register Property Box */
+    .register-box { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); text-align: center; font-size: 13.5px; color: var(--text-muted); }
+    .register-box a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <a href="index.html" class="brand">Hotelzz<span>.in</span></a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="claim.html" class="btn-claim-nav">Find My Listing</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="claim-card">
+      
+      <!-- Progress Bar -->
+      <div class="steps-indicator">
+        <div class="step-dot active" id="dot1">1</div>
+        <div class="step-dot" id="dot2">2</div>
+        <div class="step-dot" id="dot3">3</div>
+        <div class="step-dot" id="dot4">4</div>
+      </div>
+
+      <!-- STEP 1: FIND PROPERTY -->
+      <div class="claim-step-view active" id="step1">
+        <h1>Find your Hotelzz listing</h1>
+        <p class="subtitle">Search for your hotel or property to claim and manage your Hotelzz owner profile.</p>
+
+        <div class="form-group">
+          <label>Hotel / Property Name</label>
+          <input type="text" id="searchName" class="form-control" placeholder="Enter hotel name (e.g. Taj Palace, Royal Orchid)" placeholder="Enter hotel name" value="" />
+        </div>
+
+        <div class="form-group">
+          <label>City</label>
+          <select id="searchCity" class="form-control">
+            <option value="Mumbai" selected>Mumbai</option>
+            <option value="Goa">Goa</option>
+            <option value="Bengaluru">Bengaluru</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Udaipur">Udaipur</option>
+            <option value="Jaipur">Jaipur</option>
+          </select>
+        </div>
+
+        <button class="btn-submit" onclick="executeSearch()">Find My Listing →</button>
+
+        <div class="register-box">
+          Can't find your property? <a onclick="goToStep('stepRegister')">Register a new property</a>
+        </div>
+      </div>
+
+      <!-- STEP 2: SEARCH RESULTS -->
+      <div class="claim-step-view" id="step2">
+        <h1>Select your property</h1>
+        <p class="subtitle">We found matching properties in our directory. Select your listing to continue.</p>
+
+        <div id="resultsList"></div>
+
+        <button class="btn-submit" style="background: transparent; color: var(--text-muted); border: 1px solid var(--border); margin-top: 12px;" onclick="goToStep('step1')">← Search Again</button>
+      </div>
+
+      <!-- STEP 3: PHONE VERIFICATION -->
+      <div class="claim-step-view" id="step3">
+        <h1>Verify your phone number</h1>
+        <p class="subtitle">We already have a phone number associated with this property listing. Enter your phone number to verify ownership.</p>
+
+        <div style="background: var(--bg-alt); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+          <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">SELECTED PROPERTY</div>
+          <div style="font-size: 16px; font-weight: 700; margin-top: 2px;" id="selectedPropTitle">Taj Palace Hotel</div>
+          <div style="font-size: 13px; color: var(--text-muted);">Stored phone: <strong id="selectedPropMaskedPhone" class="phone-masked-badge">+91 98••••••12</strong></div>
+        </div>
+
+        <div id="phoneErrorBox" class="alert-box alert-danger" style="display:none;">
+          <div>⚠️</div>
+          <div>
+            <strong>We couldn't verify this phone number.</strong><br/>
+            The number you entered doesn't match the number associated with this listing. Please try again.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Enter your 10-digit phone number</label>
+          <input type="tel" id="inputPhone" class="form-control" placeholder="+91 98201 44512" value="" />
+          <small style="font-size: 11.5px; color: var(--text-muted); margin-top: 4px; display: block;">Must match the number on the listing. If we hold no number, our team verifies you manually.</small>
+        </div>
+
+        <button class="btn-submit" onclick="verifyPhone()">Verify & Continue →</button>
+        <button class="btn-submit" style="background: transparent; color: var(--text-muted); border: 1px solid var(--border); margin-top: 10px;" onclick="goToStep('step2')">← Back to Results</button>
+      </div>
+
+      <!-- STEP 4: EMAIL CREDENTIALS -->
+      <div class="claim-step-view" id="step4">
+        <div class="alert-box alert-success">
+          <div>✓</div>
+          <div><strong>Phone number verified!</strong> Your identity matches the listing record.</div>
+        </div>
+
+        <h1>Where should we send your login details?</h1>
+        <p class="subtitle">We'll send your temporary login credentials and password instructions to this email address.</p>
+
+        <div class="form-group">
+          <label>Email address</label>
+          <input type="email" id="inputEmail" class="form-control" placeholder="owner@hotel.com" value="" />
+        </div>
+
+        <button class="btn-submit" onclick="sendCredentials()">Send Login Details →</button>
+      </div>
+
+      <!-- STEP 5: EMAIL SENT & TEMPORARY PASSWORD LOGIN -->
+      <div class="claim-step-view" id="step5">
+        <div style="text-align: center; padding: 20px 0;">
+          <div style="font-size: 48px; margin-bottom: 12px;">📧</div>
+          <h1>Login details sent</h1>
+          <p class="subtitle" style="max-width: 480px; margin: 0 auto 24px;">We've sent your temporary password and login instructions to <strong id="sentEmailDisplay">owner@hotel.com</strong>.</p>
+        </div>
+
+        <div style="background: var(--bg-alt); padding: 18px; border-radius: 10px; margin-bottom: 24px;">
+          <div style="font-weight: 700; font-size: 13.5px; margin-bottom: 6px;">Temporary Credentials Sent:</div>
+          <div style="font-size: 13px; color: var(--text-muted);">Email: <code style="color: var(--primary); font-weight: 700;" id="demoEmailVal">owner@hotel.com</code></div>
+          <div style="font-size: 13px; color: var(--text-muted);">Enter the 6-digit code from that email on the next screen to finish.</div>
+          <div style="font-size: 12.5px; color: var(--primary); font-weight: 700; margin-top: 6px;" id="claimCodeHint"></div>
+        </div>
+
+        <button class="btn-submit" onclick="openPasswordResetModal()">Continue to First Login →</button>
+      </div>
+
+      <!-- STEP 6: CLAIM COMPLETE -->
+      <div class="claim-step-view" id="step6">
+        <div style="text-align: center; padding: 24px 0;">
+          <div style="font-size: 56px; margin-bottom: 12px;">🎉</div>
+          <h1 style="color: var(--success);">Your property has been claimed!</h1>
+          <p class="subtitle" style="max-width: 480px; margin: 0 auto 24px;">Your Hotelzz listing is now successfully connected to your verified owner account.</p>
+
+          <div style="background: #F0FDF4; border: 1px solid #BBF7D0; padding: 20px; border-radius: 12px; margin-bottom: 28px; text-align: left;">
+            <div style="font-weight: 800; font-size: 16px; color: #166534;" id="finalPropName">Taj Palace Hotel</div>
+            <div style="font-size: 13px; color: #15803D;" id="finalPropCity">Mumbai, Maharashtra</div>
+            <div style="font-size: 12.5px; color: #166534; margin-top: 6px;">Status: <strong style="text-transform: uppercase;">Claimed & Verified</strong></div>
+          </div>
+
+          <a href="admin.html#properties" class="btn-submit" style="display: block; text-decoration: none;">Go to Owner Dashboard →</a>
+        </div>
+      </div>
+
+      <!-- NEW PROPERTY REGISTRATION FORM -->
+      <div class="claim-step-view" id="stepRegister">
+        <h1>Register New Property</h1>
+        <p class="subtitle">If your property isn't listed on Hotelzz yet, submit your property details below.</p>
+
+        <div class="form-group"><label>Property Name</label><input type="text" class="form-control" placeholder="e.g. Grand Horizon Resort" /></div>
+        <div class="form-group"><label>City & State</label><input type="text" class="form-control" placeholder="e.g. Goa, Maharashtra" /></div>
+        <div class="form-group"><label>Phone Number</label><input type="tel" class="form-control" placeholder="+91 98000 00000" /></div>
+        <div class="form-group"><label>Owner / Manager Email</label><input type="email" class="form-control" placeholder="manager@resort.com" /></div>
+
+        <button class="btn-submit" onclick="registerNewProperty()">Register Property</button>
+        <button class="btn-submit" style="background: transparent; color: var(--text-muted); border: 1px solid var(--border); margin-top: 10px;" onclick="goToStep('step1')">← Back to Search</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MANDATORY FIRST LOGIN PASSWORD RESET MODAL -->
+  <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 500; padding: 20px;" id="passwordModal">
+    <div style="background: #FFF; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+      <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">Create a new password</h2>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Enter the 6-digit code we emailed you and choose a password for your partner account.</p>
+      <div id="claimModalError" style="display:none; background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA; padding:10px 12px; border-radius:8px; font-size:13px; font-weight:600; margin-bottom:14px;"></div>
+      <div class="form-group"><label>6-digit code</label><input type="text" id="claimCodeInput" class="form-control" inputmode="numeric" maxlength="6" placeholder="123456" /></div>
+
+      <div class="form-group">
+        <label>Create New Password</label>
+        <input type="password" id="newPassInput" class="form-control" placeholder="Minimum 8 characters" autocomplete="new-password" />
+      </div>
+      <div class="form-group">
+        <label>Confirm New Password</label>
+        <input type="password" id="confirmPassInput" class="form-control" placeholder="Repeat new password" autocomplete="new-password" />
+      </div>
+
+      <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">
+        ✓ Minimum 8 characters<br/>
+        ✓ At least one number<br/>
+        ✓ At least one special character (!@#$)
+      </div>
+
+      <button class="btn-submit" onclick="submitNewPassword()">Set New Password & Complete Claim →</button>
+    </div>
+  </div>
+
+  <script src="api-client.js"></script>
+  <script src="session-nav.js"></script>
+  <script>
+    var API = window.HotelzzAPI;
+    var results = [];
+    var selected = null;
+    var claimEmail = '';
+
+    function goToStep(stepId) {
+      document.querySelectorAll('.claim-step-view').forEach(function (el) { el.classList.remove('active'); });
+      document.getElementById(stepId).classList.add('active');
+
+      // "stepRegister" is a separate branch (property not found at all) — it
+      // isn't part of the 1-4 claim sequence, so leave the dots as they are
+      // instead of misreading it as step 1.
+      var match = /^step(\d+)$/.exec(stepId);
+      if (!match) return;
+      var stepNum = parseInt(match[1], 10);
+      for (var i = 1; i <= 4; i++) {
+        var dot = document.getElementById('dot' + i);
+        if (i < stepNum) { dot.className = 'step-dot completed'; dot.innerHTML = '✓'; }
+        else if (i === stepNum) { dot.className = 'step-dot active'; dot.innerHTML = i; }
+        else { dot.className = 'step-dot'; dot.innerHTML = i; }
+      }
+    }
+
+    function busy(btn, on, label) {
+      if (!btn) return;
+      btn.disabled = on;
+      btn.textContent = on ? 'Please wait…' : label;
+    }
+
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[<>&"]/g, function (c) {
+        return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c];
+      });
+    }
+
+    /* --------------------------------------------------- 1. find a listing */
+
+    function executeSearch() {
+      var name = document.getElementById('searchName').value.trim();
+      var city = document.getElementById('searchCity').value;
+      var container = document.getElementById('resultsList');
+      var btn = document.querySelector('#step1 .btn-submit');
+
+      busy(btn, true, 'Find My Listing →');
+      API.get('/properties?limit=20&q=' + encodeURIComponent(name) + '&city=' + encodeURIComponent(city))
+        .then(function (r) {
+          busy(btn, false, 'Find My Listing →');
+          results = r.properties || [];
+          if (!results.length) {
+            container.innerHTML = '<div style="padding:18px;text-align:center;color:var(--text-muted);">' +
+              'No listing matched "' + esc(name) + '" in ' + esc(city) + '. ' +
+              'Try a shorter name, or register the property as new.</div>';
+          } else {
+            container.innerHTML = results.map(function (p, idx) {
+              return '<div class="property-card">' +
+                '<div>' +
+                  '<div class="property-title">' + esc(p.name) + '</div>' +
+                  '<div class="property-meta">' + esc(p.location || '') + ' • ⭐ ' + esc(p.rating || '—') +
+                    ' (' + esc(p.google_review_count || 0) + ' reviews)</div>' +
+                  '<div>Status: <span class="phone-masked-badge">' + esc(p.claimStatus) + '</span></div>' +
+                '</div>' +
+                '<button class="btn-this-is-mine" onclick="selectProperty(' + idx + ')">This is my property →</button>' +
+              '</div>';
+            }).join('');
+          }
+          goToStep('step2');
+        })
+        .catch(function (err) {
+          busy(btn, false, 'Find My Listing →');
+          container.innerHTML = '<div style="padding:18px;color:#B91C1C;">' + esc(err.message) + '</div>';
+          goToStep('step2');
+        });
+    }
+
+    /* ------------------------------------------------- 2/3. verify by phone */
+
+    function selectProperty(idx) {
+      selected = results[idx];
+      if (!selected) return;
+      document.getElementById('selectedPropTitle').textContent = selected.name;
+      document.getElementById('selectedPropMaskedPhone').textContent =
+        selected.phone ? maskPhone(selected.phone) : 'not on record';
+      document.getElementById('phoneErrorBox').style.display = 'none';
+      goToStep('step3');
+    }
+
+    function maskPhone(phone) {
+      var digits = String(phone).replace(/\D/g, '');
+      return digits.length >= 10 ? '+91 ' + digits.slice(-10, -8) + '••••••' + digits.slice(-2) : 'on record';
+    }
+
+    function verifyPhone() {
+      if (!selected) return goToStep('step1');
+      var input = document.getElementById('inputPhone').value;
+      var errBox = document.getElementById('phoneErrorBox');
+      var btn = document.querySelector('#step3 .btn-submit');
+
+      busy(btn, true, 'Verify & Continue →');
+      API.post('/properties/' + encodeURIComponent(selected.id) + '/claim/verify-phone', { phone: input })
+        .then(function (r) {
+          busy(btn, false, 'Verify & Continue →');
+          if (r.matched || r.manualReview) {
+            errBox.style.display = 'none';
+            window.claimPhone = input;
+            goToStep('step4');
+          } else {
+            errBox.style.display = 'flex';
+          }
+        })
+        .catch(function (err) {
+          busy(btn, false, 'Verify & Continue →');
+          errBox.style.display = 'flex';
+          errBox.querySelector('strong').textContent = err.message;
+        });
+    }
+
+    /* ------------------------------------------ 4/5. email code + password */
+
+    function sendCredentials() {
+      if (!selected) return goToStep('step1');
+      var email = document.getElementById('inputEmail').value.trim();
+      var btn = document.querySelector('#step4 .btn-submit');
+      if (!email || email.indexOf('@') < 0) return window.alert('Enter a valid email address.');
+
+      busy(btn, true, 'Send Login Details →');
+      API.post('/properties/' + encodeURIComponent(selected.id) + '/claim/start', {
+        name: document.getElementById('searchName').value.trim() || selected.name,
+        email: email,
+        phone: window.claimPhone || ''
+      }).then(function (r) {
+        busy(btn, false, 'Send Login Details →');
+        claimEmail = email;
+        document.getElementById('sentEmailDisplay').textContent = email;
+        document.getElementById('demoEmailVal').textContent = email;
+        var hint = document.getElementById('claimCodeHint');
+        if (hint) hint.textContent = r.devCode ? 'Development mode — your code is ' + r.devCode : '';
+        goToStep('step5');
+      }).catch(function (err) {
+        busy(btn, false, 'Send Login Details →');
+        window.alert(err.message);
+      });
+    }
+
+    function openPasswordResetModal() {
+      document.getElementById('passwordModal').style.display = 'flex';
+    }
+
+    function submitNewPassword() {
+      var code = (document.getElementById('claimCodeInput') || {}).value || '';
+      var pw = (document.getElementById('newPassInput') || {}).value || '';
+      var errEl = document.getElementById('claimModalError');
+      var show = function (m) { if (errEl) { errEl.textContent = m; errEl.style.display = 'block'; } else window.alert(m); };
+
+      if (!/^\d{6}$/.test(code.trim())) return show('Enter the 6-digit code from your email.');
+      if (pw.length < 8) return show('Choose a password of at least 8 characters.');
+      var confirm = (document.getElementById('confirmPassInput') || {}).value || '';
+      if (confirm !== pw) return show('The two passwords do not match.');
+
+      API.post('/properties/' + encodeURIComponent(selected.id) + '/claim/confirm', {
+        email: claimEmail, code: code.trim(), password: pw
+      }).then(function (r) {
+        document.getElementById('passwordModal').style.display = 'none';
+        document.getElementById('finalPropName').textContent = r.property.name;
+        document.getElementById('finalPropCity').textContent = r.property.location || '';
+        goToStep('step6');
+      }).catch(function (err) { show(err.message); });
+    }
+
+    /* ------------------------------------------------ register new property */
+
+    function registerNewProperty() {
+      var f = document.getElementById('stepRegister');
+      var inputs = f.querySelectorAll('.form-control');
+      var payload = {
+        hotelName: inputs[0].value.trim(),
+        city: inputs[1].value.trim(),
+        phone: inputs[2].value.trim(),
+        email: inputs[3].value.trim()
+      };
+      if (!payload.hotelName || !payload.city || !payload.phone || !payload.email) {
+        return window.alert('Fill in every field so our team can index the property.');
+      }
+      API.post('/leads', {
+        name: payload.hotelName + ' (owner)',
+        hotelName: payload.hotelName,
+        city: payload.city,
+        phone: payload.phone,
+        email: payload.email,
+        type: 'new-property',
+        message: 'Requests indexing of a property not yet listed on Hotelzz.',
+        source: 'claim_page'
+      }).then(function () {
+        window.alert('Submitted. Our team indexes the property and emails you when the listing is live.');
+        goToStep('step1');
+      }).catch(function (err) { window.alert(err.message); });
+    }
+  </script>
+  <script src="cookie-consent.js"></script>
+</body>
+</html>

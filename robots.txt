@@ -1,0 +1,15 @@
+# Hotelzz.in — robots.txt
+# All search engines welcome. JS/CSS allowed for proper Googlebot rendering.
+
+User-agent: *
+Allow: /
+
+# Block source documentation
+Disallow: /LEADS-APPS-SCRIPT.gs
+Disallow: /SETUP-GOOGLE-SHEET.md
+
+# Admin console — not part of the public site, kept out of search indexes
+Disallow: /admin.html
+Disallow: /admin-login.html
+
+Sitemap: https://hotelzz.in/sitemap.xml

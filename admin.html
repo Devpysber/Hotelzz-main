@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hotelzz Admin Panel — Operations & Management</title>
+  <link rel="icon" type="image/png" href="jpg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell" id="adminShell">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="admin-sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="admin.html" class="sidebar-brand">
+          <div class="sidebar-brand-icon">H</div>
+          <span class="sidebar-brand-text">Hotelzz</span>
+          <span class="sidebar-brand-badge">ADMIN</span>
+        </a>
+        <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Collapse Sidebar">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">OVERVIEW</div>
+        <a class="nav-item active" data-view="dashboard">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          <span>Dashboard</span>
+        </a>
+
+        <div class="nav-section-label">PROPERTIES</div>
+        <a class="nav-item" data-view="properties">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0H7m4-4h4m-4 0H7"/></svg>
+          <span>All Properties</span>
+        </a>
+
+        <div class="nav-section-label">CLAIMS</div>
+        <a class="nav-item" data-view="claims">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          <span>Property Claims</span>
+          <span class="nav-item-badge" id="navClaimsBadge">—</span>
+        </a>
+
+        <div class="nav-section-label">IMPORT</div>
+        <a class="nav-item" data-view="import">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <span>Import Listings</span>
+        </a>
+        <a class="nav-item" data-view="import-history">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Import History</span>
+        </a>
+
+        <div class="nav-section-label">OWNERS & SUBS</div>
+        <a class="nav-item" data-view="owners">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <span>Hotel Owners</span>
+        </a>
+        <a class="nav-item" data-view="subscriptions">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5zM5 13a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 002-2H5z"/></svg>
+          <span>Subscriptions & Plans</span>
+        </a>
+        <a class="nav-item" data-view="revenue">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Revenue Analytics</span>
+        </a>
+
+        <div class="nav-section-label">BUSINESS & MARKETING</div>
+        <a class="nav-item" data-view="admin-marketing">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+          <span>📣 Marketing System</span>
+        </a>
+        <a class="nav-item" data-view="cities">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span>City Analytics</span>
+        </a>
+        <a class="nav-item" data-view="payments">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h4m-7 4h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <span>Payments</span>
+        </a>
+        <a class="nav-item" data-view="reviews">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11.05 2.93c.3-.92 1.6-.92 1.9 0l1.52 4.67a1 1 0 00.95.69h4.91c.97 0 1.37 1.24.59 1.81l-3.98 2.89a1 1 0 00-.36 1.12l1.52 4.67c.3.92-.76 1.69-1.54 1.12l-3.98-2.89a1 1 0 00-1.17 0l-3.98 2.89c-.78.57-1.84-.2-1.54-1.12l1.52-4.67a1 1 0 00-.36-1.12L2.06 10.1c-.78-.57-.38-1.81.59-1.81h4.91a1 1 0 00.95-.69l1.52-4.67z"/></svg>
+          <span>Reviews</span>
+        </a>
+        <a class="nav-item" data-view="leads">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <span>Leads & Inquiries</span>
+        </a>
+        <a class="nav-item" data-view="emails">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <span>Email Center</span>
+        </a>
+
+        <div class="nav-section-label">MANAGEMENT</div>
+        <a class="nav-item" data-view="users">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-4a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4 4 4 0 004 4z"/></svg>
+          <span>User Management</span>
+        </a>
+        <a class="nav-item" data-view="activity">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Activity Logs</span>
+        </a>
+        <a class="nav-item" data-view="admins">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Admin Users</span>
+        </a>
+        <a class="nav-item" data-view="settings">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-footer-info">
+          <span class="sidebar-footer-name">Hotelzz Admin</span>
+          <span class="sidebar-footer-role">v2.5 Production</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT WRAPPER -->
+    <div class="admin-main">
+      
+      <!-- TOP HEADER -->
+      <header class="admin-header">
+        <div class="header-left">
+          <button class="mobile-toggle-btn" id="mobileToggleBtn">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+
+          <!-- Search Bar -->
+          <div class="header-search-container">
+            <svg class="header-search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" id="globalSearchInput" class="header-search-input" placeholder="Search hotels, owners, cities, claims, imports..." />
+            <div class="search-results-dropdown" id="globalSearchDropdown"></div>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <a href="index.html" target="_blank" class="header-btn" title="Open Customer Site">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            <span>Public Site</span>
+          </a>
+
+          <!-- Notifications Bell -->
+          <button class="header-icon-btn" id="notificationBellBtn" title="Notifications">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span class="icon-badge" id="notificationBadge"></span>
+          </button>
+
+          <div class="notification-dropdown" id="notificationDropdown">
+            <div class="notification-header">
+              <h4>Notifications</h4>
+              <button class="mark-read-btn" onclick="markAllNotificationsRead()">Mark all as read</button>
+            </div>
+            <div class="notification-list" id="notificationList"></div>
+          </div>
+
+          <!-- User Profile -->
+          <div class="admin-user-profile" id="adminProfileBtn">
+            <div class="admin-avatar">A</div>
+            <div class="admin-user-info">
+              <span class="admin-user-name" id="adminProfileName">Loading…</span>
+              <span class="admin-user-role" id="adminProfileEmail"></span>
+            </div>
+          </div>
+
+          <div class="user-dropdown-menu" id="userDropdownMenu">
+            <div class="dropdown-menu-item" onclick="switchView('settings')">Settings</div>
+            <div class="dropdown-menu-item" onclick="switchView('activity')">Activity Log</div>
+            <div class="dropdown-divider"></div>
+            <a href="index.html" class="dropdown-menu-item" style="color: #EF4444;">Exit Admin</a>
+          </div>
+        </div>
+      </header>
+
+      <!-- PAGE CONTENT VIEWS -->
+      <main class="admin-body-content">
+
+        <!-- 1. DASHBOARD VIEW -->
+        <section class="admin-page-view active" id="view-dashboard">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Dashboard</h1>
+              <p>Overview of your Hotelzz platform performance, property claims, and CSV imports.</p>
+            </div>
+          </div>
+
+          <!-- Quick Actions Bar -->
+          <div class="quick-actions-bar">
+            <span style="font-weight: 700; font-size: 12px; color: var(--admin-text-muted); text-transform: uppercase;">Quick Actions:</span>
+            <button class="btn-primary" onclick="switchView('import')">+ Import CSV Listings</button>
+            <button class="btn-secondary" onclick="switchView('claims')">Review Claims (<span id="quickClaimsCount">—</span>)</button>
+            <button class="btn-secondary" onclick="switchView('properties')">All Properties</button>
+            <button class="btn-secondary" onclick="switchView('subscriptions')">Subscriptions</button>
+          </div>
+
+          <!-- KPI Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-top"><span class="kpi-label">Total Properties</span><div class="kpi-icon">🏨</div></div>
+              <div class="kpi-value" id="dashTotalProps">—</div>
+              <div class="kpi-subtext positive" id="dashTotalPropsGrowth">—</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-top"><span class="kpi-label">Claimed Properties</span><div class="kpi-icon">✅</div></div>
+              <div class="kpi-value" id="dashClaimedProps">—</div>
+              <div class="kpi-subtext neutral" id="dashClaimRateText">—</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-top"><span class="kpi-label">Claims This Month</span><div class="kpi-icon">📱</div></div>
+              <div class="kpi-value" id="dashClaimsMonth">—</div>
+              <div class="kpi-subtext positive" id="dashClaimsBreakdown">—</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-top"><span class="kpi-label">Imported Properties</span><div class="kpi-icon">📥</div></div>
+              <div class="kpi-value" id="dashImportedProps">—</div>
+              <div class="kpi-subtext neutral" id="dashLastImportSize">—</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-top"><span class="kpi-label">Monthly Recurring Revenue</span><div class="kpi-icon">📈</div></div>
+              <div class="kpi-value" id="dashMRR">—</div>
+              <div class="kpi-subtext positive" id="dashActiveSubsText">—</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-top"><span class="kpi-label">Pending Claims</span><div class="kpi-icon warning">⚠️</div></div>
+              <div class="kpi-value" id="dashPendingClaims">—</div>
+              <div class="kpi-subtext warning-text">Action Required</div>
+            </div>
+          </div>
+
+          <!-- Charts Section -->
+          <div class="dashboard-grid-2">
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <div>
+                  <div class="card-title">Property Overview</div>
+                  <div class="card-subtitle">Growth trajectory of total vs claimed listings</div>
+                </div>
+                <div class="timeframe-pills">
+                  <button class="tf-btn" data-tf="7d">7D</button>
+                  <button class="tf-btn active" data-tf="30d">30D</button>
+                  <button class="tf-btn" data-tf="3m">3M</button>
+                  <button class="tf-btn" data-tf="6m">6M</button>
+                </div>
+              </div>
+              <div class="chart-container" id="propertyTrendChart"></div>
+            </div>
+
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <div>
+                  <div class="card-title">Operational Summary</div>
+                  <div class="card-subtitle">Claims & Import quality overview</div>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="padding: 12px; border-radius: 8px; background: var(--admin-bg);">
+                  <div style="font-size: 11.5px; font-weight: 700; color: var(--admin-text-muted);">CLAIM VERIFICATION OUTCOMES</div>
+                  <div style="font-size: 15px; font-weight: 800; margin-top: 2px;" id="opClaimsHeadline">—</div>
+                  <div style="font-size: 11.5px; color: var(--admin-text-muted);" id="opClaimsSub">—</div>
+                </div>
+                <div style="padding: 12px; border-radius: 8px; background: var(--admin-bg);">
+                  <div style="font-size: 11.5px; font-weight: 700; color: var(--admin-text-muted);">CSV IMPORT EFFICIENCY</div>
+                  <div style="font-size: 15px; font-weight: 800; margin-top: 2px;" id="opImportHeadline">—</div>
+                  <div style="font-size: 11.5px; color: var(--admin-text-muted);" id="opImportSub">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. ALL PROPERTIES VIEW -->
+        <section class="admin-page-view" id="view-properties">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>All Properties</h1>
+              <p>Manage and audit every hotel, resort, and homestay listed on Hotelzz.</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn-secondary" onclick="exportAdminCsv('properties')">↓ Export CSV</button>
+              <button class="btn-primary" onclick="switchView('import')">+ Import CSV Listings</button>
+            </div>
+          </div>
+
+          <div class="filter-bar">
+            <input type="text" id="propSearchInput" class="filter-input" placeholder="Search property name, ID, city..." style="width: 260px;" oninput="filterProperties()" />
+            <select id="propCityFilter" class="filter-select" onchange="filterProperties()">
+              <option value="">All Cities</option>
+              <option value="Mumbai">Mumbai</option>
+              <option value="Delhi">Delhi</option>
+              <option value="Bengaluru">Bengaluru</option>
+              <option value="Goa">Goa</option>
+            </select>
+            <select id="propClaimFilter" class="filter-select" onchange="filterProperties()">
+              <option value="">All Claim Statuses</option>
+              <option value="Claimed">Claimed</option>
+              <option value="Phone Verified">Phone Verified</option>
+              <option value="Unclaimed">Unclaimed</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Property Name</th>
+                  <th>Property ID</th>
+                  <th>City</th>
+                  <th>Masked Phone</th>
+                  <th>Owner</th>
+                  <th>Claim Status</th>
+                  <th>Subscription</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="propertiesTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 3. REDESIGNED PROPERTY CLAIMS VIEW (PHONE VERIFICATION - NO DOCS) -->
+        <section class="admin-page-view" id="view-claims">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Property Claims Management</h1>
+              <p>Monitor phone-verification claims, lifecycle states, and credentials delivery.</p>
+            </div>
+          </div>
+
+          <div class="kpi-grid" style="margin-bottom: 20px;">
+            <div class="kpi-card"><div class="kpi-label">Total Claims Started</div><div class="kpi-value" id="claimsKpiTotal">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Verified</div><div class="kpi-value" style="color: #10B981;" id="claimsKpiVerified">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Pending Review</div><div class="kpi-value" style="color: #F59E0B;" id="claimsKpiPending">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Rejected</div><div class="kpi-value" style="color: #EF4444;" id="claimsKpiRejected">—</div></div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Claim ID</th>
+                  <th>Property</th>
+                  <th>City</th>
+                  <th>Claimant</th>
+                  <th>Masked Phone</th>
+                  <th>Phone Match</th>
+                  <th>Claim Status</th>
+                  <th>Started</th>
+                  <th>Completed</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="claimsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 4. NEW IMPORT LISTINGS MODULE VIEW -->
+        <section class="admin-page-view" id="view-import">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Import Listings</h1>
+              <p>Import hotel listings from CSV files with automated duplicate detection, city exclusions, and column mapping.</p>
+            </div>
+          </div>
+
+          <!-- Stepper -->
+          <div class="import-stepper">
+            <div class="import-step-pill active" id="pill1"><div class="import-step-num">1</div> Upload CSV</div>
+            <div>→</div>
+            <div class="import-step-pill" id="pill2"><div class="import-step-num">2</div> Analyze</div>
+            <div>→</div>
+            <div class="import-step-pill" id="pill3"><div class="import-step-num">3</div> Duplicates & Cities</div>
+            <div>→</div>
+            <div class="import-step-pill" id="pill4"><div class="import-step-num">4</div> Column Mapping</div>
+            <div>→</div>
+            <div class="import-step-pill" id="pill5"><div class="import-step-num">5</div> Preview & Confirm</div>
+            <div>→</div>
+            <div class="import-step-pill" id="pill6"><div class="import-step-num">6</div> Progress</div>
+          </div>
+
+          <!-- STEP 1: UPLOAD CSV -->
+          <div class="admin-card import-step-content active" id="importStep1">
+            <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display:none" onchange="handleCsvFile(this.files[0])" />
+            <div class="csv-dropzone" onclick="document.getElementById('csvFileInput').click()">
+              <div class="dropzone-icon">📄</div>
+              <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 6px;">Drag & drop your CSV file here</h3>
+              <p style="font-size: 13.5px; color: var(--admin-text-muted); margin-bottom: 16px;">Supports CSV exported from Google Maps or external directories.</p>
+              <button class="btn-primary">Browse Files</button>
+            </div>
+
+            <div style="margin-top: 20px; font-size: 12px; color: var(--admin-text-muted); text-align: center;">
+              Expected columns: <strong>id, name, location, city_slug, address, phone, website, rating,
+              pincode, image_url, property_type, google_cid, google_review_count, google_summary, gmb_link</strong>.
+              Rows whose id already exists are skipped as duplicates.
+            </div>
+          </div>
+
+          <!-- STEP 2: CSV ANALYSIS -->
+          <div class="import-step-content" id="importStep2" style="display:none;">
+            <div class="admin-card-header">
+              <div>
+                <div class="card-title">CSV Analysis Dashboard — <span id="importAnalysisFile">no file selected</span></div>
+                <div class="card-subtitle"><span id="importTotalRows">0</span> total records detected. Interactive data analysis and visualizations below.</div>
+              </div>
+            </div>
+
+            <div class="analysis-cards-grid">
+              <div class="kpi-card"><div class="kpi-label">Total CSV Rows</div><div class="kpi-value" id="kpiTotalRows">—</div></div>
+              <div class="kpi-card"><div class="kpi-label">Valid Listings</div><div class="kpi-value" style="color: #10B981;" id="kpiValidListings">—</div></div>
+              <div class="kpi-card"><div class="kpi-label">Missing Phone</div><div class="kpi-value" style="color: #F59E0B;" id="kpiMissingPhone">—</div></div>
+              <div class="kpi-card"><div class="kpi-label">Duplicate Rows</div><div class="kpi-value" style="color: #EF4444;" id="kpiDuplicateRows">—</div></div>
+              <div class="kpi-card"><div class="kpi-label">Invalid Rows</div><div class="kpi-value" style="color: #3B82F6;" id="kpiInvalidRows">—</div></div>
+              <div class="kpi-card"><div class="kpi-label">Existing in Hotelzz</div><div class="kpi-value" id="kpiExisting">—</div></div>
+              <div class="kpi-card"><div class="kpi-label">New Listings</div><div class="kpi-value" style="color: var(--admin-primary);" id="kpiNewListings">—</div></div>
+              <div class="kpi-card"><div class="kpi-label">Cities Found</div><div class="kpi-value" id="kpiCitiesCount">—</div></div>
+            </div>
+
+            <!-- FLEXIBLE CSV ANALYSIS TOOLBAR -->
+            <div class="admin-card" style="margin-bottom: 24px; background: #FAF5FF; border-color: #E9D5FF;">
+              <div style="font-weight: 700; font-size: 14px; color: #6B21A8; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span>⚡</span> <span>Flexible CSV Data Filter & Live Calculator</span>
+              </div>
+              <div class="filter-bar" style="background: transparent; border: none; padding: 0;">
+                <select id="csvPhoneFilter" class="filter-select" onchange="applyFlexibleCsvFilters()">
+                  <option value="all">All Phone Records</option>
+                  <option value="has_phone" id="optHasPhone">With Phone Number</option>
+                  <option value="missing_phone" id="optMissingPhone">Missing Phone</option>
+                </select>
+
+                <select id="csvRatingFilter" class="filter-select" onchange="applyFlexibleCsvFilters()">
+                  <option value="all">All Rating Tiers</option>
+                  <option value="4.5">Top Rated (4.5★+)</option>
+                  <option value="4.0">High Quality (4.0★+)</option>
+                  <option value="3.5">Standard (3.5★+)</option>
+                </select>
+
+                <select id="csvDupeFilter" class="filter-select" onchange="applyFlexibleCsvFilters()">
+                  <option value="all">All Duplicate Statuses</option>
+                  <option value="new_only">New Unique Listings Only</option>
+                  <option value="exact_only">Exact Duplicates Only</option>
+                  <option value="possible_only">Possible Duplicates Only</option>
+                </select>
+
+                <button class="btn-secondary" onclick="resetFlexibleCsvFilters()">Reset Analytics Filters</button>
+              </div>
+
+              <!-- Flexible Live Calculated Indicators -->
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; background: #FFF; padding: 14px; border-radius: 8px; border: 1px solid #E9D5FF;">
+                <div>
+                  <div style="font-size: 11px; font-weight: 700; color: #6B21A8; text-transform: uppercase;">Filtered Rows</div>
+                  <div style="font-size: 18px; font-weight: 800; color: var(--admin-text-main);" id="calcFilteredRows">—</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; font-weight: 700; color: #6B21A8; text-transform: uppercase;">Completeness Score</div>
+                  <div style="font-size: 18px; font-weight: 800; color: #10B981;" id="calcCompleteness">—</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; font-weight: 700; color: #6B21A8; text-transform: uppercase;">Potential MRR</div>
+                  <div style="font-size: 18px; font-weight: 800; color: var(--admin-primary);" id="calcPotentialMRR">—</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; font-weight: 700; color: #6B21A8; text-transform: uppercase;">Average Rating</div>
+                  <div style="font-size: 18px; font-weight: 800; color: #D97706;" id="calcAvgRating">4.38 ★</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CSV VISUALIZATION CHARTS GRID -->
+            <div class="dashboard-grid-2">
+              <div class="admin-card">
+                <div class="admin-card-header">
+                  <div>
+                    <div class="card-title">Record Classification & Quality</div>
+                    <div class="card-subtitle">Distribution of valid vs duplicate vs missing phone rows</div>
+                  </div>
+                </div>
+                <div class="chart-container" id="csvQualityDonutChart" style="height: 250px;"></div>
+              </div>
+
+              <div class="admin-card">
+                <div class="admin-card-header">
+                  <div>
+                    <div class="card-title">Top Cities in CSV</div>
+                    <div class="card-subtitle">Listings breakdown by destination city</div>
+                  </div>
+                </div>
+                <div class="chart-container" id="csvCitiesBarChart" style="height: 250px;"></div>
+              </div>
+            </div>
+
+            <div class="admin-card" style="margin-bottom: 24px;">
+              <div class="admin-card-header">
+                <div>
+                  <div class="card-title">Google Rating Distribution</div>
+                  <div class="card-subtitle">Property quality tiers across CSV dataset</div>
+                </div>
+              </div>
+              <div class="chart-container" id="csvRatingBarChart" style="height: 200px;"></div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+              <button class="btn-secondary" onclick="goToImportStep(1)">← Back to Upload</button>
+              <button class="btn-primary" onclick="goToImportStep(3)">Configure Duplicates & Exclusions →</button>
+            </div>
+          </div>
+
+          <!-- STEP 3: DUPLICATE DETECTION & CITY EXCLUSIONS -->
+          <div class="import-step-content" id="importStep3" style="display:none;">
+            <div class="admin-card" style="margin-bottom: 24px;">
+              <div class="admin-card-header">
+                <div>
+                  <div class="card-title">Duplicate Detection Review</div>
+                  <div class="card-subtitle">Found 183 exact duplicates and 247 possible duplicates.</div>
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Imported Property</th>
+                      <th>Existing Listing</th>
+                      <th>City</th>
+                      <th>Imported Phone</th>
+                      <th>Existing Phone</th>
+                      <th>Match Type</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="duplicateTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <div>
+                  <div class="card-title">City Exclusion Manager</div>
+                  <div class="card-subtitle">Select cities to exclude from this import batch.</div>
+                </div>
+                <button class="btn-secondary" onclick="switchView('settings')">Manage excluded cities →</button>
+              </div>
+
+              <div style="margin-bottom: 12px;">
+                <label style="font-weight: 700; font-size: 13px;">Excluded Cities:</label>
+                <div class="chips-container" id="cityChipsContainer"></div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+                <button class="btn-secondary" onclick="goToImportStep(2)">← Back to Analysis</button>
+                <button class="btn-primary" onclick="goToImportStep(4)">Map CSV Columns →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 4: COLUMN MAPPING & RULES -->
+          <div class="import-step-content" id="importStep4" style="display:none;">
+            <div class="admin-card" style="margin-bottom: 24px;">
+              <div class="admin-card-header">
+                <div class="card-title">Map CSV Columns</div>
+              </div>
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Hotelzz Field</th>
+                      <th>Detected CSV Header Column</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="columnMapperBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+              <button class="btn-secondary" onclick="goToImportStep(3)">← Back</button>
+              <button class="btn-primary" onclick="goToImportStep(5)">Generate Import Preview →</button>
+            </div>
+          </div>
+
+          <!-- STEP 5: PREVIEW & CONFIRMATION -->
+          <div class="import-step-content" id="importStep5" style="display:none;">
+            <div class="admin-card" style="margin-bottom: 24px;">
+              <div class="admin-card-header">
+                <div>
+                  <div class="card-title">Final Import Preview</div>
+                  <div class="card-subtitle">Summary of properties configured for final import.</div>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <div style="background: #F0FDF4; border: 1px solid #BBF7D0; padding: 16px; border-radius: 8px;">
+                  <div style="font-size: 12px; color: #166534; font-weight: 700;">WILL IMPORT</div>
+                  <div style="font-size: 24px; font-weight: 800; color: #15803D;" id="previewWillImport">— Properties</div>
+                </div>
+                <div style="background: #FEF2F2; border: 1px solid #FECACA; padding: 16px; border-radius: 8px;">
+                  <div style="font-size: 12px; color: #991B1B; font-weight: 700;">WILL SKIP / EXCLUDE</div>
+                  <div style="font-size: 24px; font-weight: 800; color: #B91C1C;" id="previewWillSkip">— Records</div>
+                </div>
+                <div style="background: var(--admin-bg); padding: 16px; border-radius: 8px;">
+                  <div style="font-size: 12px; color: var(--admin-text-muted); font-weight: 700;">EXCLUDED CITIES</div>
+                  <div style="font-size: 24px; font-weight: 800;" id="previewExcludedCities">— Records</div>
+                </div>
+              </div>
+
+              <button class="btn-primary" style="width: 100%; padding: 14px; font-size: 16px;" onclick="openImportConfirmModal()">Import 9,842 Listings Now →</button>
+            </div>
+          </div>
+
+          <!-- STEP 6: LIVE PROGRESS & COMPLETE -->
+          <div class="import-step-content" id="importStep6" style="display:none;">
+            <div class="admin-card" style="text-align: center; padding: 48px 24px;" id="importProgressBox">
+              <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 8px;">Importing listings into Hotelzz database...</h2>
+              <div style="font-size: 14px; color: var(--admin-text-muted);" id="progressStageText">Validating data rows...</div>
+
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="importProgressBar"></div>
+              </div>
+
+              <div style="font-size: 18px; font-weight: 800; color: var(--admin-primary);" id="progressPctText">0%</div>
+            </div>
+
+            <!-- Complete Box -->
+            <div class="admin-card" style="display: none; text-align: center; padding: 48px 24px;" id="importCompleteBox">
+              <div style="font-size: 56px; margin-bottom: 12px;">🎉</div>
+              <h2 style="font-size: 24px; font-weight: 800; color: #10B981; margin-bottom: 6px;">Import Complete!</h2>
+              <p style="font-size: 14px; color: var(--admin-text-muted); margin-bottom: 24px;" id="importCompleteLine">Import finished.</p>
+
+              <div style="display: flex; justify-content: center; gap: 12px;">
+                <button class="btn-primary" onclick="switchView('properties')">View Imported Listings</button>
+                <button class="btn-secondary" onclick="switchView('import-history')">View Import Reports</button>
+                <button class="btn-secondary" onclick="goToImportStep(1)">Import Another CSV</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. IMPORT HISTORY VIEW -->
+        <section class="admin-page-view" id="view-import-history">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Import History & Reports</h1>
+              <p>Historical audit trail of all CSV file imports executed on Hotelzz.</p>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Import ID</th>
+                  <th>File Name</th>
+                  <th>Date & Time</th>
+                  <th>Total Rows</th>
+                  <th>Imported</th>
+                  <th>Skipped</th>
+                  <th>Duplicates</th>
+                  <th>Status</th>
+                  <th>Admin</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="importHistoryTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- OTHER VIEWS: OWNERS, SUBSCRIPTIONS, REVENUE, CITIES, LEADS, REVIEWS, OFFERS, ACTIVITY, ADMINS, SETTINGS -->
+        <section class="admin-page-view" id="view-owners">
+          <div class="page-header"><h1>Hotel Owners</h1><button class="btn-secondary" onclick="exportAdminCsv('owners')">↓ Export CSV</button></div>
+          <div class="table-responsive"><table class="admin-table"><thead><tr><th>Owner Name</th><th>Company</th><th>Properties</th><th>Email Verified</th><th>Subscription</th><th>Email</th><th>Joined Date</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ownersTableBody"></tbody></table></div>
+        </section>
+
+        <section class="admin-page-view" id="view-subscriptions">
+          <div class="page-header"><h1>Subscriptions & Plans</h1></div>
+          <div class="plan-cards-grid" id="plansGrid"></div>
+          <div class="table-responsive"><table class="admin-table"><thead><tr><th>Hotel</th><th>Owner</th><th>Plan</th><th>Amount</th><th>Billing Cycle</th><th>Last Changed</th><th>Renewal Date</th><th>Status</th><th>Payment</th></tr></thead><tbody id="subscriptionsTableBody"></tbody></table></div>
+        </section>
+
+        <section class="admin-page-view" id="view-revenue">
+          <div class="page-header"><h1>Revenue Analytics</h1></div>
+          <div class="admin-card"><div class="chart-container" id="revenueChart"></div></div>
+        </section>
+
+        <section class="admin-page-view" id="view-cities">
+          <div class="page-header"><div class="page-title-group"><h1>City Analytics</h1><p>Where the catalogue is concentrated and how much of it partners have claimed.</p></div></div>
+          <div class="table-responsive"><table class="admin-table"><thead><tr><th>City</th><th>Slug</th><th>Total Properties</th><th>Claimed</th><th>Unclaimed</th><th>Claim rate</th><th>Actions</th></tr></thead><tbody id="citiesTableBody"></tbody></table></div>
+        </section>
+
+        <section class="admin-page-view" id="view-leads">
+          <div class="page-header"><h1>Leads & Inquiries</h1><button class="btn-secondary" onclick="exportAdminCsv('leads')">↓ Export CSV</button></div>
+          <div class="table-responsive"><table class="admin-table"><thead><tr><th>Lead Contact</th><th>Hotel</th><th>Owner</th><th>Source</th><th>Inquiry Date</th><th>Status</th></tr></thead><tbody id="leadsTableBody"></tbody></table></div>
+        </section>
+
+        <!-- EMAIL CENTER: template gallery, live preview, manual send, delivery log -->
+        <section class="admin-page-view" id="view-emails">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Email Center</h1>
+              <p id="emailIntegrationLine">Every template Hotelzz sends, which mailbox it goes from, and a live preview.</p>
+            </div>
+            <button class="btn-primary" onclick="openCustomEmailModal()">✉ Compose custom email</button>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 280px 1fr; gap:16px; align-items:start;">
+            <!-- Template gallery -->
+            <div class="admin-card" style="padding:10px; max-height:78vh; overflow-y:auto;">
+              <input type="text" id="emailTemplateSearch" class="form-control" placeholder="Search templates…" style="margin-bottom:10px;" oninput="renderEmailTemplateList()" />
+              <div id="emailTemplateList"></div>
+            </div>
+
+            <!-- Preview + send -->
+            <div>
+              <div class="admin-card" style="margin-bottom:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                  <div>
+                    <div class="card-title" id="emailPreviewLabel">Pick a template</div>
+                    <div class="card-subtitle" id="emailPreviewDesc"></div>
+                  </div>
+                  <div style="display:flex; gap:6px; align-items:center;">
+                    <span class="badge badge-info" id="emailPreviewAccountBadge" style="display:none;"></span>
+                  </div>
+                </div>
+
+                <div style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+                  <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--admin-text-muted); text-transform:uppercase;">Sample data (edit &amp; refresh)</label>
+                    <textarea id="emailPreviewData" class="form-control" style="height:160px; font-family:ui-monospace,Consolas,monospace; font-size:12px;"></textarea>
+                    <button class="btn-secondary" style="margin-top:8px; width:100%;" onclick="refreshEmailPreview()">↻ Refresh preview</button>
+                  </div>
+                  <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--admin-text-muted); text-transform:uppercase;">Subject</label>
+                    <div id="emailPreviewSubject" class="form-control" style="background:var(--admin-bg); min-height:20px;">—</div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--admin-text-muted); text-transform:uppercase; margin-top:10px; display:block;">Send this template to</label>
+                    <input type="email" id="emailPreviewSendTo" class="form-control" placeholder="name@example.com" onchange="emailRecipientChanged()" />
+                    <small style="color:var(--admin-text-muted); font-size:11px;">Matches an account/enquiry/lead automatically — real data replaces the sample above.</small>
+                    <button class="btn-primary" id="emailPreviewSendBtn" style="margin-top:8px; width:100%;" onclick="sendPreviewedTemplate()">Send email →</button>
+                  </div>
+                </div>
+
+                <iframe id="emailPreviewFrame" title="Email preview" style="width:100%; height:480px; border:1px solid var(--admin-border); border-radius:8px; margin-top:14px; background:#fff;"></iframe>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-card" style="margin-top:4px;">
+            <div class="admin-card-header">
+              <div><div class="card-title">Recent deliveries</div><div class="card-subtitle">Every send — automated, manual, and owner → guest — with account and status.</div></div>
+            </div>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead><tr><th>To</th><th>Subject</th><th>Template</th><th>Mailbox</th><th>Kind</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+                <tbody id="emailLogTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-page-view" id="view-payments">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Payments</h1>
+              <p id="paymentsModeLine">Subscription and campaign payments.</p>
+            </div>
+            <button class="btn-secondary" onclick="exportAdminCsv('payments')">↓ Export CSV</button>
+          </div>
+          <div class="table-responsive"><table class="admin-table"><thead><tr><th>Payment</th><th>Hotel / Reference</th><th>Purpose</th><th>Amount</th><th>Provider</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody id="paymentsTableBody"></tbody></table></div>
+        </section>
+
+        <section class="admin-page-view" id="view-reviews">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Guest Reviews</h1>
+              <p>Publish, reject and audit reviews left by travellers.</p>
+            </div>
+            <button class="btn-secondary" onclick="exportAdminCsv('reviews')">↓ Export CSV</button>
+          </div>
+          <div class="table-responsive"><table class="admin-table"><thead><tr><th>Hotel</th><th>Reviewer</th><th>Rating</th><th>Comment</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody id="reviewsTableBody"></tbody></table></div>
+        </section>
+
+        <!-- USER MANAGEMENT: every account, any role — travelers included -->
+        <section class="admin-page-view" id="view-users">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>User Management</h1>
+              <p>Every account on the platform — travelers, hotel owners, admins.</p>
+            </div>
+          </div>
+
+          <div class="kpi-grid" style="margin-bottom:16px;">
+            <div class="kpi-card"><div class="kpi-label">Travelers</div><div class="kpi-value" id="userCountTraveler">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Hotel Owners</div><div class="kpi-value" id="userCountOwner">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Admins</div><div class="kpi-value" id="userCountAdmin">—</div></div>
+          </div>
+
+          <div class="admin-card" style="padding:10px 14px; margin-bottom:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="userSearchInput" class="form-control" placeholder="Search name, email, phone…" style="flex:1; min-width:200px;" oninput="loadUsersTable()" />
+            <select id="userRoleFilter" class="filter-select" onchange="loadUsersTable()">
+              <option value="">All roles</option>
+              <option value="traveler">Traveler</option>
+              <option value="owner">Owner</option>
+              <option value="admin">Admin</option>
+            </select>
+            <select id="userStatusFilter" class="filter-select" onchange="loadUsersTable()">
+              <option value="">Any status</option>
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+
+          <div class="admin-card">
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead><tr><th>Name</th><th>Role</th><th>Email</th><th>Phone</th><th>City</th><th>Properties</th><th>Email Verified</th><th>Joined</th><th>Last Active</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="usersTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-page-view" id="view-activity">
+          <div class="page-header"><h1>Activity Audit Trail</h1></div>
+          <div class="table-responsive"><table class="admin-table"><thead><tr><th>Date & Time</th><th>Administrator</th><th>Action</th><th>Target</th><th>IP Address</th><th>Result</th></tr></thead><tbody id="activityTableBody"></tbody></table></div>
+        </section>
+
+        <section class="admin-page-view" id="view-admins">
+          <div class="page-header">
+            <div class="page-title-group"><h1>Admin Users</h1><p>People who can moderate listings, claims and payments.</p></div>
+            <button class="btn-primary" onclick="openInviteAdminModal()">+ Invite Admin</button>
+          </div>
+          <div class="table-responsive"><table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Last Active</th><th>Status</th><th>Actions</th></tr></thead><tbody id="adminUsersTableBody"></tbody></table></div>
+        </section>
+
+        <section class="admin-page-view" id="view-settings">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Platform Settings</h1>
+              <p>Contact details and defaults used across the site and outgoing email.</p>
+            </div>
+          </div>
+          <div class="admin-card" style="max-width:650px;">
+            <div class="form-group"><label>Platform Title</label><input type="text" id="setPlatformTitle" class="form-control" /></div>
+            <div class="form-group"><label>Support Email</label><input type="email" id="setSupportEmail" class="form-control" /></div>
+            <div class="form-group"><label>Support Phone</label><input type="text" id="setSupportPhone" class="form-control" /></div>
+            <div class="form-group"><label>WhatsApp Number (digits only)</label><input type="text" id="setWhatsappNumber" class="form-control" /></div>
+            <div class="form-group"><label>Operations Notification Email</label><input type="email" id="setNotifyEmail" class="form-control" /></div>
+            <div class="form-group"><label>Cities excluded from CSV import (comma separated)</label><input type="text" id="setExcludedCities" class="form-control" placeholder="e.g. Mumbai, Pune" /></div>
+            <button class="btn-primary" onclick="savePlatformSettings()">Save Settings</button>
+          </div>
+        </section>
+
+        <!-- ADMIN MARKETING MANAGEMENT VIEW -->
+        <section class="admin-page-view" id="view-admin-marketing">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>📣 Marketing System & Campaign Operations</h1>
+              <p>Manage hotel marketing campaigns, packages, ad operations, and lead generation analytics.</p>
+              <p id="admMktModeLine" style="font-size:12.5px; color:var(--admin-text-muted); margin-top:4px;"></p>
+            </div>
+          </div>
+
+          <!-- Marketing KPI Cards -->
+          <div class="kpi-grid" style="margin-bottom: 20px;">
+            <div class="kpi-card"><div class="kpi-label">Total Campaigns</div><div class="kpi-value" id="admTotalCamps">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Active Campaigns</div><div class="kpi-value" style="color: #10B981;" id="admActiveCamps">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Marketing Revenue</div><div class="kpi-value" style="color: var(--admin-primary);" id="admMktRev">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Leads Generated</div><div class="kpi-value" style="color: #F59E0B;" id="admMktLeads">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Avg Cost Per Lead</div><div class="kpi-value" id="admCostPerLead">—</div></div>
+          </div>
+
+          <!-- Admin Marketing Sub Tabs -->
+          <div style="display:flex; gap:10px; margin-bottom:20px; border-bottom:1px solid var(--admin-border); padding-bottom:12px;">
+            <button class="btn-secondary active-mkt-tab" id="admTabCamps" onclick="switchAdminMktTab('camps')">Campaign Operations</button>
+            <button class="btn-secondary" id="admTabPkgs" onclick="switchAdminMktTab('pkgs')">Package Management</button>
+            <button class="btn-secondary" id="admTabLeads" onclick="switchAdminMktTab('leads')">All Marketing Leads</button>
+          </div>
+
+          <!-- TAB 1: CAMPAIGN OPERATIONS -->
+          <div id="admMktTabCamps">
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <div>
+                  <div class="card-title">Purchased Hotel Marketing Campaigns</div>
+                  <div class="card-subtitle">Review new campaign requests, update status, and manage ad delivery</div>
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Campaign ID</th>
+                      <th>Hotel Property</th>
+                      <th>City</th>
+                      <th>Package</th>
+                      <th>Duration</th>
+                      <th>Total Amount</th>
+                      <th>Payment Status</th>
+                      <th>Campaign Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminCampaignsTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: PACKAGE MANAGEMENT (THE 3 PACKAGES) -->
+          <div id="admMktTabPkgs" style="display:none;">
+            <div class="admin-card-header">
+              <div>
+                <div class="card-title">Manage Marketing Packages</div>
+                <div class="card-subtitle">Configure starting prices, durations, and estimates for hotel owner packages</div>
+              </div>
+            </div>
+            <div class="dashboard-grid-3" id="adminPackagesGrid"></div>
+          </div>
+
+          <!-- TAB 3: MARKETING LEADS -->
+          <div id="admMktTabLeads" style="display:none;">
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <div class="card-title">Platform Marketing Leads Log</div>
+              </div>
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Lead ID</th>
+                      <th>Guest Name</th>
+                      <th>Contact</th>
+                      <th>Target Hotel</th>
+                      <th>Campaign ID</th>
+                      <th>Channel Source</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminMktLeadsTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <!-- Claim Detail Modal with Timeline -->
+  <div class="admin-modal-overlay" id="claimModal">
+    <div class="admin-modal">
+      <div class="modal-header">
+        <h3>Property Claim Audit & Timeline</h3>
+        <button class="modal-close-btn" onclick="closeModal('claimModal')">×</button>
+      </div>
+      <div class="modal-body" id="claimModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Import Confirmation Modal -->
+  <div class="admin-modal-overlay" id="importConfirmModal">
+    <div class="admin-modal" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3>Ready to import?</h3>
+        <button class="modal-close-btn" onclick="closeModal('importConfirmModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 14px; margin-bottom: 16px;">You are about to add <strong id="confirmNewCount">—</strong> into the Hotelzz directory database.</p>
+
+        <div style="background: var(--admin-bg); padding: 14px; border-radius: 8px; font-size: 13px; margin-bottom: 20px;" id="confirmChecklist">
+        </div>
+
+        <div style="margin-bottom: 20px; display: flex; align-items: flex-start; gap: 8px;">
+          <input type="checkbox" id="confirmImportCheckbox" style="margin-top: 3px;" onchange="document.getElementById('startImportBtn').disabled = !this.checked;" />
+          <label for="confirmImportCheckbox" style="font-size: 13px; font-weight: 600; cursor: pointer;">I have reviewed the import analysis, duplicates, and preview records.</label>
+        </div>
+
+        <button class="btn-primary" id="startImportBtn" style="width: 100%; padding: 12px;" disabled onclick="startLiveImport()">Confirm & Begin Import</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-modal-overlay" id="inviteAdminModal">
+    <div class="admin-modal">
+      <div class="modal-header"><h3>Invite an admin</h3><button class="modal-close-btn" onclick="closeModal('inviteAdminModal')">×</button></div>
+      <div class="modal-body">
+        <p style="font-size:13px; color:var(--admin-text-muted); margin-bottom:16px;">
+          They receive an email link that sets their own password. No password is created here.
+        </p>
+        <div class="form-group"><label>Full Name</label><input type="text" id="inviteAdminName" class="form-control" placeholder="Priya Sharma" /></div>
+        <div class="form-group"><label>Work Email</label><input type="email" id="inviteAdminEmail" class="form-control" placeholder="priya@hotelzz.in" /></div>
+        <button class="btn-primary" onclick="sendAdminInvite()">Send invite →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM / BROADCAST EMAIL COMPOSER -->
+  <div class="admin-modal-overlay" id="customEmailModal">
+    <div class="admin-modal" style="max-width:600px;">
+      <div class="modal-header"><h3>Compose a custom email</h3><button class="modal-close-btn" onclick="closeModal('customEmailModal')">×</button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>To</label><input type="email" id="customEmailTo" class="form-control" placeholder="name@example.com" /></div>
+        <div class="form-group">
+          <label>Send from</label>
+          <select id="customEmailAccount" class="filter-select" style="width:100%;">
+            <option value="admin">admin@hotelzz.in — ops</option>
+            <option value="info">info@hotelzz.in — traveller/marketing</option>
+            <option value="support">support@hotelzz.in — partner</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Subject</label><input type="text" id="customEmailSubject" class="form-control" /></div>
+        <div class="form-group"><label>Message</label><textarea id="customEmailText" class="form-control" style="height:160px;" placeholder="Plain text — line breaks are kept."></textarea></div>
+        <button class="btn-primary" id="customEmailSendBtn" style="width:100%;" onclick="sendCustomEmail()">Send →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT A SUBSCRIPTION PLAN -->
+  <div class="admin-modal-overlay" id="planEditModal">
+    <div class="admin-modal" style="max-width:520px;">
+      <div class="modal-header"><h3 id="planEditTitle">Edit plan</h3><button class="modal-close-btn" onclick="closeModal('planEditModal')">×</button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>Plan name</label><input type="text" id="planEditName" class="form-control" /></div>
+        <div style="display:flex; gap:12px;">
+          <div class="form-group" style="flex:1;"><label>Price (₹)</label><input type="number" min="0" id="planEditPrice" class="form-control" /></div>
+          <div class="form-group" style="flex:1;"><label>Billing period</label><input type="text" id="planEditPeriod" class="form-control" placeholder="month / forever" /></div>
+        </div>
+        <div class="form-group"><label>Features (one per line)</label><textarea id="planEditFeatures" class="form-control" style="height:130px;"></textarea></div>
+        <button class="btn-primary" id="planEditSaveBtn" style="width:100%;" onclick="savePlanEdit()">Save plan →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- READ-ONLY VIEW OF A PAST SEND -->
+  <div class="admin-modal-overlay" id="emailLogPreviewModal">
+    <div class="admin-modal" style="max-width:640px;">
+      <div class="modal-header"><h3 id="emailLogPreviewSubject">Email</h3><button class="modal-close-btn" onclick="closeModal('emailLogPreviewModal')">×</button></div>
+      <div class="modal-body">
+        <p style="font-size:12.5px; color:var(--admin-text-muted); margin:0 0 10px;" id="emailLogPreviewMeta"></p>
+        <iframe id="emailLogPreviewFrame" title="Sent email" style="width:100%; height:420px; border:1px solid var(--admin-border); border-radius:8px; background:#fff;"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-modal-overlay" id="propertyModal"><div class="admin-modal"><div class="modal-header"><h3>Property Details</h3><button class="modal-close-btn" onclick="closeModal('propertyModal')">×</button></div><div class="modal-body" id="propertyModalBody"></div></div></div>
+  <div class="admin-modal-overlay" id="ownerModal"><div class="admin-modal"><div class="modal-header"><h3>Owner Profile</h3><button class="modal-close-btn" onclick="closeModal('ownerModal')">×</button></div><div class="modal-body" id="ownerModalBody"></div></div></div>
+
+  <!-- ADMIN CAMPAIGN STATUS UPDATE MODAL -->
+  <div class="admin-modal-overlay" id="adminStatusModal">
+    <div class="admin-modal" style="max-width:540px;">
+      <div class="modal-header">
+        <h3>Update Campaign Status & Operations</h3>
+        <button class="modal-close-btn" onclick="closeModal('adminStatusModal')">×</button>
+      </div>
+      <div style="padding:24px;">
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; padding:12px 16px; border-radius:8px; margin-bottom:16px;">
+          <div style="font-size:11px; font-weight:700; color:#64748B;">CAMPAIGN ID</div>
+          <h4 style="font-size:16px; font-weight:800;" id="admModCampId">HZ-CMP-20260902-001</h4>
+          <div style="font-size:12.5px; color:#475569;" id="admModHotelName">The Grand Palace Mumbai</div>
+        </div>
+
+        <div class="form-group">
+          <label style="font-weight:700;">Campaign Lifecycle Status</label>
+          <select id="admModStatusSelect" class="filter-select" style="width:100%;">
+            <option value="Pending Review">Pending Review</option>
+            <option value="Preparing">Preparing Campaign</option>
+            <option value="Active">Active & Live</option>
+            <option value="Paused">Paused</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+          <small style="color:var(--admin-text-muted); font-size:11.5px; margin-top:4px; display:block;">Updating status here immediately updates the Hotel Owner's dashboard!</small>
+        </div>
+
+        <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="saveAdminCampaignStatus()">Save & Update Owner Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN PACKAGE EDITOR MODAL -->
+  <div class="admin-modal-overlay" id="adminEditPkgModal">
+    <div class="admin-modal" style="max-width:560px;">
+      <div class="modal-header">
+        <h3>Edit Marketing Package Settings</h3>
+        <button class="modal-close-btn" onclick="closeModal('adminEditPkgModal')">×</button>
+      </div>
+      <div style="padding:24px;">
+        <div class="form-group"><label>Package Name</label><input type="text" id="admPkgFormName" class="filter-input" style="width:100%;" /></div>
+        <div class="form-group"><label>Starting Price (₹)</label><input type="number" id="admPkgFormPrice" class="filter-input" style="width:100%;" /></div>
+        <div class="form-group"><label>Description</label><textarea id="admPkgFormDesc" class="filter-input" style="width:100%; height:75px;"></textarea></div>
+        
+        <div style="margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="admPkgFormRec" />
+          <label for="admPkgFormRec" style="font-size:13px; font-weight:700; cursor:pointer;">Mark as RECOMMENDED package</label>
+        </div>
+
+        <button class="btn-primary" style="width:100%;" onclick="saveAdminPackageForm()">Save Package (Syncs Live to Owners)</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="api-client.js"></script>
+  <script src="enquiry-store.js"></script>
+  <script src="marketing-store.js"></script>
+  <script src="admin-data.js"></script>
+  <script src="admin-emails.js"></script>
+  <script src="admin-users.js"></script>
+  <script src="admin-app.js"></script>
+</body>
+</html>
