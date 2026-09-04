@@ -521,7 +521,7 @@ router.get('/invoices/:invoiceId', (req, res) => {
       : 'Payment pending. Our team will share payment instructions.'}
   </p>
 
-  <p class="muted">Questions? Reply to hello@hotelzz.in or call +91 99300 90487.</p>
+  <p class="muted">Questions? Reply to support@hotelzz.in or call +91 99300 90487.</p>
   <button class="noprint" onclick="window.print()"
     style="margin-top:20px;background:#2563EB;color:#fff;border:none;padding:11px 20px;border-radius:8px;font-weight:700;cursor:pointer">
     Print / save as PDF

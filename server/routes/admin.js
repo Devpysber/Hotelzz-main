@@ -851,7 +851,7 @@ const SETTING_KEYS = ['platformTitle', 'supportEmail', 'supportPhone', 'whatsapp
 
 const SETTING_DEFAULTS = {
   platformTitle: "Hotelzz.in — India's Hotel Marketplace",
-  supportEmail: 'hello@hotelzz.in',
+  supportEmail: 'support@hotelzz.in',
   supportPhone: '+91 99300 90487',
   whatsappNumber: '919930090487',
   notifyEmail: require('../lib/env').ADMIN_EMAIL,
