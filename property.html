@@ -169,8 +169,27 @@
     .mobile-book-bar { display: flex; }
     .float-wa { display: none; }
     body { padding-bottom: 70px; }
+    .header-cta span { display: none; }
+    .header-cta { padding: 8px 12px; }
+  }
+  @media (max-width: 480px) {
+    .amenity-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .info-grid { grid-template-columns: 1fr; }
+    .gallery { grid-template-columns: 1fr; grid-template-rows: 200px; }
+    .gallery .g0 { grid-row: auto; grid-column: auto; }
+    .gallery img:nth-child(n+3) { display: none; }
+    .title-block h1 { font-size: 20px; }
+    .price-block .now { font-size: 24px; }
+    .booking-card { padding: 18px; }
+    .pdp-main section { padding: 18px; }
+    footer .footer-inner { flex-direction: column; text-align: center; }
+  }
+  @media (max-width: 360px) {
+    .container { padding: 0 12px; }
+    .header-inner { gap: 10px; }
   }
 </style>
+<link rel="stylesheet" href="responsive.css" />
 </head>
 <body>
 <script src="api-client.js"></script>
@@ -575,5 +594,6 @@
 
 
   <script src="cookie-consent.js"></script>
+<script src="mobile-nav.js" defer></script>
 </body>
 </html>

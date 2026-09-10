@@ -46,6 +46,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     setupNavigation();
     setupModals();
+    setupTsearchCollapse();
     store.ready().then((state) => {
       if (!state.user.isLoggedIn) {
         window.location.href = 'login.html?type=traveler&next=' +
@@ -64,20 +65,38 @@
     store.logout().then(() => { window.location.href = 'login.html?type=traveler'; });
   };
 
-  function handleUrlHash() {
-    const hash = window.location.hash.replace('#', '') || 'overview';
-    switchView(hash);
+  const MOBILE_QUERY = '(max-width: 1024px)';
+
+  function isMobile() {
+    return window.matchMedia(MOBILE_QUERY).matches;
   }
+
+  const VIEWS = ['overview', 'search', 'enquiries', 'reviews', 'saved', 'profile'];
+
+  function handleUrlHash() {
+    // On a phone the portal opens on Search: a traveller arrives to book, and
+    // the KPI overview is a desktop-dashboard idea. Desktop keeps Overview.
+    const fallback = isMobile() ? 'search' : 'overview';
+    const hash = window.location.hash.replace('#', '');
+    switchView(VIEWS.includes(hash) ? hash : fallback);
+  }
+
+  /* Without this the phone's back button leaves the address bar and the
+     visible view disagreeing — the hash changes but nothing re-renders. */
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '');
+    if (VIEWS.includes(hash) && hash !== currentView) switchView(hash);
+  });
 
   window.switchView = function (viewName) {
     currentView = viewName;
     window.location.hash = viewName;
 
-    document.querySelectorAll('.user-nav-item').forEach(el => {
-      if (el.getAttribute('data-view') === viewName) {
-        el.classList.add('active');
-      } else {
-        el.classList.remove('active');
+    document.querySelectorAll('.user-nav-item, .tbar-item').forEach(el => {
+      const match = el.getAttribute('data-view') === viewName;
+      el.classList.toggle('active', match);
+      if (el.classList.contains('tbar-item')) {
+        el.setAttribute('aria-current', match ? 'page' : 'false');
       }
     });
 
@@ -103,10 +122,27 @@
     const drawer = document.getElementById('enquiryDrawer');
     if (drawer) drawer.classList.remove('open');
     document.querySelectorAll('.user-modal-overlay.show').forEach(el => el.classList.remove('show'));
+
+    // Tapping a tab should land at the top of that tab, the way a native app
+    // behaves — otherwise the new view inherits the old view's scroll depth.
+    if (isMobile()) window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
+  /* Unanswered enquiries are the one thing worth pulling someone back to, so
+     the Enquiries tab carries a count of them. */
+  function updateTabBarBadge() {
+    const badge = document.getElementById('tbarEnqBadge');
+    if (!badge) return;
+    if (!currentUser) { badge.hidden = true; return; }
+    const open = (store.getEnquiriesForUser(currentUser.id) || []).filter(
+      e => e.status && e.status !== 'Responded' && e.status !== 'Converted'
+    ).length;
+    badge.textContent = open > 9 ? '9+' : String(open);
+    badge.hidden = open === 0;
+  }
+
   function setupNavigation() {
-    document.querySelectorAll('.user-nav-item').forEach(item => {
+    document.querySelectorAll('.user-nav-item, .tbar-item').forEach(item => {
       item.addEventListener('click', (e) => {
         const view = item.getAttribute('data-view');
         if (view) {
@@ -166,6 +202,7 @@
     document.getElementById('userAvatarDisplay').textContent = currentUser.avatar || 'R';
     document.getElementById('userNameDisplay').textContent = currentUser.name;
     document.getElementById('welcomeHeaderTitle').textContent = `${greeting()}, ${currentUser.name} 👋`;
+    updateTabBarBadge();
   }
 
   // 1. Overview View Render
@@ -475,7 +512,80 @@
   let portalSearchTimer = null;
   let portalResults = [];
 
+  /* --- Collapsible mobile search -------------------------------------- */
+
+  /* The expanded form is most of a phone screen. Once a search has run it
+     folds into a summary line that stays pinned while results scroll. */
+  function tsearchSummaryText() {
+    const where = (document.getElementById('portalSearchCityInput').value || '').trim();
+    const ci = document.getElementById('portalSearchCheckIn');
+    const co = document.getElementById('portalSearchCheckOut');
+    const guests = document.getElementById('portalSearchGuests');
+
+    const cityLabel = currentPortalCityFilter !== 'all'
+      ? currentPortalCityFilter.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      : '';
+    const whereText = where || cityLabel || 'Anywhere in India';
+
+    const short = (v) => {
+      if (!v) return null;
+      const d = new Date(v);
+      return isNaN(d) ? null : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    };
+    const from = short(ci && ci.value);
+    const to = short(co && co.value);
+    const dates = from && to ? `${from} \u2013 ${to}` : 'Add dates';
+    const g = guests ? guests.options[guests.selectedIndex].text : '2 Guests';
+
+    return { where: whereText, meta: `${dates} \u00B7 ${g}` };
+  }
+
+  function refreshTsearchSummary() {
+    const whereEl = document.getElementById('tsearchSummaryWhere');
+    const metaEl = document.getElementById('tsearchSummaryMeta');
+    if (!whereEl || !metaEl) return;
+    const t = tsearchSummaryText();
+    whereEl.textContent = t.where;
+    metaEl.textContent = t.meta;
+  }
+
+  function setTsearchCollapsed(collapsed) {
+    const card = document.getElementById('tsearchCard');
+    const btn = document.getElementById('tsearchSummary');
+    if (!card || !btn) return;
+    card.classList.toggle('is-collapsed', collapsed);
+    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    if (collapsed) refreshTsearchSummary();
+  }
+
+  function setupTsearchCollapse() {
+    const btn = document.getElementById('tsearchSummary');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      setTsearchCollapsed(false);
+      const input = document.getElementById('portalSearchCityInput');
+      if (input) input.focus({ preventScroll: true });
+    });
+
+    // Keep the summary honest while the form is open.
+    ['portalSearchCityInput', 'portalSearchCheckIn', 'portalSearchCheckOut', 'portalSearchGuests']
+      .forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', refreshTsearchSummary);
+      });
+
+    // Widening past the breakpoint must not leave the desktop form folded.
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const onChange = () => { if (!mq.matches) setTsearchCollapsed(false); };
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else if (mq.addListener) mq.addListener(onChange);
+  }
+
   function renderSearchView() {
+    // Arriving with an empty box means the traveller still has to say where,
+    // so the form opens; a standing query stays folded behind its summary.
+    const q = (document.getElementById('portalSearchCityInput') || {}).value || '';
+    if (!q.trim() && currentPortalCityFilter === 'all') setTsearchCollapsed(false);
     filterPortalSearchHotels();
   }
 
@@ -519,35 +629,37 @@
     const saved = store.getSavedHotels();
     const fallbackImg = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=450&fit=crop&q=70';
 
+    if (isMobile()) setTsearchCollapsed(true);
+
     container.innerHTML = portalResults.map(h => {
       const name = (h.name || '').replace(/'/g, "\'");
       const city = (h.location || '').replace(/'/g, "\'");
+      const rating = h.rating ? Number(h.rating).toFixed(1) : null;
+      const reviews = h.google_review_count
+        ? `<small>${h.google_review_count} reviews</small>` : '';
+      const isSaved = saved.includes(h.id);
       return `
-      <div style="background:#FFF; border:1px solid var(--user-border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-sm); display:flex; flex-direction:column; justify-content:space-between;">
-        <div>
-          <div style="position:relative; height:160px; overflow:hidden;">
-            <img src="${h.image_url || fallbackImg}" style="width:100%; height:100%; object-fit:cover;" />
-            ${h.claimStatus === 'verified' ? '<span class="badge badge-green" style="position:absolute; top:10px; left:10px;">🟢 Claimed &amp; Verified</span>' : ''}
-            <button onclick="toggleSaved('${h.id}')" style="position:absolute; top:10px; right:10px; background:#FFF; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.15);">
-              ${saved.includes(h.id) ? '❤️' : '🤍'}
-            </button>
-          </div>
-          <div style="padding:16px;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
-              <h3 style="font-size:16px; font-weight:800; color:var(--user-text-main);">${h.name}</h3>
-              <span style="font-size:12px; font-weight:700; background:#FEF3C7; color:#D97706; padding:2px 6px; border-radius:4px; flex-shrink:0;">★ ${h.rating || '—'}</span>
-            </div>
-            <div style="font-size:12.5px; color:var(--user-text-muted); margin-bottom:10px;">📍 ${h.address || h.location || ''} ${h.google_review_count ? '• ' + h.google_review_count + ' Google reviews' : ''}</div>
-            ${h.google_summary ? `<p style="font-size:12.5px; color:var(--user-text-muted); margin-bottom:12px;">${h.google_summary}</p>` : ''}
-          </div>
+      <article class="thotel-card">
+        <div class="thotel-media">
+          <img src="${h.image_url || fallbackImg}" alt="${h.name}" loading="lazy" />
+          ${h.claimStatus === 'verified' ? '<span class="thotel-verified">Verified</span>' : ''}
+          <button class="thotel-fav" onclick="toggleSaved('${h.id}')"
+                  aria-pressed="${isSaved}"
+                  aria-label="${isSaved ? 'Remove from saved' : 'Save this hotel'}">${isSaved ? '\u2764\uFE0F' : '\u{1F90D}'}</button>
+          ${rating ? `<span class="thotel-rating">\u2605 ${rating} ${reviews}</span>` : ''}
         </div>
-        <div style="padding:16px; border-top:1px solid var(--user-border); background:#FAFAFA; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-          <a href="property.html?id=${encodeURIComponent(h.id)}" class="btn-secondary" style="text-decoration:none; font-size:12.5px;">Details</a>
-          <button class="btn-primary" style="padding:8px 14px; font-size:12.5px;" onclick="sendPortalEnquiryDirect('${h.id}', '${name}', '${city}')">Send Enquiry →</button>
+        <div class="thotel-body">
+          <h3 class="thotel-name">${h.name}</h3>
+          <div class="thotel-loc">${h.address || h.location || ''}</div>
+          ${h.google_summary ? `<p class="thotel-summary">${h.google_summary}</p>` : ''}
         </div>
-      </div>`;
+        <div class="thotel-actions">
+          <a href="property.html?id=${encodeURIComponent(h.id)}" class="btn-secondary">Details</a>
+          <button class="btn-primary" onclick="sendPortalEnquiryDirect('${h.id}', '${name}', '${city}')">Send Enquiry \u2192</button>
+        </div>
+      </article>`;
     }).join('') + (total > portalResults.length
-      ? `<div style="grid-column:1/-1;text-align:center;font-size:12.5px;color:var(--user-text-muted);">Showing ${portalResults.length} of ${total} matching properties — refine your search to narrow it down.</div>`
+      ? `<div style="grid-column:1/-1;text-align:center;font-size:12.5px;padding:4px 0 8px;color:var(--user-text-muted);">Showing ${portalResults.length} of ${total} matching properties — refine your search to narrow it down.</div>`
       : '');
   }
 

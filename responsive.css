@@ -1,0 +1,755 @@
+/* ==========================================================================
+   Hotelzz — shared mobile / responsive layer.
+
+   Loaded last on every page so it can correct the per-page inline <style>
+   blocks. Rules are scoped to narrow viewports; the desktop layouts are
+   deliberately left alone.
+
+   Contents
+     1. Global guards
+     2. Mobile navigation drawer
+     3. Header behaviour below the breakpoint
+     4. Forms and tap targets
+     5. Tables and wide content
+     6. City / search results
+     7. Property detail
+     8. Marketing + OTA landing pages
+     9. Auth, claim and legal pages
+    10. Dashboards (admin, owner, user portal)
+    11. Cookie banner
+   ========================================================================== */
+
+
+/* 1. GLOBAL GUARDS ======================================================== */
+
+/* Nothing should be able to push the page sideways on a phone. */
+@media (max-width: 900px) {
+  /* `clip` rather than `hidden`: hidden turns the element into a scroll
+     container, which silently kills every `position: sticky` descendant
+     (portal header, search summary, filter panels). */
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  @supports not (overflow: clip) {
+    html,
+    body {
+      overflow-x: hidden;
+    }
+  }
+
+  /* Long unbroken strings (URLs, IDs, e-mail addresses) are the usual cause
+     of a stray scrollbar on narrow screens. */
+  h1, h2, h3, h4,
+  p, li, td, th,
+  a, span, div {
+    overflow-wrap: break-word;
+  }
+
+  img,
+  video,
+  iframe,
+  canvas,
+  svg:not([width]) {
+    max-width: 100%;
+  }
+}
+
+/* Respect the notch / home indicator on modern phones. */
+@supports (padding: max(0px)) {
+  @media (max-width: 900px) {
+    .container {
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hz-mnav-panel,
+  .hz-mnav-backdrop,
+  .hz-filter-panel {
+    transition: none !important;
+  }
+}
+
+
+/* 2. MOBILE NAVIGATION DRAWER ============================================= */
+
+.hz-mnav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--border, #E5E7EB);
+  border-radius: 10px;
+  background: var(--bg-alt, #F9FAFB);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.hz-mnav-toggle span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  border-radius: 2px;
+  background: var(--text, #1F2937);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.hz-mnav-toggle[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hz-mnav-toggle[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+}
+.hz-mnav-toggle[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.hz-mnav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+  background: rgba(15, 23, 42, 0.45);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.hz-mnav-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  width: min(320px, 86vw);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  box-shadow: -12px 0 32px rgba(15, 23, 42, 0.18);
+  transform: translateX(100%);
+  transition: transform 0.22s ease;
+  overscroll-behavior: contain;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.hz-mnav-open .hz-mnav-panel {
+  transform: translateX(0);
+}
+.hz-mnav-open .hz-mnav-backdrop {
+  opacity: 1;
+}
+.hz-mnav-open,
+.hz-mnav-open body {
+  overflow: hidden;
+}
+
+.hz-mnav-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border, #E5E7EB);
+  flex-shrink: 0;
+}
+
+.hz-mnav-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-muted, #6B7280);
+}
+
+.hz-mnav-close {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: var(--bg-alt, #F9FAFB);
+  font-size: 26px;
+  line-height: 1;
+  color: var(--text, #1F2937);
+  cursor: pointer;
+}
+
+.hz-mnav-list {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px 12px 24px;
+}
+
+.hz-mnav-group {
+  padding: 16px 12px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-light, #9CA3AF);
+}
+
+.hz-mnav-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 50px;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  font-family: inherit;
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--text, #1F2937);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.hz-mnav-item:active {
+  background: var(--bg-alt, #F9FAFB);
+}
+
+.hz-mnav-item.is-sub {
+  padding-left: 24px;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.hz-mnav-item.is-cta {
+  margin-top: 12px;
+  justify-content: center;
+  background: var(--whatsapp, #25D366);
+  color: #fff;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .hz-mnav-toggle {
+    display: flex;
+  }
+}
+
+/* Above the breakpoint the drawer must never be reachable, even if a stale
+   open state survived a resize. */
+@media (min-width: 901px) {
+  .hz-mnav-toggle,
+  .hz-mnav-panel,
+  .hz-mnav-backdrop {
+    display: none !important;
+  }
+}
+
+
+/* 3. HEADER BELOW THE BREAKPOINT ========================================== */
+
+@media (max-width: 900px) {
+  .header-inner {
+    gap: 10px;
+    min-height: 60px;
+  }
+
+  /* The drawer now carries the navigation, so the cramped inline header links
+     (which previously wrapped onto three lines) come out of the bar. */
+  .header-nav .nav-link,
+  .header-nav .nav-dropdown,
+  .header-right .call-link,
+  .nav-links > a,
+  .header-inner > a[href="marketing.html"],
+  .header-inner > a[href="ota-listing.html"] {
+    display: none !important;
+  }
+
+  /* Keep the brand readable, and give the home link a real tap area — with
+     the tagline hidden it collapsed to a 20px-tall strip. */
+  .brand {
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .brand-name {
+    font-size: 20px;
+  }
+  .brand-tag {
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+
+  /* One compact WhatsApp / primary action stays in the bar. */
+  .header-cta {
+    padding: 10px 14px;
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+  .header-cta span {
+    display: none;
+  }
+
+  [data-search-trigger] {
+    width: 44px !important;
+    height: 44px !important;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  /* On the narrowest phones the drawer holds everything; the header keeps the
+     brand, search and the menu button only. */
+  .header-cta {
+    display: none !important;
+  }
+  .brand-tag {
+    display: none;
+  }
+}
+
+/* The promo strip above the header should stay a single readable line. */
+@media (max-width: 640px) {
+  .urgency-bar {
+    font-size: 11.5px;
+    line-height: 1.4;
+    padding: 7px 12px;
+  }
+}
+
+
+/* 4. FORMS AND TAP TARGETS ================================================ */
+
+@media (max-width: 900px) {
+  /* iOS zooms the viewport whenever a focused control is under 16px. Several
+     pages set 13px, which made every tap on a filter or form jump the layout. */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea,
+  .form-control {
+    min-height: 46px;
+    max-width: 100%;
+  }
+
+  textarea,
+  textarea.form-control {
+    min-height: 96px;
+  }
+
+  /* Anything tappable clears the 44px accessibility floor. */
+  button,
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .book-btn,
+  .book-wa,
+  .search-btn,
+  .hs-btn,
+  .submit-wa {
+    min-height: 44px;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 20px !important;
+    height: 20px !important;
+    min-height: 0;
+  }
+
+  /* Give checkbox / radio rows a real tap area instead of a 16px hit box. */
+  .filter-group label {
+    min-height: 44px;
+    padding: 8px 0 !important;
+    font-size: 15px !important;
+  }
+
+  /* Buttons that sit side by side stack instead of squeezing. */
+  .form-row,
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* 5. TABLES AND WIDE CONTENT ============================================== */
+
+@media (max-width: 900px) {
+  /* Wide tables scroll inside their own box rather than widening the page. */
+  .table-responsive,
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  /* A bare table with no wrapper still needs to be reachable. */
+  table {
+    max-width: 100%;
+  }
+
+  pre,
+  code {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+}
+
+
+/* 6. CITY / SEARCH RESULTS ================================================ */
+
+@media (max-width: 1024px) {
+  /* The filter panel used to sit full-width above the results, so the first
+     hotel was more than a screen down. It now collapses behind a toggle. */
+  .hz-filter-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    min-height: 48px;
+    margin-bottom: 14px;
+    padding: 12px 16px;
+    border: 1px solid var(--border, #E5E7EB);
+    border-radius: 12px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text, #1F2937);
+    cursor: pointer;
+  }
+
+  .hz-filter-toggle .hz-filter-caret {
+    transition: transform 0.2s ease;
+    font-size: 12px;
+    color: var(--text-muted, #6B7280);
+  }
+
+  .hz-filter-toggle[aria-expanded="true"] .hz-filter-caret {
+    transform: rotate(180deg);
+  }
+
+  .layout > .filters {
+    display: none;
+  }
+
+  .layout > .filters.is-open {
+    display: block;
+  }
+}
+
+@media (min-width: 1025px) {
+  .hz-filter-toggle {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  /* The desktop search form in the header is hidden on phones, so surface a
+     tappable summary that reopens the search overlay. */
+  .results-bar {
+    gap: 10px;
+  }
+  .sort-by {
+    width: 100%;
+  }
+  .sort-by select {
+    flex: 1;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hotel-card .price-actions {
+    flex-direction: column;
+  }
+  .hotel-card .book-btn,
+  .hotel-card .book-wa {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+
+/* 7. PROPERTY DETAIL ====================================================== */
+
+@media (max-width: 640px) {
+  .pdp-layout {
+    gap: 18px;
+  }
+
+  /* The sticky booking bar overlays the page bottom; keep the footer and the
+     floating WhatsApp button clear of it. */
+  body:has(.mobile-book-bar) {
+    padding-bottom: calc(74px + env(safe-area-inset-bottom));
+  }
+
+  .mobile-book-bar {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .greviews-head {
+    gap: 10px;
+  }
+}
+
+
+/* 8. MARKETING + OTA LANDING PAGES ======================================== */
+
+@media (max-width: 768px) {
+  /* Multi-column marketing grids collapse to one readable column. */
+  .pricing-grid,
+  .service-grid,
+  .feature-grid,
+  .ota-grid,
+  .logo-grid,
+  .compare-grid,
+  .results-grid,
+  .process-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .pricing-card.featured {
+    transform: none;
+  }
+
+  /* Section headings routinely overflow at their desktop sizes. */
+  section h2 {
+    font-size: clamp(22px, 6vw, 30px);
+    line-height: 1.25;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-row,
+  .stat-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+
+/* 9. AUTH, CLAIM AND LEGAL PAGES ========================================== */
+
+@media (max-width: 640px) {
+  .auth-card,
+  .login-card,
+  .claim-card,
+  .modal {
+    width: 100%;
+    max-width: calc(100vw - 28px);
+    padding: 22px 18px;
+    border-radius: 14px;
+  }
+
+  /* Role pickers and tab strips wrap rather than overflow. */
+  .role-tabs,
+  .auth-tabs,
+  .tab-row {
+    flex-wrap: wrap;
+  }
+  .role-tabs > *,
+  .auth-tabs > *,
+  .tab-row > * {
+    flex: 1 1 45%;
+    min-height: 44px;
+  }
+
+  /* Legal pages: comfortable measure and no runaway headings. */
+  .legal-content h1,
+  .legal h1 {
+    font-size: 26px;
+  }
+  .legal-content,
+  .legal {
+    font-size: 15.5px;
+  }
+}
+
+
+/* 10. DASHBOARDS ========================================================== */
+
+@media (max-width: 900px) {
+  /* Admin email centre: the template gallery and the preview column were
+     pinned to fixed pixel widths inline, which pushed the card off-screen. */
+  .admin-email-layout,
+  .admin-email-preview-cols {
+    display: block !important;
+  }
+
+  .admin-email-layout > * + * {
+    margin-top: 14px;
+  }
+
+  /* The gallery is inline-capped at 78vh, which on a phone leaves no room for
+     the preview underneath it. */
+  .admin-email-layout .admin-card[data-email-gallery] {
+    max-height: 320px !important;
+  }
+
+  .admin-email-preview-cols > * + * {
+    margin-top: 14px;
+  }
+
+  #emailPreviewFrame {
+    height: 320px;
+  }
+
+  /* Page headers in both dashboards put a title and an action button on one
+     row; below the breakpoint the button gets its own full-width line. */
+  .page-header,
+  .owner-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .page-header > button,
+  .page-header > .btn-primary,
+  .page-header > .btn-secondary,
+  .owner-page-header > button {
+    width: 100%;
+  }
+
+  /* Stat card rows collapse to a single column so the numbers stay legible. */
+  .stats-grid,
+  .admin-stats,
+  .owner-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* The owner portal caps its property switcher at 140px, which clips most
+     hotel names. The top bar has room for roughly half the width. */
+  .property-selector-btn {
+    max-width: 48vw !important;
+    min-height: 44px;
+    font-size: 13.5px !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Quick-action rows become an even two-up grid of tappable chips instead of
+     an uneven three-then-two ragged wrap. */
+  .quick-actions-bar {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .quick-actions-bar > * {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* The "QUICK ACTIONS:" caption is a label, not a chip. */
+  .quick-actions-bar > span:first-child,
+  .quick-actions-bar > strong:first-child,
+  .quick-actions-bar > .quick-actions-label {
+    grid-column: 1 / -1;
+    min-height: 0;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  /* Detail drawers become full-width sheets. */
+  .lead-drawer,
+  .detail-drawer,
+  .admin-drawer,
+  .user-drawer {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Section headings that pair a title with an action button: side by side the
+     button loses so much width that its label wraps mid-phrase. */
+  .hz-head-row {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 12px;
+  }
+
+  .hz-head-row > button,
+  .hz-head-row > .btn-primary,
+  .hz-head-row > .btn-secondary,
+  .hz-head-row > a {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 900px) {
+  /* User portal: side-by-side panels stack. */
+  .portal-layout,
+  .portal-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .portal-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+  .portal-nav > * {
+    display: inline-flex;
+    min-height: 44px;
+  }
+}
+
+
+/* 11. COOKIE BANNER ======================================================= */
+
+/* In the stacked layout the paragraph's `flex: 1 1 320px` was read as a 320px
+   *height*, so the banner covered roughly half the screen. */
+@media (max-width: 520px) {
+  #hzCookieBanner {
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+    gap: 12px;
+  }
+
+  #hzCookieBanner p {
+    flex: 0 0 auto !important;
+    max-width: 100% !important;
+    font-size: 12.5px;
+  }
+
+  #hzCookieBanner .hz-cc-actions {
+    justify-content: stretch;
+  }
+
+  #hzCookieBanner .hz-cc-actions button {
+    flex: 1;
+    min-height: 44px;
+  }
+}
+
+/* Search overlay: the arrow-key and slash-key hints describe a keyboard the
+   visitor does not have, so give the space back to the results. */
+@media (hover: none) and (pointer: coarse) {
+  .hz-search-hint span:has(kbd) {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .hz-search-hint {
+    font-size: 12px;
+  }
+}
+
+/* Keep the floating WhatsApp bubble clear of the cookie banner and of any
+   sticky bottom bar. */
+@media (max-width: 768px) {
+  .float-wa {
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    z-index: 90;
+  }
+}

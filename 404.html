@@ -40,7 +40,16 @@
   .links { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; }
   .links a { color: var(--text-muted); margin: 0 8px; text-decoration: none; }
   .links a:hover { color: var(--primary); text-decoration: underline; }
+    @media (max-width: 480px) {
+      .card { padding: 32px 20px; margin: 20px; }
+      .big-404 { font-size: clamp(60px, 20vw, 100px); }
+      h1 { font-size: 22px; }
+      .actions { flex-direction: column; }
+      .actions a { width: 100%; text-align: center; justify-content: center; }
+      .links { flex-wrap: wrap; justify-content: center; }
+    }
 </style>
+<link rel="stylesheet" href="responsive.css" />
 </head>
 <body>
   <div class="card">

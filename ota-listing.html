@@ -229,8 +229,27 @@
     .plan.featured { transform: none; }
   }
   @media (min-width: 769px) { .float-wa { display: none; } }
-  @media (max-width: 480px) { footer .footer-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 480px) {
+    footer .footer-grid { grid-template-columns: 1fr; }
+    .steps-grid { grid-template-columns: 1fr; }
+    .ota-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 28px; }
+    .btn { padding: 13px 20px; font-size: 14px; }
+    .cta-row { flex-direction: column; align-items: stretch; }
+    .cta-row .btn { width: 100%; }
+    .modal { max-width: calc(100vw - 40px); padding: 24px 16px; }
+    .modal h3 { font-size: 18px; }
+    .section-head { margin-bottom: 32px; }
+  }
+  @media (max-width: 360px) {
+    .container { padding: 0 14px; }
+    section { padding: 40px 0; }
+    .hero { padding: 36px 0 32px; }
+    .plan-price { font-size: 30px; }
+  }
 </style>
+<link rel="stylesheet" href="responsive.css" />
 </head>
 <body>
 
@@ -691,5 +710,6 @@
 <script src="api-client.js" defer></script>
 <script src="session-nav.js" defer></script>
   <script src="cookie-consent.js"></script>
+<script src="mobile-nav.js" defer></script>
 </body>
 </html>

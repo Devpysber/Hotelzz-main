@@ -8,7 +8,7 @@
  * that — drop `<script src="api-client.js"></script>` then
  * `<script src="session-nav.js"></script>` near the end of `<body>` on any
  * public page and it will, once `/api/auth/me` resolves to a real user:
- *   - swap the primary "Traveler Login" CTA (or dashboard-login link) for
+ *   - swap the primary "Sign in" CTA (or dashboard-login link) for
  *     an account pill with the visitor's name, linking to their portal
  *   - add a Logout action
  * Logged-out visitors see no change at all — nothing here invents state,

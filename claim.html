@@ -81,7 +81,23 @@
     /* Register Property Box */
     .register-box { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); text-align: center; font-size: 13.5px; color: var(--text-muted); }
     .register-box a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .claim-card { padding: 24px 18px; }
+      .container { margin: 24px auto; }
+      h1 { font-size: 20px; }
+      .property-card { flex-direction: column; align-items: flex-start; }
+      .btn-this-is-mine { width: 100%; text-align: center; }
+      .steps-indicator { gap: 0; }
+    }
+    @media (max-width: 480px) {
+      .claim-card { padding: 20px 14px; }
+      .header-inner { padding: 0 14px; }
+      .step-dot { width: 28px; height: 28px; font-size: 12px; }
+    }
   </style>
+<link rel="stylesheet" href="responsive.css" />
 </head>
 <body>
 
@@ -472,5 +488,6 @@
     }
   </script>
   <script src="cookie-consent.js"></script>
+<script src="mobile-nav.js" defer></script>
 </body>
 </html>

@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="owner.css" />
+<link rel="stylesheet" href="responsive.css" />
 </head>
 <body class="owner-body">
 
@@ -46,19 +47,6 @@
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0H7m4-4h4m-4 0H7"/></svg>
           <span>Property Details</span>
         </a>
-        <a class="owner-nav-item" data-view="photos">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          <span>Photos Gallery</span>
-        </a>
-        <a class="owner-nav-item" data-view="amenities">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
-          <span>Amenities</span>
-        </a>
-        <a class="owner-nav-item" data-view="rooms">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          <span>Rooms & Accommodation</span>
-        </a>
-
         <div class="nav-label">BUSINESS</div>
         <a class="owner-nav-item" data-view="leads">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -125,7 +113,6 @@
             </button>
 
             <div class="property-selector-dropdown" id="propertySelectorDropdown"></div>
-            </div>
           </div>
         </div>
 
@@ -183,8 +170,7 @@
           <div class="quick-actions-bar">
             <span style="font-weight:700; font-size:12px; color:var(--owner-text-muted); text-transform:uppercase;">Quick Actions:</span>
             <button class="btn-secondary" onclick="switchView('property-details')">Edit Property</button>
-            <button class="btn-secondary" onclick="switchView('photos')">Add Photos</button>
-            <button class="btn-secondary" onclick="openAddRoomModal()">+ Add Room</button>
+            <button class="btn-secondary" onclick="switchView('property-details')">Add Photos</button>
             <button class="btn-secondary" onclick="openCreateOfferModal()">Create Offer</button>
             <button class="btn-secondary" onclick="switchView('leads')">View Leads</button>
           </div>
@@ -249,7 +235,7 @@
               <div class="checklist-item done"><span>✓ Cover & Gallery Photos</span><span class="checklist-action">Done</span></div>
               <div class="checklist-item done"><span>✓ Property Amenities</span><span class="checklist-action">Done</span></div>
               <div class="checklist-item done"><span>✓ Check-in / Check-out Times</span><span class="checklist-action">Done</span></div>
-              <div class="checklist-item"><span>○ Add Deluxe & Suite Rooms</span><span class="checklist-action" onclick="switchView('rooms')">Complete →</span></div>
+              <div class="checklist-item"><span>○ List your amenities</span><span class="checklist-action" onclick="switchView('property-details')">Complete →</span></div>
               <div class="checklist-item"><span>○ Add Cancellation & Child Policy</span><span class="checklist-action" onclick="switchView('property-details')">Complete →</span></div>
             </div>
           </div>
@@ -260,125 +246,161 @@
           <div class="page-header">
             <div class="page-title-group">
               <h1>Property Details</h1>
-              <p>Manage the information guests see on your Hotelzz listing.</p>
+              <p>Everything here is what travellers see on your public listing.</p>
             </div>
             <button class="btn-primary" onclick="savePropertyDetails()">Save Changes</button>
           </div>
 
-          <div class="owner-card">
-            <div class="owner-card-header"><div class="card-title">Basic Information</div></div>
-            <div class="form-group"><label>Property Name</label><input type="text" id="editPropName" class="form-control" /></div>
+          <!-- Jump links: the page is long, so give it a spine. -->
+          <div class="pd-tabs" role="tablist">
+            <button type="button" class="pd-tab active" data-pd-section="pd-basics">Basics</button>
+            <button type="button" class="pd-tab" data-pd-section="pd-photos">Photos</button>
+            <button type="button" class="pd-tab" data-pd-section="pd-amenities">Amenities</button>
+            <button type="button" class="pd-tab" data-pd-section="pd-contact">Contact</button>
+            <button type="button" class="pd-tab" data-pd-section="pd-location">Location</button>
+          </div>
+
+          <!-- How complete the listing is, and what is missing. -->
+          <div class="owner-card pd-progress-card">
+            <div class="pd-progress-head">
+              <div>
+                <div class="card-title">Listing completeness</div>
+                <div class="card-subtitle" id="pdProgressHint">Fill every section to rank higher in search.</div>
+              </div>
+              <div class="pd-progress-pct" id="pdProgressPct">0%</div>
+            </div>
+            <div class="pd-progress-track"><div class="pd-progress-fill" id="pdProgressFill"></div></div>
+            <div class="pd-progress-chips" id="pdProgressChips"></div>
+          </div>
+
+          <div class="owner-card" id="pd-basics">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Basic information</div>
+                <div class="card-subtitle">Name, category and the description shown under your listing title.</div>
+              </div>
+            </div>
+            <div class="form-group"><label for="editPropName">Property name</label><input type="text" id="editPropName" class="form-control" placeholder="e.g. The Grand Palace Mumbai" /></div>
             <div class="form-group">
-              <label>Property Category</label>
+              <label for="editPropType">Property category</label>
               <select id="editPropType" class="form-control">
                 <option value="Hotel">Hotel</option>
                 <option value="Resort">Resort</option>
                 <option value="Boutique Hotel">Boutique Hotel</option>
                 <option value="Homestay">Homestay</option>
                 <option value="Villa">Villa</option>
+                <option value="Guest House">Guest House</option>
+                <option value="Apartment">Apartment</option>
               </select>
             </div>
-            <div class="form-group"><label>Property Description</label><textarea id="editPropDesc" class="form-control" style="height:110px;"></textarea></div>
-          </div>
-
-          <div class="owner-card">
-            <div class="owner-card-header"><div class="card-title">Verified Contact Information</div></div>
             <div class="form-group">
-              <label>Verified Phone Number</label>
+              <label for="editPropDesc">Property description</label>
+              <textarea id="editPropDesc" class="form-control" style="height:120px;" maxlength="600" placeholder="What makes your property worth booking? Location, rooms, food, the view."></textarea>
+              <small class="form-hint"><span id="pdDescCount">0</span> / 600 characters</small>
+            </div>
+          </div>
+
+          <!-- PHOTOS (max 5) -->
+          <div class="owner-card" id="pd-photos">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Listing photos</div>
+                <div class="card-subtitle">Up to 5 photos. The first one is your cover image.</div>
+              </div>
+              <span class="pd-photo-count" id="pdPhotoCount">0 / 5</span>
+            </div>
+            <div class="pd-photo-grid" id="pdPhotoGrid"></div>
+            <small class="form-hint">JPG or PNG, landscape shots work best. Tap a photo to make it the cover.</small>
+          </div>
+
+          <!-- AMENITIES -->
+          <div class="owner-card" id="pd-amenities">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Amenities</div>
+                <div class="card-subtitle">These appear as the facilities list on your listing and drive search filters.</div>
+              </div>
+              <span class="pd-amenity-count" id="pdAmenityCount">0 selected</span>
+            </div>
+            <div id="amenitiesCategoryContainer"></div>
+          </div>
+
+          <div class="owner-card" id="pd-contact">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Contact details</div>
+                <div class="card-subtitle">How guests reach you once they open your listing.</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="editPropPhone">Verified phone number</label>
               <input type="text" id="editPropPhone" class="form-control" readonly style="background:#F1F5F9;" />
-              <small style="color:var(--owner-text-muted); font-size:11.5px;">Verified number associated with listing claim.</small>
+              <small class="form-hint">Verified when you claimed the listing. Contact support to change it.</small>
             </div>
-            <div class="form-group"><label>Public Contact Email</label><input type="email" id="editPropEmail" class="form-control" /></div>
-            <div class="form-group"><label>Official Website URL</label><input type="text" id="editPropWebsite" class="form-control" /></div>
+            <div class="form-group"><label for="editPropEmail">Public contact email</label><input type="email" id="editPropEmail" class="form-control" placeholder="bookings@yourhotel.com" /></div>
+            <div class="form-group"><label for="editPropWebsite">Official website</label><input type="text" id="editPropWebsite" class="form-control" placeholder="https://yourhotel.com" /></div>
           </div>
 
-          <div class="owner-card">
-            <div class="owner-card-header"><div class="card-title">Location & Address</div></div>
-            <div class="form-group"><label>Street Address</label><input type="text" id="editPropAddress" class="form-control" /></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-              <div class="form-group"><label>City</label><input type="text" id="editPropCity" class="form-control" /></div>
-              <div class="form-group"><label>PIN Code</label><input type="text" id="editPropPincode" class="form-control" /></div>
+          <div class="owner-card" id="pd-location">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Location</div>
+                <div class="card-subtitle">Shown on the listing and used to place you in city search results.</div>
+              </div>
             </div>
-          </div>
-        </section>
-
-        <!-- 3. PHOTOS VIEW -->
-        <section class="owner-page-view" id="view-photos">
-          <div class="page-header">
-            <div class="page-title-group">
-              <h1>Photos Gallery</h1>
-              <p>Show guests what makes your property special with high-resolution photos.</p>
-            </div>
-            <button class="btn-primary" onclick="simulatePhotoUpload()">+ Upload Photos</button>
-          </div>
-
-          <div class="owner-card">
-            <div class="owner-card-header"><div class="card-title">Featured Cover Photo</div></div>
-            <div style="height:240px; border-radius:10px; overflow:hidden; position:relative;">
-              <img id="coverPhotoPreview" src="" style="width:100%; height:100%; object-fit:cover;" />
-              <div style="position:absolute; bottom:12px; left:12px; background:rgba(0,0,0,0.7); color:#FFF; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:700;">Cover Image</div>
+            <div class="form-group"><label for="editPropAddress">Street address</label><input type="text" id="editPropAddress" class="form-control" /></div>
+            <div class="form-row-2">
+              <div class="form-group"><label for="editPropCity">City</label><input type="text" id="editPropCity" class="form-control" /></div>
+              <div class="form-group"><label for="editPropPincode">PIN code</label><input type="text" id="editPropPincode" class="form-control" inputmode="numeric" /></div>
             </div>
           </div>
 
-          <div class="owner-card">
-            <div style="display:flex; gap:10px; margin-bottom:16px;">
-              <button class="btn-secondary" onclick="filterPhotoCategory('All')">All Photos</button>
-              <button class="btn-secondary" onclick="filterPhotoCategory('Exterior')">Exterior</button>
-              <button class="btn-secondary" onclick="filterPhotoCategory('Rooms')">Rooms</button>
-              <button class="btn-secondary" onclick="filterPhotoCategory('Dining')">Dining</button>
-              <button class="btn-secondary" onclick="filterPhotoCategory('Amenities')">Amenities</button>
-            </div>
-            <div class="photo-gallery-grid" id="photoGalleryGrid"></div>
+          <div class="pd-save-row">
+            <button class="btn-primary" onclick="savePropertyDetails()">Save Changes</button>
+            <button class="btn-secondary" onclick="openPublicPreviewModal()">Preview listing</button>
           </div>
-        </section>
-
-        <!-- 4. AMENITIES VIEW -->
-        <section class="owner-page-view" id="view-amenities">
-          <div class="page-header">
-            <div class="page-title-group">
-              <h1>Property Amenities</h1>
-              <p>Select amenities available at your hotel to help guests filter search results.</p>
-            </div>
-            <button class="btn-primary" onclick="saveAmenities()">Save Amenities</button>
-          </div>
-          <div class="owner-card" id="amenitiesCategoryContainer"></div>
-        </section>
-
-        <!-- 5. ROOMS VIEW -->
-        <section class="owner-page-view" id="view-rooms">
-          <div class="page-header">
-            <div class="page-title-group">
-              <h1>Rooms & Accommodation</h1>
-              <p>Add and manage room types, bed configurations, and pricing options.</p>
-            </div>
-            <button class="btn-primary" onclick="openAddRoomModal()">+ Add Room</button>
-          </div>
-          <div class="rooms-grid" id="roomsGrid"></div>
         </section>
 
         <!-- 6. LEADS VIEW -->
         <section class="owner-page-view" id="view-leads">
           <div class="page-header">
             <div class="page-title-group">
-              <h1>Guest Leads & Booking Inquiries</h1>
-              <p>Direct inquiries received from travelers browsing your Hotelzz listing.</p>
+              <h1>Guest Leads</h1>
+              <p>Direct enquiries from travellers browsing your Hotelzz listing.</p>
             </div>
+            <button class="btn-secondary" onclick="exportOwnerCsv('leads')">↓ Export CSV</button>
           </div>
 
-          <div class="table-responsive">
-            <table class="owner-table">
-              <thead>
-                <tr>
-                  <th>Guest Name</th>
-                  <th>Contact Info</th>
-                  <th>Message / Inquiry</th>
-                  <th>Inquiry Date</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="leadsTableBody"></tbody>
-            </table>
+          <div class="stat-strip" id="leadsStats"></div>
+
+          <div class="owner-card">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">All enquiries</div>
+                <div class="card-subtitle">Tap a row to open the full enquiry and reply.</div>
+              </div>
+              <div class="seg-filter" id="leadsFilter">
+                <button type="button" class="seg-btn active" data-lead-status="All">All</button>
+                <button type="button" class="seg-btn" data-lead-status="New">New</button>
+                <button type="button" class="seg-btn" data-lead-status="Responded">Responded</button>
+                <button type="button" class="seg-btn" data-lead-status="Converted">Converted</button>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="owner-table">
+                <thead>
+                  <tr>
+                    <th>Guest</th>
+                    <th>Contact</th>
+                    <th>Enquiry</th>
+                    <th>Received</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="leadsTableBody"></tbody>
+              </table>
+            </div>
           </div>
         </section>
 
@@ -387,37 +409,63 @@
           <div class="page-header">
             <div class="page-title-group">
               <h1>Guest Reviews</h1>
-              <p>View guest ratings and post official hotel manager responses.</p>
+              <p>Ratings guests left, and your official replies.</p>
             </div>
           </div>
-          <div id="reviewsContainer"></div>
+
+          <div class="rating-summary owner-card" id="ratingSummary"></div>
+
+          <div class="owner-card">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">All reviews</div>
+                <div class="card-subtitle">Replying publicly shows future guests you are attentive.</div>
+              </div>
+              <div class="seg-filter" id="reviewsFilter">
+                <button type="button" class="seg-btn active" data-review-filter="All">All</button>
+                <button type="button" class="seg-btn" data-review-filter="Unanswered">Needs reply</button>
+                <button type="button" class="seg-btn" data-review-filter="Answered">Replied</button>
+              </div>
+            </div>
+            <div id="reviewsContainer"></div>
+          </div>
         </section>
 
         <!-- 8. OFFERS VIEW -->
         <section class="owner-page-view" id="view-offers">
           <div class="page-header">
             <div class="page-title-group">
-              <h1>Offers & Promotional Campaigns</h1>
-              <p>Publish special seasonal discounts and weekend packages to drive bookings.</p>
+              <h1>Offers &amp; Deals</h1>
+              <p>Seasonal discounts and packages shown on your listing.</p>
             </div>
             <button class="btn-primary" onclick="openCreateOfferModal()">+ Create Offer</button>
           </div>
 
-          <div class="table-responsive">
-            <table class="owner-table">
-              <thead>
-                <tr>
-                  <th>Offer Title</th>
-                  <th>Discount</th>
-                  <th>Validity Dates</th>
-                  <th>Views</th>
-                  <th>Clicks</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="offersTableBody"></tbody>
-            </table>
+          <div class="stat-strip" id="offersStats"></div>
+
+          <div class="owner-card">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Your offers</div>
+                <div class="card-subtitle">Views and clicks count traffic on your listing page.</div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="owner-table">
+                <thead>
+                  <tr>
+                    <th>Offer</th>
+                    <th>Discount</th>
+                    <th>Validity</th>
+                    <th>Views</th>
+                    <th>Clicks</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="offersTableBody"></tbody>
+              </table>
+            </div>
           </div>
         </section>
 
@@ -431,7 +479,7 @@
           </div>
 
           <div class="owner-card" style="background:#F0F9FF; border-color:#BFDBFE;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="hz-head-row" style="display:flex; justify-content:space-between; align-items:center;">
               <div>
                 <span class="sidebar-prop-status">🟢 Active Plan</span>
                 <h2 style="font-size:22px; font-weight:800; margin-top:4px;" id="subPlanName">Professional Plan</h2>
@@ -466,39 +514,157 @@
         <section class="owner-page-view" id="view-billing">
           <div class="page-header">
             <div class="page-title-group">
-              <h1>Billing & Invoices</h1>
-              <p>Download past subscription invoices and manage payment records.</p>
+              <h1>Billing &amp; Invoices</h1>
+              <p>Your subscription payments and downloadable invoices.</p>
             </div>
+            <button class="btn-secondary" onclick="switchView('subscription')">Manage plan</button>
           </div>
 
-          <div class="table-responsive">
-            <table class="owner-table">
-              <thead>
-                <tr>
-                  <th>Invoice ID</th>
-                  <th>Billing Date</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Download</th>
-                </tr>
-              </thead>
-              <tbody id="invoicesTableBody"></tbody>
-            </table>
+          <div class="stat-strip" id="billingStats"></div>
+
+          <div class="owner-card">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Invoice history</div>
+                <div class="card-subtitle">Open an invoice to print it or save it as a PDF.</div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="owner-table">
+                <thead>
+                  <tr>
+                    <th>Invoice</th>
+                    <th>Billed on</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Download</th>
+                  </tr>
+                </thead>
+                <tbody id="invoicesTableBody"></tbody>
+              </table>
+            </div>
           </div>
         </section>
 
         <!-- OTHER VIEWS: VISIBILITY, PERFORMANCE -->
         <section class="owner-page-view" id="view-visibility">
-          <div class="page-header"><h1>Listing Visibility Score</h1></div>
-          <div class="owner-card" style="text-align:center; padding:36px;">
-            <div style="font-size:42px; font-weight:800; color:var(--owner-primary);" id="visibilityScoreText">78 / 100</div>
-            <p style="color:var(--owner-text-muted);">Good visibility score! Complete missing recommendations below to reach 95+.</p>
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Listing Visibility</h1>
+              <p>How complete your listing is, and exactly what is holding the score back.</p>
+            </div>
+            <button class="btn-primary" onclick="switchView('property-details')">Improve listing</button>
+          </div>
+
+          <div class="vis-layout">
+            <div class="owner-card vis-score-card">
+              <div class="vis-ring" id="visRing">
+                <svg viewBox="0 0 120 120" aria-hidden="true">
+                  <circle class="vis-ring-track" cx="60" cy="60" r="52" />
+                  <circle class="vis-ring-fill" id="visRingFill" cx="60" cy="60" r="52" />
+                </svg>
+                <div class="vis-ring-label">
+                  <strong id="visibilityScoreText">0</strong>
+                  <small>out of 100</small>
+                </div>
+              </div>
+              <div class="vis-score-verdict" id="visVerdict">Complete your listing to start ranking.</div>
+            </div>
+
+            <div class="owner-card vis-checks-card">
+              <div class="owner-card-header">
+                <div>
+                  <div class="card-title">What your listing is missing</div>
+                  <div class="card-subtitle">Each item is a field travellers look for before enquiring.</div>
+                </div>
+                <span class="vis-checks-count" id="visChecksCount"></span>
+              </div>
+              <ul class="vis-check-list" id="visCheckList"></ul>
+            </div>
+          </div>
+
+          <div class="owner-card">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Why this matters</div>
+                <div class="card-subtitle">Complete listings win more enquiries from the same traffic.</div>
+              </div>
+            </div>
+            <div class="vis-why-grid">
+              <div class="vis-why-item">
+                <div class="vis-why-icon">📸</div>
+                <div class="vis-why-name">Photos</div>
+                <p>Listings with photos get opened far more often from city search results.</p>
+              </div>
+              <div class="vis-why-item">
+                <div class="vis-why-icon">✓</div>
+                <div class="vis-why-name">Amenities</div>
+                <p>Amenities decide whether you appear when guests filter by Wi-Fi, pool or parking.</p>
+              </div>
+              <div class="vis-why-item">
+                <div class="vis-why-icon">☎</div>
+                <div class="vis-why-name">Contact</div>
+                <p>A verified phone and email let guests reach you the moment they are ready.</p>
+              </div>
+            </div>
           </div>
         </section>
 
         <section class="owner-page-view" id="view-performance">
-          <div class="page-header"><h1>Performance Insights</h1></div>
-          <div class="owner-card"><div id="performanceChartContainer" style="height:220px;"></div></div>
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Performance Insights</h1>
+              <p>Views, guest contact and enquiries for this property.</p>
+            </div>
+            <div class="perf-range" id="perfRange">
+              <button type="button" class="perf-range-btn" data-days="7">7 days</button>
+              <button type="button" class="perf-range-btn active" data-days="30">30 days</button>
+              <button type="button" class="perf-range-btn" data-days="90">90 days</button>
+            </div>
+          </div>
+
+          <div class="kpi-grid" id="perfKpiGrid">
+            <div class="kpi-card">
+              <div class="kpi-label">Listing views</div>
+              <div class="kpi-value" id="perfViews">—</div>
+              <div class="kpi-sub" id="perfViewsSub">—</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Phone clicks</div>
+              <div class="kpi-value" id="perfPhone">—</div>
+              <div class="kpi-sub" id="perfPhoneSub">—</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Website clicks</div>
+              <div class="kpi-value" id="perfWeb">—</div>
+              <div class="kpi-sub" id="perfWebSub">—</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Enquiries</div>
+              <div class="kpi-value" id="perfLeads">—</div>
+              <div class="kpi-sub" id="perfLeadsSub">—</div>
+            </div>
+          </div>
+
+          <div class="owner-card">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Views over time</div>
+                <div class="card-subtitle" id="perfChartSub">Daily listing views.</div>
+              </div>
+            </div>
+            <div id="perfChartContainer" style="height:240px;"></div>
+          </div>
+
+          <div class="owner-card">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Enquiry conversion</div>
+                <div class="card-subtitle">How many people who saw your listing went on to enquire.</div>
+              </div>
+            </div>
+            <div class="perf-funnel" id="perfFunnel"></div>
+          </div>
         </section>
 
         <!-- GROW BUSINESS / MARKETING VIEW -->
@@ -604,6 +770,30 @@
         </section>
 
       </main>
+
+      <!--
+        Mobile tab bar. Four things an owner does on a phone; the hamburger
+        sidebar still carries the rest (leads, reviews, offers, billing).
+        Hidden above the mobile breakpoint.
+      -->
+      <nav class="obar" id="ownerTabBar" aria-label="Primary">
+        <button class="obar-item" data-view="dashboard" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="obar-item" data-view="property-details" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0H7m4-4h4m-4 0H7"/></svg>
+          <span>Property</span>
+        </button>
+        <button class="obar-item" data-view="grow-business" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span>Grow</span>
+        </button>
+        <button class="obar-item" data-view="subscription" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>
+          <span>Plan</span>
+        </button>
+      </nav>
     </div>
   </div>
 
@@ -614,21 +804,6 @@
       <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeLeadDrawer()">×</button>
     </div>
     <div class="drawer-body" id="leadDrawerBody"></div>
-  </div>
-
-  <!-- ROOM MODAL -->
-  <div class="owner-modal-overlay" id="roomModal">
-    <div class="owner-modal">
-      <div class="modal-header">
-        <h3 id="roomModalTitle">Add New Room</h3>
-        <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeModal('roomModal')">×</button>
-      </div>
-      <div style="padding:24px;">
-        <div class="form-group"><label>Room Name</label><input type="text" id="roomFormName" class="form-control" placeholder="e.g. Deluxe Sea View Suite" /></div>
-        <div class="form-group"><label>Base Price per Night (₹)</label><input type="number" id="roomFormPrice" class="form-control" value="4999" /></div>
-        <button class="btn-primary" style="width:100%;" onclick="saveRoomForm()">Save Room</button>
-      </div>
-    </div>
   </div>
 
   <!-- OFFER MODAL -->

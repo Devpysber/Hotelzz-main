@@ -43,6 +43,9 @@
   // Init App
   document.addEventListener('DOMContentLoaded', () => {
     setupNavigation();
+    setupPdTabs();
+    setupPerfRange();
+    setupOwnerFilters();
     setupPropertySelector();
     setupTimeframeButtons();
     setupModals();
@@ -91,10 +94,22 @@
   };
 
   // URL Hash Handler
+  const OWNER_VIEWS = [
+    'dashboard', 'property-details', 'leads', 'reviews', 'offers',
+    'grow-business', 'performance', 'visibility', 'subscription', 'billing'
+  ];
+
   function handleUrlHash() {
-    const hash = window.location.hash.replace('#', '') || 'dashboard';
-    switchView(hash);
+    const hash = window.location.hash.replace('#', '');
+    switchView(OWNER_VIEWS.includes(hash) ? hash : 'dashboard');
   }
+
+  /* Without this the phone's back button changes the address bar while the
+     visible view stays put. */
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '');
+    if (OWNER_VIEWS.includes(hash) && hash !== currentView) switchView(hash);
+  });
 
   // View Switcher
   window.switchView = function (viewName) {
@@ -102,11 +117,11 @@
     window.location.hash = viewName;
 
     // Active nav class
-    document.querySelectorAll('.owner-nav-item').forEach(el => {
-      if (el.getAttribute('data-view') === viewName) {
-        el.classList.add('active');
-      } else {
-        el.classList.remove('active');
+    document.querySelectorAll('.owner-nav-item, .obar-item').forEach(el => {
+      const match = el.getAttribute('data-view') === viewName;
+      el.classList.toggle('active', match);
+      if (el.classList.contains('obar-item')) {
+        el.setAttribute('aria-current', match ? 'page' : 'false');
       }
     });
 
@@ -121,6 +136,8 @@
 
     // Close mobile drawer
     document.getElementById('sidebar').classList.remove('mobile-open');
+
+    if (window.matchMedia('(max-width: 1024px)').matches) window.scrollTo({ top: 0 });
 
     // A detail drawer or modal left open would overlay — and block — the new view.
     document.querySelectorAll('[id$="Drawer"].open').forEach(el => el.classList.remove('open'));
@@ -209,9 +226,6 @@
     // Populate Sub-views
     renderDashboardView();
     renderPropertyDetailsView();
-    renderPhotoGallery();
-    renderAmenitiesView();
-    renderRoomsView();
     renderLeadsView();
     renderReviewsView();
     renderOffersView();
@@ -223,7 +237,7 @@
 
   // Navigation Event Listeners
   function setupNavigation() {
-    document.querySelectorAll('.owner-nav-item').forEach(item => {
+    document.querySelectorAll('.owner-nav-item, .obar-item').forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
         const view = item.getAttribute('data-view');
@@ -256,97 +270,226 @@
   }
 
   // SVG Chart: Performance
-  function renderPerformanceChart(tf = '30d') {
-    const container = document.getElementById('performanceChartContainer');
-    if (!container) return;
+  /* Performance used to draw a hardcoded polyline. It now reads the real
+     series from /performance and falls back to an empty state. */
+  let perfDays = 30;
+  let perfSeries = null;
 
-    const width = container.clientWidth || 600;
-    const height = 220;
-    const padding = 35;
-    const labels = ["Week 1", "Week 2", "Week 3", "Week 4"];
-    const views = [2800, 3100, 3400, 3542];
-    const leads = [18, 22, 21, 25];
+  function renderPerformanceChart(tf) {
+    if (tf) {
+      const parsed = parseInt(String(tf), 10);
+      if (!isNaN(parsed)) perfDays = parsed;
+    }
+    if (!activePropId) return;
 
-    const getX = (i) => padding + (i * (width - 2 * padding) / (labels.length - 1));
-    const getY = (val) => height - padding - ((val / 4000) * (height - 2 * padding));
-
-    let points = views.map((v, i) => `${getX(i)},${getY(v)}`).join(' ');
-
-    let svg = `<svg width="100%" height="100%" viewBox="0 0 ${width} ${height}">
-      <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#E2E8F0" />
-      <polygon points="${getX(0)},${height - padding} ${points} ${getX(labels.length - 1)},${height - padding}" fill="rgba(37,99,235,0.12)" />
-      <polyline points="${points}" fill="none" stroke="#2563EB" stroke-width="3" />
-      ${labels.map((lbl, i) => `<text x="${getX(i)}" y="${height - 10}" text-anchor="middle" font-size="11" fill="#64748B" font-weight="600">${lbl}</text>`).join('')}
-    </svg>`;
-
-    container.innerHTML = svg;
+    data.performance(activePropId, perfDays)
+      .then((res) => {
+        perfSeries = res.series || [];
+        paintPerformance();
+      })
+      .catch(() => {
+        perfSeries = [];
+        paintPerformance();
+      });
   }
 
-  // 2. Property Details View Render
+  function sum(list, key) {
+    return list.reduce((n, r) => n + (Number(r[key]) || 0), 0);
+  }
+
+  function paintPerformance() {
+    const series = perfSeries || [];
+    const totals = {
+      views: sum(series, 'views'),
+      phone: sum(series, 'phoneClicks'),
+      web: sum(series, 'websiteClicks'),
+      leads: sum(series, 'leads')
+    };
+
+    const label = `Last ${perfDays} days`;
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('perfViews', totals.views);
+    set('perfPhone', totals.phone);
+    set('perfWeb', totals.web);
+    set('perfLeads', totals.leads);
+    set('perfViewsSub', label);
+    set('perfPhoneSub', label);
+    set('perfWebSub', label);
+    set('perfLeadsSub', label);
+
+    const sub = document.getElementById('perfChartSub');
+    if (sub) sub.textContent = `Daily listing views, last ${perfDays} days.`;
+
+    paintPerformanceChart(series);
+    paintPerformanceFunnel(totals);
+  }
+
+  function paintPerformanceChart(series) {
+    // Dashboard and the Performance page each show the same curve.
+    ['performanceChartContainer', 'perfChartContainer'].forEach((id) => {
+      const container = document.getElementById(id);
+      if (container) paintChartInto(container, series);
+    });
+  }
+
+  function paintChartInto(container, series) {
+
+    if (!series.length || !series.some((r) => Number(r.views) > 0)) {
+      container.innerHTML = `
+        <div class="perf-empty">
+          <div class="perf-empty-icon">\u{1F4C8}</div>
+          <div class="perf-empty-title">No views recorded yet</div>
+          <p>Once travellers open your listing, daily views appear here.</p>
+        </div>`;
+      return;
+    }
+
+    const width = container.clientWidth || 640;
+    const height = 240;
+    const padL = 38;
+    const padR = 14;
+    const padT = 16;
+    const padB = 30;
+
+    const values = series.map((r) => Number(r.views) || 0);
+    const peak = Math.max.apply(null, values) || 1;
+    const stepX = series.length > 1 ? (width - padL - padR) / (series.length - 1) : 0;
+    const x = (i) => padL + i * stepX;
+    const y = (v) => padT + (height - padT - padB) * (1 - v / peak);
+
+    const line = values.map((v, i) => `${x(i)},${y(v)}`).join(' ');
+    const area = `${x(0)},${height - padB} ${line} ${x(values.length - 1)},${height - padB}`;
+
+    // Four gridlines keep the eye on magnitude without a full axis.
+    const grid = [0, 0.25, 0.5, 0.75, 1].map((f) => {
+      const gy = padT + (height - padT - padB) * f;
+      const val = Math.round(peak * (1 - f));
+      return `<line x1="${padL}" y1="${gy}" x2="${width - padR}" y2="${gy}" stroke="#E2E8F0" stroke-width="1" />
+              <text x="${padL - 8}" y="${gy + 4}" text-anchor="end" font-size="10" fill="#94A3B8">${val}</text>`;
+    }).join('');
+
+    // Label at most six dates so they never collide.
+    const every = Math.ceil(series.length / 6);
+    const ticks = series.map((r, i) => {
+      if (i % every !== 0 && i !== series.length - 1) return '';
+      const d = new Date(r.day);
+      const txt = isNaN(d) ? r.day : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+      return `<text x="${x(i)}" y="${height - 8}" text-anchor="middle" font-size="10" fill="#64748B" font-weight="600">${txt}</text>`;
+    }).join('');
+
+    const dots = values.map((v, i) =>
+      `<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="#2563EB"><title>${series[i].day}: ${v} views</title></circle>`
+    ).join('');
+
+    container.innerHTML = `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Daily listing views">
+      ${grid}
+      <polygon points="${area}" fill="rgba(37,99,235,0.12)" />
+      <polyline points="${line}" fill="none" stroke="#2563EB" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+      ${dots}
+      ${ticks}
+    </svg>`;
+  }
+
+  function paintPerformanceFunnel(totals) {
+    const el = document.getElementById('perfFunnel');
+    if (!el) return;
+
+    const contacts = totals.phone + totals.web;
+    const rate = totals.views ? Math.round((totals.leads / totals.views) * 1000) / 10 : 0;
+    const steps = [
+      { label: 'Listing views', value: totals.views },
+      { label: 'Contact clicks', value: contacts },
+      { label: 'Enquiries sent', value: totals.leads }
+    ];
+    const peak = Math.max(1, totals.views);
+
+    el.innerHTML = steps.map((st) => `
+      <div class="perf-funnel-row">
+        <div class="perf-funnel-label">${st.label}</div>
+        <div class="perf-funnel-track"><div class="perf-funnel-fill" style="width:${Math.max(2, (st.value / peak) * 100)}%"></div></div>
+        <div class="perf-funnel-value">${st.value}</div>
+      </div>`).join('')
+      + `<div class="perf-funnel-note">${totals.views
+            ? `${rate}% of viewers sent an enquiry.`
+            : 'Conversion appears once your listing starts getting views.'}</div>`;
+  }
+
+  function setupPerfRange() {
+    const wrap = document.getElementById('perfRange');
+    if (!wrap) return;
+    wrap.addEventListener('click', (e) => {
+      const btn = e.target.closest('.perf-range-btn');
+      if (!btn) return;
+      wrap.querySelectorAll('.perf-range-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      renderPerformanceChart(btn.getAttribute('data-days'));
+    });
+  }
+
+  // 2. Property Details View Render — basics, photos and amenities in one page
+  const MAX_LISTING_PHOTOS = 5;
+
   function renderPropertyDetailsView() {
     const p = currentProp;
-    document.getElementById('editPropName').value = p.name;
-    document.getElementById('editPropType').value = p.category;
-    document.getElementById('editPropDesc').value = p.description;
-    document.getElementById('editPropPhone').value = p.phoneFull || "+91 98201 44512";
-    document.getElementById('editPropEmail').value = p.email;
-    document.getElementById('editPropWebsite').value = p.website;
-    document.getElementById('editPropAddress').value = p.address;
-    document.getElementById('editPropCity').value = p.city;
-    document.getElementById('editPropPincode').value = p.pincode;
+    document.getElementById('editPropName').value = p.name || '';
+    document.getElementById('editPropType').value = p.category || 'Hotel';
+    document.getElementById('editPropDesc').value = p.description || '';
+    document.getElementById('editPropPhone').value = p.phoneFull || p.phone || '';
+    document.getElementById('editPropEmail').value = p.email || '';
+    document.getElementById('editPropWebsite').value = p.website || '';
+    document.getElementById('editPropAddress').value = p.address || '';
+    document.getElementById('editPropCity').value = p.city || '';
+    document.getElementById('editPropPincode').value = p.pincode || '';
+
+    renderListingPhotos();
+    renderAmenitiesView();
+    updateDescCount();
+    renderPdProgress();
   }
 
-  window.savePropertyDetails = function () {
-    data.saveProperty(activePropId, {
-      name: document.getElementById('editPropName').value,
-      email: document.getElementById('editPropEmail').value,
-      website: document.getElementById('editPropWebsite').value,
-      phone: document.getElementById('editPropPhone').value,
-      address: document.getElementById('editPropAddress').value,
-      city: document.getElementById('editPropCity').value,
-      pincode: document.getElementById('editPropPincode').value,
-      details: {
-        category: document.getElementById('editPropType').value,
-        description: document.getElementById('editPropDesc').value
-      }
-    }).then(() => {
-      showToast('Property details saved.');
-      loadPropertyData(activePropId);
-    }).catch(fail);
-  };
+  function updateDescCount() {
+    const box = document.getElementById('editPropDesc');
+    const out = document.getElementById('pdDescCount');
+    if (box && out) out.textContent = (box.value || '').length;
+  }
 
-  // 3. Photo Gallery Render
-  function renderPhotoGallery(category = 'All') {
-    const p = currentProp;
-    const coverContainer = document.getElementById('coverPhotoPreview');
-    if (coverContainer) {
-      coverContainer.src = p.coverPhoto;
-    }
+  /* ------------------------------------------------------------- photos */
 
-    const grid = document.getElementById('photoGalleryGrid');
+  /* Five slots, always drawn: filled ones show the photo, the next empty one
+     is the upload button, the rest are placeholders. An owner can see at a
+     glance how many they have left. */
+  function renderListingPhotos() {
+    const grid = document.getElementById('pdPhotoGrid');
     if (!grid) return;
 
-    let list = p.photos;
-    if (category !== 'All') {
-      list = p.photos.filter(x => x.category === category);
+    const photos = (currentProp.photos || []).slice(0, MAX_LISTING_PHOTOS);
+    const counter = document.getElementById('pdPhotoCount');
+    if (counter) counter.textContent = `${photos.length} / ${MAX_LISTING_PHOTOS}`;
+
+    const cells = photos.map((ph, i) => `
+      <div class="pd-photo ${ph.isCover || i === 0 ? 'is-cover' : ''}">
+        <img src="${ph.url}" alt="${ph.title || 'Listing photo'}" loading="lazy" />
+        ${ph.isCover || i === 0 ? '<span class="pd-photo-badge">Cover</span>' : ''}
+        <div class="pd-photo-actions">
+          ${ph.isCover || i === 0 ? '' : `<button type="button" class="pd-photo-btn" onclick="setCoverPhoto('${ph.id}')">Make cover</button>`}
+          <button type="button" class="pd-photo-btn is-danger" onclick="deletePhoto('${ph.id}')">Remove</button>
+        </div>
+      </div>`);
+
+    if (photos.length < MAX_LISTING_PHOTOS) {
+      cells.push(`
+        <button type="button" class="pd-photo pd-photo-add" onclick="openPhotoUpload()">
+          <span class="pd-photo-add-icon">+</span>
+          <span class="pd-photo-add-text">Add photo</span>
+          <span class="pd-photo-add-sub">${MAX_LISTING_PHOTOS - photos.length} slot${MAX_LISTING_PHOTOS - photos.length === 1 ? '' : 's'} left</span>
+        </button>`);
     }
 
-    grid.innerHTML = list.map(ph => `
-      <div class="photo-card">
-        <img src="${ph.url}" alt="${ph.title}" />
-        <div class="photo-card-actions">
-          <button class="photo-action-btn" onclick="setCoverPhoto('${ph.id}')">Cover</button>
-          <button class="photo-action-btn" onclick="deletePhoto('${ph.id}')" style="color:#EF4444;">Delete</button>
-        </div>
-      </div>
-    `).join('');
-  }
+    while (cells.length < MAX_LISTING_PHOTOS) {
+      cells.push('<div class="pd-photo pd-photo-empty" aria-hidden="true"></div>');
+    }
 
-  let currentPhotoCategory = 'All';
-  window.filterPhotoCategory = function (cat) {
-    currentPhotoCategory = cat;
-    renderPhotoGallery(cat);
-  };
+    grid.innerHTML = cells.join('');
+  }
 
   window.setCoverPhoto = function (photoId) {
     data.setCoverPhoto(activePropId, photoId).then(() => {
@@ -358,31 +501,155 @@
   window.deletePhoto = function (id) {
     data.deletePhoto(activePropId, id).then(() => {
       loadPropertyData(activePropId);
-      showToast('Photo removed from gallery.');
+      showToast('Photo removed.');
     }).catch(fail);
   };
 
-  // Opens the file picker; the upload itself runs in uploadSelectedPhotos.
-  window.simulatePhotoUpload = function () {
+  window.openPhotoUpload = function () {
+    if ((currentProp.photos || []).length >= MAX_LISTING_PHOTOS) {
+      showToast(`Listings are limited to ${MAX_LISTING_PHOTOS} photos. Remove one first.`, 'warning');
+      return;
+    }
     const input = document.getElementById('ownerPhotoInput');
     if (input) input.click();
   };
-  window.openPhotoUpload = window.simulatePhotoUpload;
+  window.simulatePhotoUpload = window.openPhotoUpload;
 
   window.uploadSelectedPhotos = function (files) {
     if (!files || !files.length) return;
-    const category = currentPhotoCategory === 'All' ? 'General' : currentPhotoCategory;
-    showToast(`Uploading ${files.length} photo${files.length > 1 ? 's' : ''}…`);
+    const input = document.getElementById('ownerPhotoInput');
+    const clear = () => { if (input) input.value = ''; };
 
-    data.uploadPhotos(activePropId, files, category)
+    const room = MAX_LISTING_PHOTOS - (currentProp.photos || []).length;
+    if (room <= 0) {
+      showToast(`Listings are limited to ${MAX_LISTING_PHOTOS} photos. Remove one first.`, 'warning');
+      clear();
+      return;
+    }
+
+    // Picking six when one slot is free should upload the one, not fail.
+    let list = Array.prototype.slice.call(files);
+    if (list.length > room) {
+      showToast(`Only ${room} slot${room === 1 ? '' : 's'} left — uploading the first ${room}.`, 'warning');
+      list = list.slice(0, room);
+    }
+
+    showToast(`Uploading ${list.length} photo${list.length > 1 ? 's' : ''}\u2026`);
+    data.uploadPhotos(activePropId, list, 'General')
       .then((res) => data.load().then(() => res))
       .then((res) => {
         loadPropertyData(activePropId);
-        showToast(`${res.photos.length} photo${res.photos.length > 1 ? 's' : ''} added to the gallery.`);
+        showToast(`${res.photos.length} photo${res.photos.length > 1 ? 's' : ''} added.`);
       })
       .catch(fail)
-      .then(() => { document.getElementById('ownerPhotoInput').value = ''; });
+      .then(clear);
   };
+
+  /* ----------------------------------------------------------- progress */
+
+  /* The score is the server's to decide. shapeProperty defaults `category` to
+     "Hotel" and falls back to the Google summary for `description`, so
+     recomputing from the shaped property would read as complete when it is
+     not. Consume the server's per-field breakdown instead. */
+  const CHECK_LABELS = {
+    name: 'Property name',
+    category: 'Property category',
+    description: 'Description',
+    photos: 'At least one photo',
+    cover: 'Cover image',
+    amenities: 'Amenities',
+    phone: 'Phone number',
+    email: 'Contact email',
+    website: 'Website',
+    address: 'Street address',
+    location: 'City',
+    pincode: 'PIN code'
+  };
+
+  const CHECK_ORDER = [
+    'name', 'category', 'description', 'photos', 'cover', 'amenities',
+    'phone', 'email', 'website', 'address', 'location', 'pincode'
+  ];
+
+  function listingChecks() {
+    const server = currentProp.visibilityChecks || {};
+    return CHECK_ORDER.map((key) => ({
+      key: key,
+      label: CHECK_LABELS[key],
+      ok: !!server[key]
+    }));
+  }
+
+  function renderPdProgress() {
+    const checks = listingChecks();
+    // Same number the Visibility page shows, straight from the server.
+    const pct = Number(currentProp.visibilityScore) || 0;
+
+    const fill = document.getElementById('pdProgressFill');
+    const out = document.getElementById('pdProgressPct');
+    const hint = document.getElementById('pdProgressHint');
+    const chips = document.getElementById('pdProgressChips');
+    if (fill) fill.style.width = pct + '%';
+    if (out) out.textContent = pct + '%';
+
+    const missing = checks.filter((c) => !c.ok);
+    if (hint) {
+      hint.textContent = missing.length
+        ? `${missing.length} field${missing.length === 1 ? '' : 's'} still empty.`
+        : 'Your listing is complete.';
+    }
+    if (chips) {
+      chips.innerHTML = missing.length
+        ? missing.map((m) => `<span class="pd-progress-chip">${m.label}</span>`).join('')
+        : '<span class="pd-progress-chip is-done">All done</span>';
+    }
+
+    const amenityOut = document.getElementById('pdAmenityCount');
+    if (amenityOut) {
+      const n = Object.values(currentProp.amenities || {})
+        .reduce((t, l) => t + (Array.isArray(l) ? l.length : 0), 0);
+      amenityOut.textContent = `${n} selected`;
+    }
+  }
+
+  window.savePropertyDetails = function () {
+    data.saveProperty(activePropId, {
+      name: document.getElementById('editPropName').value,
+      email: document.getElementById('editPropEmail').value,
+      website: document.getElementById('editPropWebsite').value,
+      address: document.getElementById('editPropAddress').value,
+      city: document.getElementById('editPropCity').value,
+      pincode: document.getElementById('editPropPincode').value,
+      details: {
+        category: document.getElementById('editPropType').value,
+        description: document.getElementById('editPropDesc').value
+      }
+    })
+      // Amenities live on their own endpoint, so one Save covers both.
+      .then(() => data.saveAmenities(activePropId, currentProp.amenities))
+      .then(() => {
+        showToast('Listing saved.');
+        loadPropertyData(activePropId);
+      })
+      .catch(fail);
+  };
+
+  // Section jump links on the Property Details page.
+  function setupPdTabs() {
+    const tabs = document.querySelectorAll('.pd-tab');
+    if (!tabs.length) return;
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const target = document.getElementById(tab.getAttribute('data-pd-section'));
+        if (!target) return;
+        tabs.forEach((t) => t.classList.toggle('active', t === tab));
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    const desc = document.getElementById('editPropDesc');
+    if (desc) desc.addEventListener('input', updateDescCount);
+  }
 
   // 4. Amenities View Render
   function renderAmenitiesView() {
@@ -428,6 +695,7 @@
       list = list.filter(x => x !== item);
     }
     currentProp.amenities[catKey] = list;
+    renderPdProgress();
   };
 
   window.saveAmenities = function () {
@@ -436,89 +704,135 @@
       .catch(fail);
   };
 
-  // 5. Rooms View Render
-  function renderRoomsView() {
-    const grid = document.getElementById('roomsGrid');
-    if (!grid) return;
-
-    grid.innerHTML = currentProp.rooms.map(r => `
-      <div class="room-card">
-        <img class="room-card-img" src="${r.photo}" alt="${r.name}" />
-        <div class="room-card-body">
-          <div>
-            <div class="room-card-title">${r.name}</div>
-            <div style="font-size:12px; color:var(--owner-text-muted);">${r.type} • ${r.size} • ${r.bedType}</div>
-            <div class="room-card-price">₹${r.priceBase.toLocaleString('en-IN')} <span style="font-size:12px; font-weight:500; color:var(--owner-text-muted);">/ night</span></div>
-          </div>
-          <div style="margin-top: 14px; display: flex; gap: 8px;">
-            <button class="btn-secondary" style="flex:1; padding: 6px;" onclick="openEditRoomModal('${r.id}')">Edit Room</button>
-            <button class="btn-secondary" style="padding: 6px 10px;" onclick="deleteRoom('${r.id}')">Delete</button>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  window.openAddRoomModal = function () {
-    editingRoomId = null;
-    document.getElementById('roomModalTitle').textContent = 'Add New Room';
-    document.getElementById('roomFormName').value = '';
-    document.getElementById('roomFormPrice').value = '4999';
-    document.getElementById('roomModal').classList.add('show');
-  };
-
-  let editingRoomId = null;
-
-  window.openEditRoomModal = function (id) {
-    const room = currentProp.rooms.find(r => r.id === id);
-    if (!room) return;
-    editingRoomId = id;
-    document.getElementById('roomModalTitle').textContent = 'Edit Room';
-    document.getElementById('roomFormName').value = room.name;
-    document.getElementById('roomFormPrice').value = room.priceBase;
-    document.getElementById('roomModal').classList.add('show');
-  };
-
-  window.saveRoomForm = function () {
-    const name = document.getElementById('roomFormName').value.trim();
-    const price = parseInt(document.getElementById('roomFormPrice').value, 10);
-    if (!name) return showToast('Enter a room name.', 'warning');
-
-    const payload = { name: name, price: isNaN(price) ? 0 : price };
-    const call = editingRoomId
-      ? data.updateRoom(activePropId, editingRoomId, payload)
-      : data.addRoom(activePropId, Object.assign({ type: 'Deluxe', capacity: 2, count: 1 }, payload));
-
-    call.then(() => {
-      const wasEditing = !!editingRoomId;
-      editingRoomId = null;
-      loadPropertyData(activePropId);
-      closeModal('roomModal');
-      showToast(wasEditing ? `Room "${name}" updated.` : `Room "${name}" added.`);
-    }).catch(fail);
-  };
-
-  window.deleteRoom = function (id) {
-    if (!window.confirm('Delete this room type? This cannot be undone.')) return;
-    data.deleteRoom(activePropId, id).then(() => {
-      loadPropertyData(activePropId);
-      showToast('Room deleted.');
-    }).catch(fail);
-  };
+  // The amenities markup lives inside Property Details now, so give its
+  // container the heading the standalone page used to provide.
+  function amenitiesHeading() { return document.getElementById('amenitiesCategoryContainer'); }
 
   // 6. Leads View Render
+  /* ---------------------------------------------------- shared page parts */
+
+  /* Every list page used to render an empty <tbody> when there was nothing to
+     show, which read as a broken page rather than an empty one. */
+  function emptyState(opts) {
+    return `
+      <div class="owner-empty">
+        <div class="owner-empty-icon">${opts.icon}</div>
+        <div class="owner-empty-title">${opts.title}</div>
+        <p class="owner-empty-text">${opts.text}</p>
+        ${opts.action ? `<button class="btn-primary owner-empty-action" onclick="${opts.action.onclick}">${opts.action.label}</button>` : ''}
+      </div>`;
+  }
+
+  function emptyRow(cols, opts) {
+    return `<tr class="owner-empty-row"><td colspan="${cols}">${emptyState(opts)}</td></tr>`;
+  }
+
+  function statStrip(el, stats) {
+    const node = typeof el === 'string' ? document.getElementById(el) : el;
+    if (!node) return;
+    node.innerHTML = stats.map((st) => `
+      <div class="stat-tile${st.tone ? ' is-' + st.tone : ''}">
+        <div class="stat-tile-label">${st.label}</div>
+        <div class="stat-tile-value">${st.value}</div>
+        ${st.sub ? `<div class="stat-tile-sub">${st.sub}</div>` : ''}
+      </div>`).join('');
+  }
+
+  /* Segmented filters behave the same on all three pages. */
+  function setupSegFilter(wrapId, attr, onPick) {
+    const wrap = document.getElementById(wrapId);
+    if (!wrap) return;
+    wrap.addEventListener('click', (e) => {
+      const btn = e.target.closest('.seg-btn');
+      if (!btn) return;
+      wrap.querySelectorAll('.seg-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      onPick(btn.getAttribute(attr));
+    });
+  }
+
+  function setupOwnerFilters() {
+    setupSegFilter('leadsFilter', 'data-lead-status', (v) => { leadStatusFilter = v; renderLeadsView(); });
+    setupSegFilter('reviewsFilter', 'data-review-filter', (v) => { reviewFilter = v; renderReviewsView(); });
+  }
+
+  function csvCell(v) {
+    const t = String(v == null ? '' : v).replace(/"/g, '""');
+    return `"${t}"`;
+  }
+
+  /* Matches the admin panel's export, so an owner can pull their own rows. */
+  window.exportOwnerCsv = function (kind) {
+    let rows = [];
+    if (kind === 'leads') {
+      rows = [['Guest', 'Phone', 'Email', 'Enquiry', 'Received', 'Status']].concat(
+        (currentProp.leads || []).map((l) => [l.guestName, l.phone, l.email, l.inquiry, l.date, l.status])
+      );
+    } else if (kind === 'offers') {
+      rows = [['Offer', 'Discount', 'From', 'Until', 'Views', 'Clicks', 'Status']].concat(
+        (currentProp.offers || []).map((o) => [o.title, o.discount, o.validFrom, o.validUntil, o.views, o.clicks, o.status])
+      );
+    }
+    if (rows.length <= 1) {
+      showToast('Nothing to export yet.', 'warning');
+      return;
+    }
+    const csv = rows.map((r) => r.map(csvCell).join(',')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `hotelzz-${kind}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  let leadStatusFilter = 'All';
+
   function renderLeadsView() {
     const tbody = document.getElementById('leadsTableBody');
     if (!tbody) return;
 
-    tbody.innerHTML = currentProp.leads.map(l => `
+    const all = currentProp.leads || [];
+    const responded = all.filter((l) => l.status === 'Responded' || l.status === 'Converted');
+    const converted = all.filter((l) => l.status === 'Converted');
+    const isNew = (l) => l.status !== 'Responded' && l.status !== 'Converted';
+
+    statStrip('leadsStats', [
+      { label: 'Total enquiries', value: all.length },
+      { label: 'Awaiting reply', value: all.filter(isNew).length, tone: all.filter(isNew).length ? 'warn' : null },
+      { label: 'Responded', value: responded.length, tone: 'good' },
+      { label: 'Response rate', value: all.length ? Math.round((responded.length / all.length) * 100) + '%' : '\u2014',
+        sub: converted.length ? converted.length + ' converted' : null }
+    ]);
+
+    let list = all;
+    if (leadStatusFilter === 'New') list = all.filter(isNew);
+    else if (leadStatusFilter === 'Responded') list = all.filter((l) => l.status === 'Responded');
+    else if (leadStatusFilter === 'Converted') list = converted;
+
+    if (!list.length) {
+      tbody.innerHTML = emptyRow(6, all.length ? {
+        icon: '\u{1F50E}',
+        title: 'No enquiries in this filter',
+        text: 'Switch back to All to see every enquiry you have received.'
+      } : {
+        icon: '\u{1F4E9}',
+        title: 'No guest enquiries yet',
+        text: 'Enquiries land here the moment a traveller contacts you from your listing. A complete listing gets found more often.',
+        action: { label: 'Improve your listing', onclick: "switchView('property-details')" }
+      });
+      return;
+    }
+
+    tbody.innerHTML = list.map((l) => `
       <tr onclick="openLeadDrawer('${l.id}')" style="cursor:pointer;">
-        <td style="font-weight:700;">${l.guestName}</td>
-        <td>${l.phone}<br/><small style="color:var(--owner-text-muted);">${l.email}</small></td>
-        <td style="max-width:240px;">${l.inquiry}</td>
-        <td>${fmt(l.date)}</td>
-        <td><span class="badge ${l.status === 'Converted' ? 'badge-success' : 'badge-warning'}">${l.status}</span></td>
-        <td><button class="btn-secondary" style="padding:4px 8px; font-size:12px;" onclick="event.stopPropagation(); openLeadDrawer('${l.id}')">View</button></td>
+        <td data-label="Guest" style="font-weight:700;">${l.guestName}</td>
+        <td data-label="Contact">${l.phone}<br/><small style="color:var(--owner-text-muted);">${l.email}</small></td>
+        <td data-label="Enquiry" class="cell-wrap">${l.inquiry}</td>
+        <td data-label="Received">${fmt(l.date)}</td>
+        <td data-label="Status"><span class="badge ${l.status === 'Converted' ? 'badge-success' : l.status === 'Responded' ? 'badge-info' : 'badge-warning'}">${l.status}</span></td>
+        <td data-label="Action"><button class="btn-secondary btn-tiny" onclick="event.stopPropagation(); openLeadDrawer('${l.id}')">View</button></td>
       </tr>
     `).join('');
   }
@@ -626,36 +940,108 @@
   };
 
   // 7. Reviews View Render
+  let reviewFilter = 'All';
+
   function renderReviewsView() {
     const container = document.getElementById('reviewsContainer');
     if (!container) return;
 
-    container.innerHTML = currentProp.reviews.map(r => `
-      <div class="owner-card" style="margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <strong style="font-size:15px;">${r.guestName}</strong>
-          <span style="font-weight:700; color:#D97706;">⭐ ${r.rating} / 5</span>
-        </div>
-        <p style="font-size:13.5px; color:var(--owner-text-main); margin-bottom:12px;">"${r.comment}"</p>
+    const all = currentProp.reviews || [];
+    const unanswered = all.filter((r) => !r.ownerReply);
 
+    // Rating summary: average plus a 5-to-1 histogram, so an owner can see
+    // the shape of their feedback, not only the mean.
+    const summary = document.getElementById('ratingSummary');
+    if (summary) {
+      if (!all.length) {
+        summary.innerHTML = emptyState({
+          icon: '\u2B50',
+          title: 'No reviews yet',
+          text: 'Guests can review your property after their enquiry is answered. Replying quickly is the fastest way to earn them.'
+        });
+      } else {
+        const avg = all.reduce((n, r) => n + (Number(r.rating) || 0), 0) / all.length;
+        const buckets = [5, 4, 3, 2, 1].map((star) => ({
+          star: star,
+          count: all.filter((r) => Math.round(Number(r.rating) || 0) === star).length
+        }));
+        summary.innerHTML = `
+          <div class="rating-score">
+            <div class="rating-score-value">${avg.toFixed(1)}</div>
+            <div class="rating-score-stars">${'\u2605'.repeat(Math.round(avg))}${'\u2606'.repeat(5 - Math.round(avg))}</div>
+            <div class="rating-score-count">${all.length} review${all.length === 1 ? '' : 's'}</div>
+          </div>
+          <div class="rating-bars">
+            ${buckets.map((b) => `
+              <div class="rating-bar-row">
+                <span class="rating-bar-star">${b.star}\u2605</span>
+                <span class="rating-bar-track"><span class="rating-bar-fill" style="width:${all.length ? (b.count / all.length) * 100 : 0}%"></span></span>
+                <span class="rating-bar-count">${b.count}</span>
+              </div>`).join('')}
+          </div>
+          <div class="rating-reply-stat">
+            <div class="rating-reply-value">${all.length ? Math.round(((all.length - unanswered.length) / all.length) * 100) : 0}%</div>
+            <div class="rating-reply-label">replied${unanswered.length ? ` \u00B7 ${unanswered.length} waiting` : ''}</div>
+          </div>`;
+      }
+    }
+
+    let list = all;
+    if (reviewFilter === 'Unanswered') list = unanswered;
+    else if (reviewFilter === 'Answered') list = all.filter((r) => r.ownerReply);
+
+    if (!list.length) {
+      container.innerHTML = emptyState(all.length ? {
+        icon: '\u2705',
+        title: reviewFilter === 'Unanswered' ? 'Every review has a reply' : 'Nothing here yet',
+        text: reviewFilter === 'Unanswered'
+          ? 'You are fully caught up. New reviews will appear here when they need an answer.'
+          : 'Switch back to All to see every review.'
+      } : {
+        icon: '\u2B50',
+        title: 'No reviews yet',
+        text: 'Once guests stay and review you, their ratings show up here for you to reply to.'
+      });
+      return;
+    }
+
+    container.innerHTML = list.map((r) => `
+      <article class="review-item">
+        <div class="review-head">
+          <div class="review-guest">
+            <span class="review-avatar">${(r.guestName || '?').charAt(0).toUpperCase()}</span>
+            <div>
+              <div class="review-name">${r.guestName}</div>
+              <div class="review-date">${r.date ? fmt(r.date) : ''}</div>
+            </div>
+          </div>
+          <span class="review-rating">${'\u2605'.repeat(Math.round(Number(r.rating) || 0))}<em>${r.rating}</em></span>
+        </div>
+        <p class="review-comment">${r.comment}</p>
         ${r.ownerReply ? `
-          <div style="background:#F0FDF4; border-left:3px solid #10B981; padding:10px 14px; border-radius:6px; font-size:12.5px;">
-            <strong>Your Reply:</strong> ${r.ownerReply}
+          <div class="review-reply">
+            <strong>Your reply</strong>
+            <span>${r.ownerReply}</span>
           </div>
         ` : `
-          <button class="btn-secondary" style="padding:4px 10px; font-size:12px;" onclick="toggleReplyBox('${r.id}')">Reply to Guest</button>
-          <div id="replyBox-${r.id}" style="display:none; margin-top:10px;">
-            <textarea id="replyText-${r.id}" class="form-control" placeholder="Write polite response..." style="height:70px; margin-bottom:6px;"></textarea>
-            <button class="btn-primary" style="padding:6px 12px; font-size:12px;" onclick="submitOwnerReply('${r.id}')">Post Reply</button>
+          <button class="btn-secondary btn-tiny" onclick="toggleReplyBox('${r.id}')">Reply to guest</button>
+          <div id="replyBox-${r.id}" class="review-reply-box" hidden>
+            <textarea id="replyText-${r.id}" class="form-control" placeholder="Thank them, and answer anything they raised\u2026" style="height:80px; margin-bottom:8px;"></textarea>
+            <button class="btn-primary btn-tiny" onclick="submitOwnerReply('${r.id}')">Post reply</button>
           </div>
         `}
-      </div>
+      </article>
     `).join('');
   }
 
   window.toggleReplyBox = function (id) {
     const el = document.getElementById(`replyBox-${id}`);
-    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    if (!el) return;
+    el.hidden = !el.hidden;
+    if (!el.hidden) {
+      const box = document.getElementById(`replyText-${id}`);
+      if (box) box.focus();
+    }
   };
 
   window.submitOwnerReply = function (id) {
@@ -674,17 +1060,39 @@
     const tbody = document.getElementById('offersTableBody');
     if (!tbody) return;
 
-    tbody.innerHTML = currentProp.offers.map(o => `
+    const all = currentProp.offers || [];
+    const active = all.filter((o) => o.status === 'Active');
+    const views = all.reduce((n, o) => n + (Number(o.views) || 0), 0);
+    const clicks = all.reduce((n, o) => n + (Number(o.clicks) || 0), 0);
+
+    statStrip('offersStats', [
+      { label: 'Live offers', value: active.length, tone: active.length ? 'good' : null },
+      { label: 'Total offers', value: all.length },
+      { label: 'Views', value: views },
+      { label: 'Click rate', value: views ? Math.round((clicks / views) * 100) + '%' : '\u2014', sub: clicks + ' clicks' }
+    ]);
+
+    if (!all.length) {
+      tbody.innerHTML = emptyRow(7, {
+        icon: '\u{1F3F7}',
+        title: 'No offers yet',
+        text: 'A seasonal discount or a weekend package gives travellers a reason to pick you over a neighbouring hotel.',
+        action: { label: '+ Create your first offer', onclick: 'openCreateOfferModal()' }
+      });
+      return;
+    }
+
+    tbody.innerHTML = all.map((o) => `
       <tr>
-        <td style="font-weight:700;">${o.title}</td>
-        <td><span class="badge badge-info">${o.discount}</span></td>
-        <td>${o.validFrom} → ${o.validUntil}</td>
-        <td>${o.views} Views</td>
-        <td>${o.clicks} Clicks</td>
-        <td><span class="badge ${o.status === 'Active' ? 'badge-success' : 'badge-warning'}">${o.status}</span></td>
-        <td>
-          <button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="openEditOfferModal('${o.id}')">Edit</button>
-          <button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="deleteOffer('${o.id}')">Delete</button>
+        <td data-label="Offer" style="font-weight:700;">${o.title}</td>
+        <td data-label="Discount"><span class="badge badge-info">${o.discount}</span></td>
+        <td data-label="Validity">${o.validFrom} \u2013 ${o.validUntil}</td>
+        <td data-label="Views">${o.views}</td>
+        <td data-label="Clicks">${o.clicks}</td>
+        <td data-label="Status"><span class="badge ${o.status === 'Active' ? 'badge-success' : 'badge-warning'}">${o.status}</span></td>
+        <td data-label="Actions">
+          <button class="btn-secondary btn-tiny" onclick="openEditOfferModal('${o.id}')">Edit</button>
+          <button class="btn-secondary btn-tiny" onclick="deleteOffer('${o.id}')">Delete</button>
         </td>
       </tr>
     `).join('');
@@ -743,8 +1151,46 @@
 
   // 9. Visibility & Performance View Render
   function renderVisibilityView() {
+    const score = Number(currentProp.visibilityScore) || 0;
+
     const el = document.getElementById('visibilityScoreText');
-    if (el) el.textContent = `${currentProp.visibilityScore} / 100`;
+    if (el) el.textContent = score;
+
+    // The ring is one stroked circle; dash offset carries the value.
+    const ring = document.getElementById('visRingFill');
+    if (ring) {
+      const r = 52;
+      const circ = 2 * Math.PI * r;
+      ring.style.strokeDasharray = String(circ);
+      ring.style.strokeDashoffset = String(circ * (1 - score / 100));
+      ring.style.stroke = score >= 80 ? '#10B981' : score >= 50 ? '#F59E0B' : '#EF4444';
+    }
+
+    const verdict = document.getElementById('visVerdict');
+    if (verdict) {
+      verdict.textContent = score >= 90
+        ? 'Your listing is complete and ranking at full strength.'
+        : score >= 60
+          ? 'Solid listing. Finishing the fields below pushes you higher in search.'
+          : 'Guests skip half-filled listings. Complete the fields below first.';
+    }
+
+    const checks = listingChecks();
+    const missing = checks.filter((c) => !c.ok);
+    const countEl = document.getElementById('visChecksCount');
+    if (countEl) {
+      countEl.textContent = `${checks.length - missing.length} of ${checks.length} done`;
+    }
+
+    const list = document.getElementById('visCheckList');
+    if (!list) return;
+    list.innerHTML = checks.map((c) => `
+      <li class="vis-check ${c.ok ? 'is-ok' : 'is-missing'}">
+        <span class="vis-check-mark">${c.ok ? '\u2713' : '\u25CB'}</span>
+        <span class="vis-check-label">${c.label}</span>
+        ${c.ok ? '<span class="vis-check-state">Added</span>'
+               : '<button type="button" class="vis-check-action" onclick="switchView(\'property-details\')">Add</button>'}
+      </li>`).join('');
   }
 
   // 10. Subscriptions & Upgrade Checkout Modal
@@ -875,13 +1321,34 @@
     const tbody = document.getElementById('invoicesTableBody');
     if (!tbody) return;
 
-    tbody.innerHTML = currentProp.subscription.invoices.map(inv => `
+    const sub = currentProp.subscription || {};
+    const invoices = sub.invoices || [];
+    const paid = invoices.filter((i) => String(i.status).toLowerCase() === 'paid');
+
+    statStrip('billingStats', [
+      { label: 'Current plan', value: sub.planName || 'Free Listing' },
+      { label: 'Billing', value: sub.price || '\u20B90' , sub: sub.billingCycle || 'monthly' },
+      { label: 'Invoices', value: invoices.length },
+      { label: 'Next renewal', value: sub.renewalDate ? fmt(sub.renewalDate) : '\u2014' }
+    ]);
+
+    if (!invoices.length) {
+      tbody.innerHTML = emptyRow(5, {
+        icon: '\u{1F9FE}',
+        title: 'No invoices yet',
+        text: 'You are on the free listing, so there is nothing to bill. Invoices appear here once you upgrade.',
+        action: { label: 'See plans', onclick: "switchView('subscription')" }
+      });
+      return;
+    }
+
+    tbody.innerHTML = invoices.map((inv) => `
       <tr>
-        <td style="font-weight:700;">${inv.id}</td>
-        <td>${fmt(inv.date)}</td>
-        <td>${inv.amount}</td>
-        <td><span class="badge badge-success">${inv.status}</span></td>
-        <td><a class="btn-secondary" style="padding:4px 8px; font-size:11.5px; text-decoration:none;" target="_blank" rel="noopener" href="/api/owner/invoices/${encodeURIComponent(inv.number)}">Download</a></td>
+        <td data-label="Invoice" style="font-weight:700;">${inv.number || inv.id}</td>
+        <td data-label="Billed on">${fmt(inv.date)}</td>
+        <td data-label="Amount">${inv.amount}</td>
+        <td data-label="Status"><span class="badge ${String(inv.status).toLowerCase() === 'paid' ? 'badge-success' : 'badge-warning'}">${inv.status}</span></td>
+        <td data-label="Download"><a class="btn-secondary btn-tiny" target="_blank" rel="noopener" href="/api/owner/invoices/${encodeURIComponent(inv.number)}">Download</a></td>
       </tr>
     `).join('');
   }

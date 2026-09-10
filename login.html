@@ -77,7 +77,18 @@
     .toggle-subform a { color: var(--primary); font-weight: 700; text-decoration: none; cursor: pointer; }
     .auth-footer { text-align: center; padding: 20px; font-size: 13px; color: var(--text-muted); }
     .auth-footer a { color: var(--text-muted); text-decoration: underline; margin: 0 8px; }
+
+    @media (max-width: 480px) {
+      .auth-header { padding: 0 16px; }
+      .auth-body { padding: 24px 18px; }
+      .auth-card { border-radius: 10px; }
+      .auth-tab-btn { padding: 12px 8px; font-size: 12px; }
+    }
+    @media (max-width: 360px) {
+      .auth-body { padding: 20px 14px; }
+    }
   </style>
+<link rel="stylesheet" href="responsive.css" />
 </head>
 <body>
 

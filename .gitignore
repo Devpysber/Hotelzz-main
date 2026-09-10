@@ -32,3 +32,6 @@ dist/
 # Builders in goa.csv
 # WedEazzy.com - Goa.csv
 data/
+
+# Local-only verification scratch scripts (hardcoded Windows paths)
+.hz-*.js

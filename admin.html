@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="admin.css" />
+<link rel="stylesheet" href="responsive.css" />
 </head>
 <body class="admin-body">
 
@@ -715,9 +716,9 @@
             <button class="btn-primary" onclick="openCustomEmailModal()">✉ Compose custom email</button>
           </div>
 
-          <div style="display:grid; grid-template-columns: 280px 1fr; gap:16px; align-items:start;">
+          <div class="admin-email-layout" style="display:grid; grid-template-columns: 280px 1fr; gap:16px; align-items:start;">
             <!-- Template gallery -->
-            <div class="admin-card" style="padding:10px; max-height:78vh; overflow-y:auto;">
+            <div class="admin-card" data-email-gallery style="padding:10px; max-height:78vh; overflow-y:auto;">
               <input type="text" id="emailTemplateSearch" class="form-control" placeholder="Search templates…" style="margin-bottom:10px;" oninput="renderEmailTemplateList()" />
               <div id="emailTemplateList"></div>
             </div>
@@ -735,7 +736,7 @@
                   </div>
                 </div>
 
-                <div style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+                <div class="admin-email-preview-cols" style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
                   <div>
                     <label style="font-size:11.5px; font-weight:700; color:var(--admin-text-muted); text-transform:uppercase;">Sample data (edit &amp; refresh)</label>
                     <textarea id="emailPreviewData" class="form-control" style="height:160px; font-family:ui-monospace,Consolas,monospace; font-size:12px;"></textarea>

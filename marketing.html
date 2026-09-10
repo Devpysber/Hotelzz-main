@@ -302,7 +302,36 @@
     .story-stats { grid-template-columns: 1fr 1fr; }
     .story-stats .s:last-child { grid-column: 1 / 3; }
   }
+  @media (max-width: 480px) {
+    .header-nav .nav-link.essential { display: none; }
+    .header-cta span { display: none; }
+    .header-cta { padding: 8px 12px; }
+    .header-inner { gap: 8px; }
+    .brand-name { font-size: 20px; }
+    .svc-grid { grid-template-columns: 1fr; }
+    .why-grid { grid-template-columns: 1fr; }
+    .how-steps { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .stories { grid-template-columns: 1fr; }
+    .blog-grid { grid-template-columns: 1fr; }
+    .about-stats { grid-template-columns: 1fr 1fr; }
+    .m-hero h1 { font-size: 26px; }
+    .m-hero .lead { font-size: 15px; }
+    .btn { padding: 13px 20px; font-size: 14px; }
+    .section-head { margin-bottom: 32px; }
+    .modal { max-width: calc(100vw - 40px); padding: 24px 16px; }
+    .modal h3 { font-size: 18px; }
+    .hv-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 360px) {
+    .container { padding: 0 14px; }
+    .m-hero { padding: 40px 0 56px; }
+    section { padding: 40px 0; }
+    .plan-tag { font-size: 24px; }
+    .section-head h2 { font-size: 24px; }
+  }
 </style>
+<link rel="stylesheet" href="responsive.css" />
 </head>
 <body>
 
@@ -938,5 +967,6 @@
 <script src="api-client.js" defer></script>
 <script src="session-nav.js" defer></script>
   <script src="cookie-consent.js"></script>
+<script src="mobile-nav.js" defer></script>
 </body>
 </html>

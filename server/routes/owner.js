@@ -36,12 +36,31 @@ const mask = (phone) => {
 const pct = (part, whole) => (whole ? Math.round((part / whole) * 100) : 0);
 
 /** How complete a listing looks to a guest — drives the progress ring. */
-function completeness(p, details, photoCount, roomCount) {
-  const checks = [
-    p.name, p.location, p.address, p.phone, p.email, p.website, p.image_url,
-    details.description, details.category, p.pincode, photoCount > 0, roomCount > 0
+/**
+ * Owners edit a listing, not an inventory: the portal has no room management,
+ * so scoring on room count would cap every listing below 100. Amenities take
+ * that slot because they are what the public page actually renders.
+ */
+function completenessChecks(p, details, photoCount, amenityCount) {
+  return [
+    ['name', !!p.name],
+    ['location', !!p.location],
+    ['address', !!p.address],
+    ['phone', !!p.phone],
+    ['email', !!p.email],
+    ['website', !!p.website],
+    ['cover', !!p.image_url],
+    ['description', !!details.description],
+    ['category', !!details.category],
+    ['pincode', !!p.pincode],
+    ['photos', photoCount > 0],
+    ['amenities', amenityCount > 0]
   ];
-  return pct(checks.filter(Boolean).length, checks.length);
+}
+
+function completeness(p, details, photoCount, amenityCount) {
+  const checks = completenessChecks(p, details, photoCount, amenityCount);
+  return pct(checks.filter(([, ok]) => ok).length, checks.length);
 }
 
 function statsFor(propertyId, days) {
@@ -57,6 +76,9 @@ function shapeProperty(p) {
   const details = json(p.details, {});
   const rooms = db.prepare('SELECT * FROM rooms WHERE property_id = ? ORDER BY created_at').all(p.id);
   const photos = db.prepare('SELECT * FROM photos WHERE property_id = ? ORDER BY is_cover DESC, created_at').all(p.id);
+  const amenityMap = json(p.amenities, {});
+  const amenityCount = Object.values(amenityMap)
+    .reduce((n, list) => n + (Array.isArray(list) ? list.length : 0), 0);
   const offers = db.prepare('SELECT * FROM offers WHERE property_id = ? ORDER BY created_at DESC').all(p.id);
   const reviews = db.prepare('SELECT * FROM reviews WHERE property_id = ? ORDER BY created_at DESC').all(p.id);
   const leads = db.prepare('SELECT * FROM enquiries WHERE property_id = ? ORDER BY sent_at DESC').all(p.id);
@@ -122,7 +144,8 @@ function shapeProperty(p) {
       responseRate: pct(leads.filter((l) => l.status === 'Responded').length, leads.length) + '%'
     },
 
-    visibilityScore: completeness(p, details, photos.length, rooms.length),
+    visibilityScore: completeness(p, details, photos.length, amenityCount),
+    visibilityChecks: Object.fromEntries(completenessChecks(p, details, photos.length, amenityCount)),
     photos: photos.map((ph) => ({
       id: ph.id, url: ph.url, category: ph.category,
       title: ph.caption || ph.category || p.name, isCover: !!ph.is_cover

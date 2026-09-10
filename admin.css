@@ -1488,3 +1488,70 @@ body.admin-body {
   border-radius: 999px;
 }
 
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .notification-dropdown {
+    width: calc(100vw - 32px);
+    right: -16px;
+  }
+  .admin-modal {
+    max-width: calc(100vw - 40px);
+  }
+  .admin-user-info {
+    display: none;
+  }
+  .header-btn span {
+    display: none;
+  }
+  .header-right {
+    gap: 8px;
+  }
+  .plan-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .state-dist-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pagination-container {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  .analysis-cards-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filter-bar {
+    padding: 12px;
+  }
+  .modal-header {
+    padding: 16px;
+  }
+  .modal-body {
+    padding: 16px;
+  }
+  .modal-footer {
+    padding: 12px 16px;
+  }
+  .toast-container {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+  }
+  .toast {
+    font-size: 12.5px;
+  }
+}
+
+@media (max-width: 360px) {
+  .admin-body-content {
+    padding: 12px;
+  }
+  .kpi-value {
+    font-size: 22px;
+  }
+  .page-title-group h1 {
+    font-size: 20px;
+  }
+}

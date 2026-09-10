@@ -33,7 +33,13 @@ body.user-body {
   line-height: 1.5;
   font-size: 14px;
   min-height: 100vh;
-  overflow-x: hidden;
+  /* `clip` not `hidden`: hidden makes the body a scroll container, which
+     silently disables every `position: sticky` inside the portal. */
+  overflow-x: clip;
+}
+
+@supports not (overflow: clip) {
+  body.user-body { overflow-x: hidden; }
 }
 
 .user-shell {
@@ -206,6 +212,9 @@ body.user-body {
 }
 .btn-secondary:hover { background: var(--user-bg); border-color: #CBD5E1; }
 
+/* Tables */
+.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
 /* Drawer & Modals */
 .user-drawer {
   position: fixed; top: 0; right: 0; bottom: 0; width: 420px;
@@ -233,4 +242,610 @@ body.user-body {
 @media (max-width: 640px) {
   .user-body-content { padding: 16px; }
   .user-drawer { width: 100%; }
+}
+
+@media (max-width: 1024px) {
+  .mobile-toggle-btn {
+    display: flex;
+  }
+}
+
+@media (max-width: 640px) {
+  .user-welcome-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 22px;
+  }
+  .user-welcome-card h2 {
+    font-size: 18px;
+  }
+  .user-header {
+    padding: 0 16px;
+  }
+  .enquiry-card-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .enquiry-hotel-title {
+    font-size: 15px;
+  }
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Two-up keeps four KPIs on one screen; one-up pushed the content below
+     them a full scroll away. */
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .user-modal {
+    max-width: calc(100vw - 40px);
+  }
+  .user-body-content {
+    padding: 12px;
+  }
+  .toast-container {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .kpi-value {
+    font-size: 20px;
+  }
+}
+
+/* ==========================================================================
+   TRAVELER MOBILE APP LAYER
+
+   On a phone the portal should behave like a booking app, not a shrunken
+   desktop dashboard: a bottom tab bar for the five things travellers do,
+   Search as the landing view, and cards with real hierarchy instead of a
+   uniform stack of bordered boxes.
+   ========================================================================== */
+
+/* --- Bottom tab bar ----------------------------------------------------- */
+
+.tbar {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .tbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 400;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-top: 1px solid var(--user-border);
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -4px 18px rgba(15, 23, 42, 0.07);
+  }
+
+  .tbar-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 58px;
+    padding: 8px 2px 7px;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--user-text-muted);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .tbar-item svg {
+    width: 22px;
+    height: 22px;
+    transition: transform 0.18s ease;
+  }
+
+  .tbar-item.active {
+    color: var(--user-primary);
+  }
+
+  .tbar-item.active svg {
+    transform: translateY(-1px) scale(1.06);
+  }
+
+  /* A short bar above the active tab reads faster than colour alone. */
+  .tbar-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 26px;
+    height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: var(--user-primary);
+  }
+
+  .tbar-item:active svg {
+    transform: scale(0.92);
+  }
+
+  .tbar-badge {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    margin-left: 6px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #EF4444;
+    color: #fff;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 16px;
+    text-align: center;
+  }
+
+  /* Content must clear the bar, including on gesture-nav phones. */
+  .user-body-content {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  /* The drawer is a full sheet, so it sits above the bar rather than behind. */
+  .user-drawer {
+    z-index: 500;
+  }
+}
+
+/* --- Sticky header ------------------------------------------------------ */
+
+@media (max-width: 1024px) {
+  .user-header {
+    position: sticky;
+    top: 0;
+    z-index: 300;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+  }
+
+  .mobile-toggle-btn {
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+  }
+}
+
+/* --- Search form -------------------------------------------------------- */
+
+.tsearch-card {
+  background: #fff;
+  border: 1px solid var(--user-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.tsearch-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.tsearch-field label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--user-text-muted);
+}
+
+.tsearch-field input,
+.tsearch-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--user-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--user-text-main);
+  background: #fff;
+}
+
+.tsearch-field input:focus,
+.tsearch-field select:focus {
+  outline: none;
+  border-color: var(--user-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.tsearch-submit {
+  padding: 11px 22px;
+}
+
+.tsearch-pills {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--user-border);
+}
+
+.tsearch-pills-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--user-text-muted);
+}
+
+.tsearch-pills-track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 1024px) {
+  .tsearch-card {
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+
+  /* Where spans the row; dates sit side by side; guests and Search each get a
+     full line — the shape people already know from booking apps. */
+  .tsearch-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .tsearch-field--where,
+  .tsearch-field--guests {
+    grid-column: 1 / -1;
+  }
+
+  .tsearch-submit {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 48px;
+    font-size: 15px;
+  }
+
+  /* Pills scroll sideways instead of wrapping into four tall rows. */
+  .tsearch-pills-track {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+    scroll-snap-type: x proximity;
+  }
+
+  .tsearch-pills-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tsearch-pills-track > * {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  /* The pills render inside a wrapper span; let them join the flex row. */
+  #portalCityPills {
+    display: contents;
+  }
+}
+
+/* --- Hotel result cards ------------------------------------------------- */
+
+.thotel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.thotel-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--user-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.thotel-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.thotel-media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
+}
+
+.thotel-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* A scrim keeps the overlaid rating readable on bright photos. */
+.thotel-media::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 46%;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.62), transparent);
+  pointer-events: none;
+}
+
+.thotel-verified {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.95);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.thotel-fav {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.thotel-fav:active {
+  transform: scale(0.9);
+}
+
+.thotel-rating {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #0F172A;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.thotel-rating small {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--user-text-muted);
+}
+
+.thotel-body {
+  flex: 1;
+  padding: 14px 16px 10px;
+}
+
+.thotel-name {
+  margin-bottom: 3px;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--user-text-main);
+}
+
+.thotel-loc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--user-text-muted);
+}
+
+.thotel-summary {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--user-text-muted);
+}
+
+.thotel-actions {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 16px;
+  border-top: 1px solid var(--user-border);
+  background: #FAFBFC;
+}
+
+.thotel-actions .btn-secondary,
+.thotel-actions .btn-primary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 13.5px;
+}
+
+@media (max-width: 1024px) {
+  .thotel-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .thotel-media {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+/* --- Enquiry status filters -------------------------------------------- */
+
+@media (max-width: 1024px) {
+  /* Four filter buttons wrapped into a two-row block; scrolling them keeps
+     the list itself on screen. */
+  .enq-filter-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-bottom: 16px;
+    padding-bottom: 2px;
+  }
+
+  .enq-filter-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .enq-filter-row > * {
+    flex: 0 0 auto;
+    min-height: 40px;
+  }
+}
+
+/* --- Page titles -------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .user-page-view h1 {
+    font-size: 21px;
+    line-height: 1.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thotel-card,
+  .tbar-item svg {
+    transition: none;
+  }
+}
+
+/* --- Collapsible search (mobile) ---------------------------------------- */
+
+/* The full form is ~410px tall. Pinning that to the top left barely a card of
+   results visible, so once a search has run it folds into a one-line summary
+   that stays in reach while the results scroll under it. */
+
+.tsearch-summary {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .tsearch-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 48px;
+    padding: 6px 4px;
+    border: none;
+    background: none;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .tsearch-summary svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: var(--user-primary);
+  }
+
+  .tsearch-summary-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tsearch-summary-where {
+    display: block;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--user-text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tsearch-summary-meta {
+    display: block;
+    font-size: 12px;
+    color: var(--user-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tsearch-summary-edit {
+    flex-shrink: 0;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--user-primary);
+  }
+
+  /* Expanded: the summary is redundant, so only the form shows. */
+  .tsearch-card:not(.is-collapsed) .tsearch-summary {
+    display: none;
+  }
+
+  /* Collapsed: only the summary shows, and it pins under the header. */
+  .tsearch-card.is-collapsed {
+    position: sticky;
+    top: 60px;
+    z-index: 200;
+    padding: 4px 12px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  }
+
+  .tsearch-card.is-collapsed .tsearch-grid,
+  .tsearch-card.is-collapsed .tsearch-pills {
+    display: none;
+  }
 }
