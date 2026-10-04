@@ -20,6 +20,10 @@
 
   function absorb(payload) {
     data.ownerProfile = payload.ownerProfile || data.ownerProfile;
+    // Lets Razorpay checkout pre-fill the owner's name and email (api-client.js).
+    if (data.ownerProfile && !window.HZ_USER) {
+      window.HZ_USER = { name: data.ownerProfile.name, email: data.ownerProfile.email };
+    }
     data.properties = payload.properties || {};
     data.campaigns = payload.campaigns || [];
     data.recentActivity = payload.recentActivity || [];

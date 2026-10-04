@@ -12,6 +12,11 @@
   /** Server timestamps arrive as "YYYY-MM-DD HH:MM:SS" in UTC. */
   const fmt = function (value) {
     if (!value) return '—';
+    // Date-only values (campaign start/end) have no time — don't invent one.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [y, m, dd] = value.split('-').map(Number);
+      return new Date(y, m - 1, dd).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
     const iso = /^\d{4}-\d{2}-\d{2} /.test(value) ? value.replace(' ', 'T') + 'Z' : value;
     const d = new Date(iso);
     if (isNaN(d)) return value;
@@ -55,6 +60,7 @@
       filteredClaims = data.claims.slice();
       renderEverything();
       handleUrlHash();
+      loadSheetSync();
     }).catch((err) => {
       if (err.status === 401 || err.status === 403) {
         // A stale or invalid session cookie can otherwise survive the
@@ -78,6 +84,101 @@
       renderEverything();
     }).catch(fail);
   }
+
+  /* ------------------------------------------------- change own password */
+
+  window.openChangePasswordModal = function () {
+    ['cpCurrent', 'cpNew', 'cpConfirm'].forEach((id) => { document.getElementById(id).value = ''; });
+    document.getElementById('cpError').textContent = '';
+    const menu = document.getElementById('userDropdownMenu');
+    if (menu) menu.classList.remove('show');
+    document.getElementById('changePasswordModal').classList.add('show');
+    setTimeout(() => document.getElementById('cpCurrent').focus(), 50);
+  };
+
+  window.submitChangePassword = function (e) {
+    if (e) e.preventDefault();
+    const current = document.getElementById('cpCurrent').value;
+    const next = document.getElementById('cpNew').value;
+    const confirm = document.getElementById('cpConfirm').value;
+    const err = document.getElementById('cpError');
+    err.textContent = '';
+    if (!current) { err.textContent = 'Enter your current password.'; return; }
+    if (next.length < 8) { err.textContent = 'The new password must be at least 8 characters.'; return; }
+    if (next !== confirm) { err.textContent = 'The new passwords do not match.'; return; }
+    if (next === current) { err.textContent = 'Choose a password different from the current one.'; return; }
+
+    const btn = document.getElementById('cpSubmit');
+    btn.disabled = true; btn.textContent = 'Updating…';
+    window.HotelzzAPI.auth.changePassword(current, next)
+      .then(() => {
+        closeModal('changePasswordModal');
+        showToast('Password updated. Use the new password next time you sign in.');
+      })
+      .catch((error) => { err.textContent = error.message || 'Could not update the password.'; })
+      .then(() => { btn.disabled = false; btn.textContent = 'Update Password'; });
+  };
+
+  /* ------------------------------------- Settings → Your Admin Account */
+
+  function renderAccountSection() {
+    const el = document.getElementById('acctCurrentEmail');
+    if (el && data.admin) el.textContent = data.admin.email || '—';
+  }
+
+  window.submitChangeEmail = function (e) {
+    if (e) e.preventDefault();
+    const email = document.getElementById('acctNewEmail').value.trim();
+    const pw = document.getElementById('acctEmailPw').value;
+    const err = document.getElementById('acctEmailError');
+    err.textContent = '';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = 'Enter a valid email address.'; return; }
+    if (!pw) { err.textContent = 'Enter your current password to confirm.'; return; }
+
+    const btn = document.getElementById('acctEmailBtn');
+    btn.disabled = true; btn.textContent = 'Updating…';
+    window.HotelzzAPI.auth.changeEmail(pw, email)
+      .then((r) => {
+        if (data.admin) data.admin.email = r.user.email;
+        renderAccountSection();
+        const headerEmail = document.getElementById('adminProfileEmail');
+        if (headerEmail) headerEmail.textContent = r.user.email;
+        document.getElementById('acctEmailForm').reset();
+        showToast(`Sign-in email changed to ${r.user.email}. A confirmation was sent to both addresses.`);
+      })
+      .catch((error) => { err.textContent = error.message || 'Could not update the email.'; })
+      .then(() => { btn.disabled = false; btn.textContent = 'Update Email'; });
+  };
+
+  window.submitSettingsPassword = function (e) {
+    if (e) e.preventDefault();
+    const current = document.getElementById('acctPwCurrent').value;
+    const next = document.getElementById('acctPwNew').value;
+    const confirm = document.getElementById('acctPwConfirm').value;
+    const err = document.getElementById('acctPwError');
+    err.textContent = '';
+    if (!current) { err.textContent = 'Enter your current password.'; return; }
+    if (next.length < 8) { err.textContent = 'The new password must be at least 8 characters.'; return; }
+    if (next !== confirm) { err.textContent = 'The new passwords do not match.'; return; }
+    if (next === current) { err.textContent = 'Choose a password different from the current one.'; return; }
+
+    const btn = document.getElementById('acctPwBtn');
+    btn.disabled = true; btn.textContent = 'Updating…';
+    window.HotelzzAPI.auth.changePassword(current, next)
+      .then(() => {
+        document.getElementById('acctPwForm').reset();
+        showToast('Password updated. Use the new password next time you sign in.');
+      })
+      .catch((error) => { err.textContent = error.message || 'Could not update the password.'; })
+      .then(() => { btn.disabled = false; btn.textContent = 'Update Password'; });
+  };
+
+  /** Signs out and opens the admin login on its reset-by-email form. */
+  window.forgotFromPanel = function () {
+    window.HotelzzAPI.auth.logout().catch(() => {}).then(() => {
+      window.location.href = 'admin-login.html#forgot';
+    });
+  };
 
   window.hzLogout = function () {
     window.HotelzzAPI.auth.logout().then(() => { window.location.href = 'admin-login.html'; });
@@ -487,6 +588,7 @@
     const emailEl = document.getElementById('adminProfileEmail');
     if (nameEl) nameEl.textContent = admin.name || 'Admin';
     if (emailEl) emailEl.textContent = admin.email || '';
+    renderAccountSection();
 
     setText('dashTotalProps', (data.kpis.totalProperties || 0).toLocaleString('en-IN'));
     setText('dashClaimedProps', (data.kpis.claimedProperties || 0).toLocaleString('en-IN'));
@@ -579,11 +681,30 @@
   }
 
   // All Properties Table & Filters
+  // The full catalogue is thousands of rows — paint the first slice and ask
+  // for a narrower search/filter rather than freezing the tab on one render.
+  const PROPERTY_ROWS_SHOWN = 500;
+
+  /** City filter options come from the real catalogue, not a fixed list. */
+  function renderPropertyCityFilter() {
+    const sel = document.getElementById('propCityFilter');
+    if (!sel) return;
+    const current = sel.value;
+    const counts = {};
+    data.properties.forEach(p => { if (p.city && p.city !== '—') counts[p.city] = (counts[p.city] || 0) + 1; });
+    sel.innerHTML = '<option value="">All Cities</option>' + Object.keys(counts).sort().map(c =>
+      `<option value="${c.replace(/"/g, '&quot;')}">${c} (${counts[c]})</option>`).join('');
+    if (current && counts[current]) sel.value = current;
+  }
+
   function renderPropertiesTable() {
     const tbody = document.getElementById('propertiesTableBody');
     if (!tbody) return;
+    renderPropertyCityFilter();
 
-    tbody.innerHTML = filteredProperties.map(p => `
+    const shown = filteredProperties.slice(0, PROPERTY_ROWS_SHOWN);
+    const more = filteredProperties.length - shown.length;
+    tbody.innerHTML = shown.map(p => `
       <tr>
         <td>
           <div style="font-weight: 700;">${p.name}</div>
@@ -603,8 +724,51 @@
           <button class="btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="openPropertyModal('${p.id}')">Manage</button>
         </td>
       </tr>
-    `).join('');
+    `).join('') + (more > 0 ? `
+      <tr><td colspan="8" style="text-align:center; color: var(--admin-text-muted); font-size: 12.5px;">
+        Showing ${shown.length.toLocaleString('en-IN')} of ${filteredProperties.length.toLocaleString('en-IN')} properties — search or filter by city to narrow the list, or Export CSV for all of them.
+      </td></tr>` : '');
   }
+
+  /* ------------------------------------------------ Google Sheet sync card */
+
+  function renderSheetSync(sync) {
+    const summary = document.getElementById('sheetSyncSummary');
+    if (!summary || !sync) return;
+    const btn = document.getElementById('sheetSyncBtn');
+    const urls = document.getElementById('sheetSyncUrls');
+    if (!sync.configured) {
+      summary.textContent = 'No Google Sheet connected. Add GOOGLE_SHEET_CSV_URLS to .env and restart the server.';
+      if (btn) btn.disabled = true;
+      if (urls) urls.textContent = '';
+      return;
+    }
+    const r = sync.lastResult;
+    const when = sync.lastRunAt ? new Date(sync.lastRunAt).toLocaleString('en-IN') : 'not yet';
+    summary.textContent = sync.running ? 'Syncing…' :
+      `Pulls ${sync.urls.length} sheet(s) into the database every ${sync.intervalMin} min. Last run: ${when}` +
+      (r ? ` — ${r.rows.toLocaleString('en-IN')} rows, ${r.inserted} new, ${r.updated} updated.` : '.') +
+      (sync.lastError ? ` Error: ${sync.lastError}` : '');
+    if (urls) urls.textContent = sync.urls.join('  •  ');
+    if (btn) btn.disabled = !!sync.running;
+  }
+
+  function loadSheetSync() {
+    return window.HotelzzAPI.get('/admin/sheet-sync').then((r) => renderSheetSync(r.sync)).catch(() => {});
+  }
+
+  window.runSheetSync = function () {
+    const btn = document.getElementById('sheetSyncBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Syncing…'; }
+    window.HotelzzAPI.post('/admin/sheet-sync').then((r) => {
+      renderSheetSync(r.sync);
+      showToast(`Sheet synced: ${r.result.inserted} new, ${r.result.updated} updated.`);
+      return reload();
+    }).catch((err) => {
+      showToast(err.message, 'error');
+      loadSheetSync();
+    }).then(() => { if (btn) btn.textContent = 'Sync now'; });
+  };
 
   window.exportProperties = function () { exportAdminCsv('properties'); };
 
@@ -620,7 +784,7 @@
     const claim = document.getElementById('propClaimFilter').value;
 
     filteredProperties = data.properties.filter(p => {
-      const matchQ = !q || p.name.toLowerCase().includes(q) || p.city.toLowerCase().includes(q) || p.owner.toLowerCase().includes(q);
+      const matchQ = !q || [p.name, p.city, p.owner, p.id].some(v => String(v || '').toLowerCase().includes(q));
       const matchCity = !city || p.city === city;
       const matchClaim = !claim || p.claimStatus === claim;
       return matchQ && matchCity && matchClaim;
@@ -1510,34 +1674,68 @@
     const tbody = document.getElementById('adminCampaignsTableBody');
     if (!tbody) return;
     const camps = window.HotelzzMarketingStore.getCampaigns();
+    const inr = n => '₹' + Math.round(n || 0).toLocaleString('en-IN');
+    const num = n => Number(n || 0).toLocaleString('en-IN');
+    const sum = (list, f) => list.reduce((s, c) => s + (Number(f(c)) || 0), 0);
+    const byStatus = s => camps.filter(c => c.campaignStatus === s);
 
-    // Update Admin KPIs
+    // KPIs — all from the real campaign rows (paid revenue only).
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    set('admTotalCamps', camps.length);
-    set('admActiveCamps', camps.filter(c => c.campaignStatus === 'Active').length);
-    const revTotal = camps.reduce((sum, c) => sum + (c.total || 0), 0);
-    set('admMktRev', `₹${revTotal.toLocaleString('en-IN')}`);
-    const leadsTotal = camps.reduce((sum, c) => sum + (c.leads || 0), 0);
-    const spendTotal = camps.reduce((sum, c) => sum + (c.spend || 0), 0);
-    set('admMktLeads', leadsTotal.toLocaleString('en-IN'));
-    set('admCostPerLead', leadsTotal ? `₹${Math.round(spendTotal / leadsTotal).toLocaleString('en-IN')}` : '—');
+    const paid = camps.filter(c => c.paid);
+    const unpaid = camps.filter(c => !c.paid);
+    set('admTotalCamps', num(camps.length));
+    set('admActiveCamps', num(byStatus('Active').length));
+    set('admPendingCamps', num(byStatus('Pending').length + byStatus('Draft').length));
+    set('admPendingSub', unpaid.length ? `${unpaid.length} awaiting payment (${inr(sum(unpaid, c => c.total))})` : 'all paid');
+    set('admCompletedCamps', num(byStatus('Completed').length));
+    set('admPausedSub', byStatus('Paused').length ? `${byStatus('Paused').length} paused` : '');
+    set('admMktRev', inr(sum(paid, c => c.total)));
+    set('admMktRevSub', `${paid.length} paid campaign${paid.length === 1 ? '' : 's'} incl. GST`);
+    const leadsTotal = sum(camps, c => c.kpis.leads);
+    const spendTotal = sum(camps, c => c.spend);
+    set('admMktLeads', num(leadsTotal));
+    set('admMktEnquiries', num(sum(camps, c => c.kpis.enquiries)));
+    set('admCostPerLead', leadsTotal ? inr(spendTotal / leadsTotal) : '—');
+    set('admSpendSub', spendTotal ? `${inr(spendTotal)} ad spend` : 'no ad spend recorded');
 
-    tbody.innerHTML = camps.map(c => `
+    if (!camps.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:24px; color:var(--admin-text-muted);">No campaigns purchased yet. They appear here as soon as a hotel owner buys a package from Grow Business.</td></tr>';
+      return;
+    }
+
+    const statusBadge = { Active: 'badge-success', Completed: 'badge-info', Paused: 'badge-gray' };
+    tbody.innerHTML = camps.map(c => {
+      const payBadge = c.paid ? 'badge-success' : (c.payment && c.payment.status === 'manual' ? 'badge-info' : 'badge-warning');
+      const payLabel = c.paid ? 'Paid' : (c.payment && c.payment.status === 'manual' ? 'Awaiting transfer' : (c.payment ? 'Checkout started' : 'Not paid'));
+      return `
       <tr>
-        <td style="font-weight:700;">${c.id}</td>
-        <td><strong>${c.propertyName}</strong></td>
-        <td>${c.propertyCity}</td>
-        <td>${c.packageName}</td>
-        <td>${c.duration}</td>
-        <td style="font-weight:700; color:var(--admin-primary);">₹${c.total.toLocaleString('en-IN')}</td>
-        <td><span class="badge badge-success">${c.paymentStatus}</span></td>
-        <td><span class="badge ${c.campaignStatus === 'Active' ? 'badge-success' : 'badge-warning'}">${c.campaignStatus}</span></td>
-        <td>
-          <button class="btn-primary" style="padding:4px 8px; font-size:11.5px;" onclick="openAdminStatusModal('${c.id}')">Update Status</button>
+        <td style="font-weight:700;">${c.id}<div style="font-size:11.5px; color:var(--admin-text-muted); font-weight:400;">${fmt(c.createdAt)}</div></td>
+        <td><strong>${c.propertyName || '—'}</strong><div style="font-size:11.5px; color:var(--admin-text-muted);">${c.propertyCity || ''}</div></td>
+        <td>${c.ownerName || '—'}<div style="font-size:11.5px; color:var(--admin-text-muted);">${c.ownerEmail || ''}${c.ownerPhone ? ' • ' + c.ownerPhone : ''}</div></td>
+        <td>${c.packageName}<div style="font-size:11.5px; color:var(--admin-text-muted);">${c.duration}</div></td>
+        <td style="font-weight:700; color:var(--admin-primary);">${inr(c.total)}<div style="font-size:11.5px; color:var(--admin-text-muted); font-weight:400;">${inr(c.amount)} + ${inr(c.gst)} GST</div></td>
+        <td><span class="badge ${payBadge}"><span class="badge-dot"></span>${payLabel}</span>${c.payment ? `<div style="font-size:11px; color:var(--admin-text-muted); margin-top:3px;">${c.payment.provider} • ${c.payment.id}</div>` : ''}</td>
+        <td><span class="badge ${statusBadge[c.campaignStatus] || 'badge-warning'}"><span class="badge-dot"></span>${c.campaignStatus}</span>${c.campaignStatus !== 'Pending' && c.startDate ? `<div style="font-size:11px; color:var(--admin-text-muted); margin-top:3px;">${fmt(c.startDate)} → ${fmt(c.endDate)}</div>` : ''}</td>
+        <td style="font-size:12px; white-space:nowrap;">
+          ${num(c.kpis.impressions)} impr • ${num(c.kpis.clicks)} clicks${c.kpis.ctr ? ` (${c.kpis.ctr}%)` : ''}<br/>
+          ${num(c.kpis.leads)} leads • ${num(c.kpis.enquiries)} enquiries<br/>
+          <span style="color:var(--admin-text-muted);">spend ${inr(c.spend)}${c.kpis.costPerLead ? ' • CPL ' + inr(c.kpis.costPerLead) : ''}</span>
         </td>
-      </tr>
-    `).join('');
+        <td style="white-space:nowrap;">
+          <button class="btn-primary" style="padding:4px 8px; font-size:11.5px;" onclick="openAdminStatusModal('${c.id}')">Update</button>
+          ${!c.paid && c.payment ? `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="markCampaignPaid('${c.payment.id}')">Mark paid</button>` : ''}
+        </td>
+      </tr>`;
+    }).join('');
   }
+
+  window.markCampaignPaid = function (paymentId) {
+    if (!window.confirm('Mark this campaign payment as received?')) return;
+    data.markPaymentPaid(paymentId)
+      .then(() => window.HotelzzMarketingStore.refresh())
+      .then(() => { showToast('Payment recorded — the hotel owner has been emailed a receipt.'); renderAdminCampaignsTable(); })
+      .catch(fail);
+  };
 
   window.openAdminStatusModal = function (campId) {
     selectedAdminCampId = campId;
@@ -1547,7 +1745,20 @@
 
     document.getElementById('admModCampId').textContent = c.id;
     document.getElementById('admModHotelName').textContent = `${c.propertyName} (${c.propertyCity})`;
-    document.getElementById('admModStatusSelect').value = c.campaignStatus;
+    document.getElementById('admModStatusSelect').value = c.campaignStatus === 'Draft' ? 'Pending' : c.campaignStatus;
+    const val = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || 0; };
+    val('admModReach', c.kpis.reach);
+    val('admModImpressions', c.kpis.impressions);
+    val('admModClicks', c.kpis.clicks);
+    val('admModLeads', c.kpis.leads);
+    val('admModWhatsapp', c.kpis.whatsappEnquiries);
+    val('admModSpend', c.spend);
+    const note = document.getElementById('admModNoteInput');
+    if (note) note.value = '';
+    const hint = document.getElementById('admModMetricsHint');
+    if (hint) hint.textContent = (data.integrations && data.integrations.ads && data.integrations.ads.mode === 'api')
+      ? 'Ad platforms are connected — these sync hourly and may be overwritten.'
+      : 'Shown to the hotel owner on their campaign card.';
 
     document.getElementById('adminStatusModal').classList.add('show');
   };
@@ -1557,9 +1768,19 @@
     const newStatus = document.getElementById('admModStatusSelect').value;
 
     const note = (document.getElementById('admModNoteInput') || {}).value || '';
-    window.HotelzzMarketingStore.updateCampaignStatus(selectedAdminCampId, newStatus, note)
+    const c = window.HotelzzMarketingStore.getCampaign(selectedAdminCampId) || {};
+    const statusChanged = newStatus !== c.campaignStatus;
+    const n = id => Math.max(0, parseInt((document.getElementById(id) || {}).value, 10) || 0);
+    const payload = {
+      reach: n('admModReach'), impressions: n('admModImpressions'), clicks: n('admModClicks'),
+      leads: n('admModLeads'), whatsappEnquiries: n('admModWhatsapp'), spend: n('admModSpend')
+    };
+    if (statusChanged) { payload.status = newStatus; payload.note = note; }
+    window.HotelzzMarketingStore.updateCampaignMetrics(selectedAdminCampId, payload)
       .then(() => {
-        showToast(`Campaign ${selectedAdminCampId} set to ${newStatus} — the partner has been emailed.`);
+        showToast(statusChanged
+          ? `Campaign ${selectedAdminCampId} set to ${newStatus} — the partner has been emailed.`
+          : `Campaign ${selectedAdminCampId} performance updated.`);
         closeModal('adminStatusModal');
         renderAdminCampaignsTable();
       }).catch(fail);
@@ -1570,10 +1791,15 @@
     if (!container) return;
     const pkgs = window.HotelzzMarketingStore.getPackages();
 
-    container.innerHTML = pkgs.map(p => `
+    const camps = window.HotelzzMarketingStore.getCampaigns();
+    container.innerHTML = pkgs.map(p => {
+      const sold = camps.filter(c => c.packageId === p.id);
+      const paidRev = sold.filter(c => c.paid).reduce((s, c) => s + (c.total || 0), 0);
+      return `
       <div class="admin-card" style="display:flex; flex-direction:column; justify-content:space-between;">
         <div>
           ${p.recommended ? '<span class="badge badge-warning" style="float:right;">RECOMMENDED</span>' : ''}
+          ${p.active === false ? '<span class="badge badge-gray" style="float:right; margin-right:6px;">HIDDEN</span>' : ''}
           <h3 style="font-size:18px; font-weight:800; margin-bottom:6px;">${p.name}</h3>
           <p style="font-size:12.5px; color:var(--admin-text-muted); margin-bottom:14px;">${p.description}</p>
           <div style="font-size:22px; font-weight:800; color:var(--admin-primary); margin-bottom:14px;">Starting ₹${p.startingPrice.toLocaleString('en-IN')}</div>
@@ -1581,13 +1807,15 @@
           <div style="font-size:12px; color:var(--admin-text-muted); background:var(--admin-bg); padding:10px; border-radius:6px; margin-bottom:16px;">
             <div>Est. Reach: <strong>${p.estimatedReach}</strong></div>
             <div>Est. Leads: <strong>${p.estimatedLeads}</strong></div>
-            <div>Platforms: <strong>${p.platforms.join(', ')}</strong></div>
+            <div>Platforms: <strong>${(p.platforms || []).join(', ')}</strong></div>
+            <div>Durations: <strong>${(p.durations || []).filter(d => !d.custom).map(d => d.label + ' ₹' + Number(d.price).toLocaleString('en-IN')).join(' • ') || '—'}</strong></div>
+            <div>Sold: <strong>${sold.length} campaign${sold.length === 1 ? '' : 's'}</strong> • Paid revenue: <strong>₹${paidRev.toLocaleString('en-IN')}</strong></div>
           </div>
         </div>
 
         <button class="btn-secondary" style="width:100%; text-align:center;" onclick="openAdminEditPkgModal('${p.id}')">Edit Package Pricing & Details</button>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   }
 
   window.openAdminEditPkgModal = function (pkgId) {
@@ -1597,9 +1825,13 @@
     if (!p) return;
 
     document.getElementById('admPkgFormName').value = p.name;
-    document.getElementById('admPkgFormPrice').value = p.startingPrice;
     document.getElementById('admPkgFormDesc').value = p.description;
     document.getElementById('admPkgFormRec').checked = !!p.recommended;
+    document.getElementById('admPkgFormActive').checked = p.active !== false;
+    const durations = (p.durations && p.durations.length) ? p.durations : [{ label: '30 Days', price: p.startingPrice }];
+    document.getElementById('admPkgFormDurations').innerHTML = durations.map((d, i) => `
+      <div><small>${d.label}${d.custom ? ' (on request)' : ''}</small>
+        <input type="number" min="1" data-dur="${i}" value="${Number(d.price) || ''}" class="filter-input" style="width:100%;" /></div>`).join('');
 
     document.getElementById('adminEditPkgModal').classList.add('show');
   };
@@ -1607,16 +1839,27 @@
   window.saveAdminPackageForm = function () {
     if (!selectedAdminPkgId) return;
 
+    const p = window.HotelzzMarketingStore.getPackage(selectedAdminPkgId) || {};
     const name = document.getElementById('admPkgFormName').value;
-    const price = parseInt(document.getElementById('admPkgFormPrice').value) || 4999;
     const desc = document.getElementById('admPkgFormDesc').value;
     const rec = document.getElementById('admPkgFormRec').checked;
+    const active = document.getElementById('admPkgFormActive').checked;
+    const base = (p.durations && p.durations.length) ? p.durations : [{ label: '30 Days', price: p.startingPrice }];
+    let invalid = false;
+    const durations = base.map((d, i) => {
+      const input = document.querySelector(`#admPkgFormDurations [data-dur="${i}"]`);
+      const price = parseInt(input && input.value, 10);
+      if (!(price > 0)) invalid = true;
+      return Object.assign({}, d, { price: price });
+    });
+    if (invalid) { showToast('Every duration needs a price above ₹0.', 'error'); return; }
 
     window.HotelzzMarketingStore.updatePackage(selectedAdminPkgId, {
       name: name,
-      startingPrice: price,
       description: desc,
-      recommended: rec
+      recommended: rec,
+      active: active,
+      durations: durations
     }).then(() => {
       showToast(`Updated package "${name}". Owner dashboards now show the new pricing.`);
       closeModal('adminEditPkgModal');
@@ -1628,18 +1871,31 @@
     const tbody = document.getElementById('adminMktLeadsTableBody');
     if (!tbody) return;
     const leads = window.HotelzzMarketingStore.getLeads();
+    const camps = window.HotelzzMarketingStore.getCampaigns();
+    // An enquiry belongs to a campaign when it reached that hotel while the
+    // campaign was running — the same rule the server uses for its counts.
+    const day = v => String(v || '').slice(0, 10);
+    const campaignFor = l => camps.find(c => c.propertyId === l.propertyId && c.startDate &&
+      c.campaignStatus !== 'Pending' && day(l.date) >= c.startDate && (!c.endDate || day(l.date) <= c.endDate));
 
-    tbody.innerHTML = leads.map(l => `
+    if (!leads.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--admin-text-muted);">No guest enquiries yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = leads.map(l => {
+      const c = campaignFor(l);
+      return `
       <tr>
         <td style="font-weight:700;">${l.id}</td>
         <td>${l.name}</td>
         <td>${l.phone || '—'}<br/><small style="color:var(--admin-text-muted);">${l.email || ''}</small></td>
         <td>${l.propertyName || l.propertyId}</td>
         <td>${fmt(l.date)}</td>
+        <td>${c ? `<span class="badge badge-success">${c.id}</span>` : '<span style="color:var(--admin-text-muted);">—</span>'}</td>
         <td><span class="badge badge-info">${l.source || 'website'}</span></td>
-        <td><span class="badge badge-success">${l.status}</span></td>
-      </tr>
-    `).join('');
+        <td><span class="badge ${l.status === 'Converted' ? 'badge-success' : l.status === 'Spam' ? 'badge-danger' : 'badge-gray'}">${l.status}</span></td>
+      </tr>`;
+    }).join('');
   }
 
 })();

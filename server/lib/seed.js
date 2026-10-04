@@ -46,7 +46,11 @@ function seedPlans() {
 async function seed() {
   seedPackages();
   seedPlans();
-  await upsertUser({
+  // Only bootstrap the first admin. Once any admin exists, never re-create the
+  // seed account — otherwise changing the admin email in Settings would bring
+  // SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD back on the next restart.
+  const anyAdmin = db.prepare("SELECT 1 FROM users WHERE role = 'admin' LIMIT 1").get();
+  if (!anyAdmin) await upsertUser({
     role: 'admin',
     name: 'Hotelzz Admin',
     email: env.SEED_ADMIN_EMAIL,

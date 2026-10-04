@@ -319,10 +319,63 @@
     </div>
   </div>
 
+  <!-- Send Enquiry form (Search Hotels cards) -->
+  <div class="user-modal-overlay" id="enquiryModal">
+    <div class="user-modal" style="max-width:520px;">
+      <div style="padding:16px 20px; border-bottom:1px solid var(--user-border); display:flex; justify-content:space-between; align-items:center;">
+        <h3>Send Enquiry</h3>
+        <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeModal('enquiryModal')" aria-label="Close">×</button>
+      </div>
+      <form id="enquiryForm" style="padding:20px 24px 24px;" novalidate onsubmit="submitPortalEnquiry(event)">
+        <div class="enq-hotel">
+          <div class="enq-hotel-name" id="enqHotelName"></div>
+          <div class="enq-hotel-city" id="enqHotelCity"></div>
+        </div>
+        <div class="enq-grid">
+          <div class="enq-field enq-full">
+            <label for="enqName">Your full name *</label>
+            <input type="text" id="enqName" autocomplete="name" placeholder="e.g. Rohit Sharma" required />
+          </div>
+          <div class="enq-field enq-full">
+            <label for="enqPhone">Mobile / WhatsApp number *</label>
+            <input type="tel" id="enqPhone" autocomplete="tel" inputmode="tel" placeholder="e.g. +91 98765 43210" required />
+          </div>
+          <div class="enq-field enq-full">
+            <label for="enqEmail">Email</label>
+            <input type="email" id="enqEmail" autocomplete="email" placeholder="you@example.com" />
+          </div>
+          <div class="enq-field">
+            <label for="enqCheckIn">Check-in</label>
+            <input type="date" id="enqCheckIn" />
+          </div>
+          <div class="enq-field">
+            <label for="enqCheckOut">Check-out</label>
+            <input type="date" id="enqCheckOut" />
+          </div>
+          <div class="enq-field">
+            <label for="enqGuests">Guests</label>
+            <select id="enqGuests">
+              <option value="1">1 Guest</option><option value="2" selected>2 Guests</option><option value="3">3 Guests</option>
+              <option value="4">4 Guests</option><option value="5">5 Guests</option><option value="6">6+ Guests</option>
+            </select>
+          </div>
+          <div class="enq-field enq-full">
+            <label for="enqMessage">Anything the hotel should know? (optional)</label>
+            <textarea id="enqMessage" rows="3" placeholder="Early check-in, room type, occasion..."></textarea>
+          </div>
+        </div>
+        <div class="enq-error" id="enqError" role="alert"></div>
+        <button type="submit" class="btn-primary" id="enqSubmitBtn" style="width:100%; justify-content:center;">Send Enquiry →</button>
+        <p class="enq-note">The hotel replies on your mobile number. You can track replies under My Enquiries.</p>
+      </form>
+    </div>
+  </div>
+
   <div class="toast-container" id="toastContainer"></div>
 
   <script src="api-client.js"></script>
   <script src="enquiry-store.js"></script>
   <script src="user-portal.js"></script>
+  <script src="password-toggle.js" defer></script>
 </body>
 </html>

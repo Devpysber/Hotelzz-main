@@ -178,7 +178,7 @@ router.get('/bootstrap', (req, res) => {
             (SELECT COALESCE(SUM(views),0) FROM property_stats st WHERE st.property_id = p.id) AS views,
             (SELECT plan_name FROM subscriptions s WHERE s.property_id = p.id) AS plan_name
        FROM properties p LEFT JOIN users u ON u.id = p.owner_id
-      ORDER BY p.updated_at DESC LIMIT 200`
+      ORDER BY p.updated_at DESC`
   );
 
   const claimRows = many(
@@ -671,6 +671,20 @@ router.post('/import',
       totalProperties: one('SELECT COUNT(*) c FROM properties').c
     });
   });
+
+/* ------------------------------------------------------ google sheet sync */
+
+router.get('/sheet-sync', (_req, res) => {
+  res.json({ ok: true, sync: require('../lib/sheetSync').getStatus() });
+});
+
+router.post('/sheet-sync', wrap(async (req, res) => {
+  const sheetSync = require('../lib/sheetSync');
+  const result = await sheetSync.run('manual', req.user.id);
+  if (!result.ok && !result.sheets) return res.status(400).json(result);
+  res.json({ ok: result.ok, result, sync: sheetSync.getStatus(),
+             error: result.ok ? undefined : 'Every sheet failed to load — see details.' });
+}));
 
 /* ------------------------------------------------------- user management */
 

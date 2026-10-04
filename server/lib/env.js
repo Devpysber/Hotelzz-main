@@ -66,7 +66,15 @@ const env = {
   // edits, moderation, imports, campaign/package changes, settings...) is also
   // POSTed to this Apps Script Web App URL, which logs it as a new row — see
   // handleLogUpdate_ in LEADS-APPS-SCRIPT.gs and Part 3 of SETUP-GOOGLE-SHEET.md.
-  GOOGLE_SHEET_WEBHOOK_URL: process.env.GOOGLE_SHEET_WEBHOOK_URL || ''
+  GOOGLE_SHEET_WEBHOOK_URL: process.env.GOOGLE_SHEET_WEBHOOK_URL || '',
+
+  // Google Sheet catalogue. Comma-separated CSV links (shared "Anyone with the
+  // link" export URLs or "Publish to web" CSV URLs). Each is pulled into the
+  // properties table by server/lib/sheetSync.js on startup and every
+  // GOOGLE_SHEET_SYNC_MIN minutes, and on demand from Admin → Import Listings.
+  GOOGLE_SHEET_CSV_URLS: String(process.env.GOOGLE_SHEET_CSV_URLS || '')
+    .split(',').map((u) => u.trim()).filter(Boolean),
+  GOOGLE_SHEET_SYNC_MIN: Math.max(1, parseInt(process.env.GOOGLE_SHEET_SYNC_MIN, 10) || 15)
 };
 
 env.googleAuthConfigured = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);

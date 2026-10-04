@@ -92,7 +92,8 @@ function buildCatalog() {
   const rows = db.prepare(
     `SELECT p.id, p.name, p.location, p.city_slug, p.address, p.phone, p.website, p.rating, p.pincode, p.image_url,
             p.property_type, p.google_cid, p.google_review_count, p.google_summary, p.gmb_link, p.claim_status, p.amenities,
-            (SELECT MIN(price) FROM rooms r WHERE r.property_id = p.id AND r.active = 1 AND r.price > 0) AS min_price
+            COALESCE((SELECT MIN(price) FROM rooms r WHERE r.property_id = p.id AND r.active = 1 AND r.price > 0),
+                     NULLIF(CAST(json_extract(p.details, '$.startingPrice') AS REAL), 0)) AS min_price
        FROM properties p WHERE p.active = 1 ORDER BY p.rating DESC, p.name`
   ).all();
   // amenities is stored as JSON ({general:[],recreation:[],...} or a flat
@@ -131,7 +132,8 @@ router.get('/:id', (req, res) => {
   if (!row) return res.status(404).json({ ok: false, error: 'Property not found.' });
   const agg = db.prepare("SELECT ROUND(AVG(rating),2) avg, COUNT(*) c FROM reviews WHERE property_id = ? AND status='Published'")
     .get(row.id);
-  res.json({ ok: true, property: shape(row), reviewSummary: { average: agg.avg, count: agg.c } });
+  res.json({ ok: true, property: shape(row), listing: require('../lib/listing').publicListing(row),
+             reviewSummary: { average: agg.avg, count: agg.c } });
 });
 
 /* ------------------------------------------------------------ create/update */

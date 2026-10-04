@@ -77,6 +77,7 @@ seed().then(() => {
   A.purgeExpiredTokens();
   setInterval(A.purgeExpiredTokens, 6 * 60 * 60 * 1000).unref();
   automation.start();
+  require('./lib/sheetSync').start();
 
   // Keep campaign spend/impressions fresh when an ad platform is connected.
   const ads = require('./lib/ads');

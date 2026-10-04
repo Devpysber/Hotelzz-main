@@ -256,6 +256,7 @@
             <button type="button" class="pd-tab active" data-pd-section="pd-basics">Basics</button>
             <button type="button" class="pd-tab" data-pd-section="pd-photos">Photos</button>
             <button type="button" class="pd-tab" data-pd-section="pd-amenities">Amenities</button>
+            <button type="button" class="pd-tab" data-pd-section="pd-policies">Price &amp; Policies</button>
             <button type="button" class="pd-tab" data-pd-section="pd-contact">Contact</button>
             <button type="button" class="pd-tab" data-pd-section="pd-location">Location</button>
           </div>
@@ -323,6 +324,35 @@
               <span class="pd-amenity-count" id="pdAmenityCount">0 selected</span>
             </div>
             <div id="amenitiesCategoryContainer"></div>
+          </div>
+
+          <!-- PRICE & BOOKING POLICIES — the "Price" box and "Booking policies"
+               section of the public property page show exactly these. -->
+          <div class="owner-card" id="pd-policies">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Price &amp; booking policies</div>
+                <div class="card-subtitle">Shown in the price box and the "Booking policies" section of your listing.</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="editPropPrice">Starting price per night (₹)</label>
+              <input type="number" id="editPropPrice" class="form-control" min="0" step="1" placeholder="e.g. 2500 — leave empty to show &quot;Price on request&quot;" />
+              <small class="form-hint" id="editPropPriceHint">Guests see "from ₹… per night + taxes". Leave empty and the listing shows "Price on request".</small>
+            </div>
+            <div class="form-row-2">
+              <div class="form-group"><label for="editPolCheckIn">Check-in</label><input type="text" id="editPolCheckIn" class="form-control" maxlength="80" placeholder="2:00 PM onwards" /></div>
+              <div class="form-group"><label for="editPolCheckOut">Check-out</label><input type="text" id="editPolCheckOut" class="form-control" maxlength="80" placeholder="11:00 AM" /></div>
+            </div>
+            <div class="form-group"><label for="editPolCancel">Cancellation</label><input type="text" id="editPolCancel" class="form-control" maxlength="160" placeholder="Free cancellation up to 48hrs before check-in" /></div>
+            <div class="form-group"><label for="editPolPayment">Payment</label><input type="text" id="editPolPayment" class="form-control" maxlength="160" placeholder="Pay 25% to confirm · balance at check-in" /></div>
+            <div class="form-group"><label for="editPolId">ID required</label><input type="text" id="editPolId" class="form-control" maxlength="160" placeholder="Valid government photo ID for all guests" /></div>
+            <div class="form-group"><label for="editPolChildren">Children</label><input type="text" id="editPolChildren" class="form-control" maxlength="160" placeholder="Allowed · contact host for extra bedding" /></div>
+            <div class="form-row-2">
+              <div class="form-group"><label for="editPolPets">Pets (optional)</label><input type="text" id="editPolPets" class="form-control" maxlength="160" placeholder="e.g. Pets not allowed" /></div>
+              <div class="form-group"><label for="editPolSmoking">Smoking (optional)</label><input type="text" id="editPolSmoking" class="form-control" maxlength="160" placeholder="e.g. Smoking in designated areas only" /></div>
+            </div>
+            <small class="form-hint">Pets and smoking appear on your listing only when filled in.</small>
           </div>
 
           <div class="owner-card" id="pd-contact">
@@ -473,40 +503,26 @@
         <section class="owner-page-view" id="view-subscription">
           <div class="page-header">
             <div class="page-title-group">
-              <h1>My Subscription Plan</h1>
-              <p>Manage your Hotelzz subscription tier and feature access.</p>
+              <h1>My Subscription</h1>
+              <p>Your plan for <strong id="subPropName">this property</strong> and what each plan unlocks.</p>
             </div>
+            <button class="btn-secondary" onclick="switchView('billing')">Billing &amp; invoices →</button>
           </div>
 
-          <div class="owner-card" style="background:#F0F9FF; border-color:#BFDBFE;">
-            <div class="hz-head-row" style="display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <span class="sidebar-prop-status">🟢 Active Plan</span>
-                <h2 style="font-size:22px; font-weight:800; margin-top:4px;" id="subPlanName">Professional Plan</h2>
-                <div style="font-size:13.5px; color:var(--owner-text-muted);">Renewal Date: <strong id="subRenewalDate">15 October 2026</strong></div>
-              </div>
-              <div style="font-size:24px; font-weight:800; color:var(--owner-primary);" id="subPlanPrice">₹2,499 / Monthly</div>
-            </div>
-            <ul id="subFeaturesList" style="margin-top:14px; padding-top:14px; border-top:1px solid #BFDBFE; font-size:13px; list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:6px 16px;"></ul>
-          </div>
+          <!-- Current plan (filled by renderSubscriptionView) -->
+          <div class="sub-current" id="subCurrentCard"></div>
 
-          <h3 style="font-size:16px; font-weight:700; margin:24px 0 14px;">Available Upgrade Plans</h3>
-          <div class="rooms-grid" id="plansComparisonGrid">
-            <div class="room-card" style="padding:20px;" data-plan-card="Starter Plan">
-              <h3>Starter Plan</h3>
-              <div style="font-size:22px; font-weight:800; color:var(--owner-primary); margin:8px 0;">₹999 / mo</div>
-              <button class="btn-secondary" onclick="openUpgradeModal('Starter Plan', '₹999 / month')">Select Plan</button>
+          <div class="sub-section-head">
+            <div>
+              <h3>Compare plans</h3>
+              <p>Switch any time. Your new plan starts as soon as you confirm.</p>
             </div>
-            <div class="room-card" style="padding:20px;" data-plan-card="Professional Plan">
-              <h3>Professional Plan</h3>
-              <div style="font-size:22px; font-weight:800; color:var(--owner-primary); margin:8px 0;">₹2,499 / mo</div>
-              <button class="btn-secondary" onclick="openUpgradeModal('Professional Plan', '₹2,499 / month')">Select Plan</button>
-            </div>
-            <div class="room-card" style="padding:20px;" data-plan-card="Premium Plan">
-              <h3>Premium Plan</h3>
-              <div style="font-size:22px; font-weight:800; color:var(--owner-primary); margin:8px 0;">₹4,999 / mo</div>
-              <button class="btn-primary" onclick="openUpgradeModal('Premium Plan', '₹4,999 / month')">Upgrade to Premium →</button>
-            </div>
+          </div>
+          <div class="sub-plans-grid" id="plansComparisonGrid"></div>
+
+          <div class="sub-footnote">
+            <span>🔒 Payments are processed securely by Razorpay — UPI, cards, net banking and wallets.</span>
+            <span>Every charge gets an invoice under <a href="#billing" onclick="switchView('billing'); return false;">Billing &amp; invoices</a>.</span>
           </div>
         </section>
 
@@ -515,7 +531,7 @@
           <div class="page-header">
             <div class="page-title-group">
               <h1>Billing &amp; Invoices</h1>
-              <p>Your subscription payments and downloadable invoices.</p>
+              <p>Every charge for this property — plan subscriptions and Grow Business campaigns — with downloadable invoices.</p>
             </div>
             <button class="btn-secondary" onclick="switchView('subscription')">Manage plan</button>
           </div>
@@ -534,10 +550,11 @@
                 <thead>
                   <tr>
                     <th>Invoice</th>
+                    <th>For</th>
                     <th>Billed on</th>
                     <th>Amount</th>
                     <th>Status</th>
-                    <th>Download</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="invoicesTableBody"></tbody>
@@ -833,6 +850,28 @@
   </div>
 
   <!-- CAMPAIGN PURCHASE MULTI-STEP MODAL -->
+  <div class="owner-modal-overlay" id="upgradeModal">
+    <div class="owner-modal" style="max-width:480px;">
+      <div class="modal-header">
+        <h3>Confirm plan change</h3>
+        <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeModal('upgradeModal')">×</button>
+      </div>
+      <div style="padding:24px;">
+        <div class="sub-confirm-box">
+          <div class="sub-confirm-label">NEW PLAN</div>
+          <div class="sub-confirm-name" id="checkoutPlanName">—</div>
+          <div class="sub-confirm-price" id="checkoutPlanPrice">—</div>
+          <ul class="sub-feature-list" id="checkoutPlanFeatures"></ul>
+        </div>
+        <p class="sub-confirm-note" id="checkoutPlanNote">You'll be taken to Razorpay to pay. The plan renews monthly.</p>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <button class="btn-secondary" onclick="closeModal('upgradeModal')">Cancel</button>
+          <button class="btn-primary" id="checkoutConfirmBtn" onclick="confirmPlanUpgrade()">Confirm &amp; pay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="owner-modal-overlay" id="campaignPurchaseModal">
     <div class="owner-modal" style="max-width:760px;">
       <div class="modal-header">
@@ -860,51 +899,8 @@
           </div>
 
           <h4 style="font-size:14px; font-weight:700; margin-bottom:12px;">Select Campaign Duration</h4>
-          <div class="duration-options-grid" id="durationOptionsGrid">
-            <div class="duration-card" onclick="selectDurationOption(this, 10, 4999)">
-              <div class="dur-title">10 Days</div>
-              <div class="dur-price">₹4,999</div>
-            </div>
-            <div class="duration-card" onclick="selectDurationOption(this, 20, 8999)">
-              <div class="dur-title">20 Days</div>
-              <div class="dur-price">₹8,999</div>
-            </div>
-            <div class="duration-card selected" onclick="selectDurationOption(this, 30, 13999)">
-              <span class="dur-badge">RECOMMENDED</span>
-              <div class="dur-title">30 Days</div>
-              <div class="dur-price">₹13,999 <span style="font-size:11px; text-decoration:line-through; color:#94A3B8;">₹16,999</span></div>
-            </div>
-            <div class="duration-card" onclick="selectDurationOption(this, 90, 34999)">
-              <div class="dur-title">3 Months</div>
-              <div class="dur-price">₹34,999</div>
-            </div>
-          </div>
-
-          <!-- Estimated Results -->
-          <div style="background:#FAF5FF; border:1px solid #E9D5FF; border-radius:10px; padding:18px; margin:20px 0;">
-            <div style="font-size:13px; font-weight:700; color:#6B21A8; margin-bottom:10px; text-transform:uppercase;">Estimated Campaign Results</div>
-            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; text-align:center;">
-              <div style="background:#FFF; padding:10px; border-radius:6px; border:1px solid #E9D5FF;">
-                <div style="font-size:18px; font-weight:800; color:#6B21A8;" id="estReach">1,00,000+</div>
-                <div style="font-size:11px; color:#64748B;">Estimated Reach</div>
-              </div>
-              <div style="background:#FFF; padding:10px; border-radius:6px; border:1px solid #E9D5FF;">
-                <div style="font-size:18px; font-weight:800; color:#6B21A8;" id="estImpressions">4,00,000+</div>
-                <div style="font-size:11px; color:#64748B;">Impressions</div>
-              </div>
-              <div style="background:#FFF; padding:10px; border-radius:6px; border:1px solid #E9D5FF;">
-                <div style="font-size:18px; font-weight:800; color:#10B981;" id="estLeads">150–250</div>
-                <div style="font-size:11px; color:#64748B;">Est. Leads</div>
-              </div>
-              <div style="background:#FFF; padding:10px; border-radius:6px; border:1px solid #E9D5FF;">
-                <div style="font-size:18px; font-weight:800; color:#2563EB;" id="estWhatsapp">100–200</div>
-                <div style="font-size:11px; color:#64748B;">WhatsApp Enquiries</div>
-              </div>
-            </div>
-            <div style="font-size:11px; color:#64748B; margin-top:10px; font-style:italic;">
-              * Results are estimated based on industry averages. Actual performance may vary depending on location, property, audience, duration and market conditions.
-            </div>
-          </div>
+          <!-- Filled from the selected package's own durations (owner-app.js) -->
+          <div class="duration-options-grid" id="durationOptionsGrid"></div>
 
           <div style="display:flex; justify-content:flex-end;">
             <button class="btn-primary" onclick="goToCampStep(2)">Continue to Campaign Settings →</button>
@@ -996,20 +992,8 @@
               </div>
             </div>
 
-            <h4 style="font-size:14px; font-weight:700; margin-bottom:10px;">Select Payment Method</h4>
-            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:24px;">
-              <div class="payment-method-card selected" onclick="selectPayMethod(this)">
-                <div style="font-weight:800;">⚡ UPI</div>
-                <div style="font-size:11px; color:#64748B;">GPay, PhonePe, Paytm</div>
-              </div>
-              <div class="payment-method-card" onclick="selectPayMethod(this)">
-                <div style="font-weight:800;">💳 Card</div>
-                <div style="font-size:11px; color:#64748B;">Credit / Debit Card</div>
-              </div>
-              <div class="payment-method-card" onclick="selectPayMethod(this)">
-                <div style="font-weight:800;">🏦 NetBanking</div>
-                <div style="font-size:11px; color:#64748B;">All Indian Banks</div>
-              </div>
+            <div style="background:#F8FAFC; border:1px solid var(--owner-border); border-radius:10px; padding:14px 16px; margin-bottom:24px; font-size:13px; color:#475569;">
+              🔒 <strong>Secure payment by Razorpay.</strong> Pay with UPI, card, net banking or wallet in the Razorpay window that opens next.
             </div>
 
             <div style="display:flex; justify-content:space-between;">
@@ -1021,12 +1005,12 @@
           <!-- SUCCESS STATE VIEW -->
           <div id="paymentSuccessState" style="display:none; text-align:center; padding:20px 0;">
             <div style="width:64px; height:64px; background:#D1FAE5; color:#10B981; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px;">🎉</div>
-            <h2 style="font-size:24px; font-weight:800; color:#0F172A; margin-bottom:6px;">Campaign Request Submitted!</h2>
-            <p style="font-size:14px; color:#475569; max-width:480px; margin:0 auto 20px;">Your marketing campaign has been successfully submitted to Hotelzz Marketing Solutions.</p>
+            <h2 style="font-size:24px; font-weight:800; color:#0F172A; margin-bottom:6px;" id="successTitle">Campaign Request Submitted!</h2>
+            <p style="font-size:14px; color:#475569; max-width:480px; margin:0 auto 20px;" id="successLine">Your marketing campaign has been successfully submitted to Hotelzz Marketing Solutions.</p>
 
             <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:18px; max-width:440px; margin:0 auto 24px; text-align:left; font-size:13px;">
               <div style="margin-bottom:6px;"><strong>Campaign ID:</strong> <span id="successCampId" style="font-weight:800; color:#2563EB;">HZ-CMP-20260902-001</span></div>
-              <div style="margin-bottom:6px;"><strong>Payment Status:</strong> <span class="badge badge-success">Payment Successful</span></div>
+              <div style="margin-bottom:6px;"><strong>Payment Status:</strong> <span class="badge badge-success" id="successPayStatus">Payment Successful</span></div>
               <div style="margin-bottom:6px;"><strong>Campaign Status:</strong> <span class="badge badge-warning">Pending Review</span></div>
               <div style="font-size:12px; color:#64748B; margin-top:10px;">Our marketing team will review your campaign details and begin preparing your ads within 2 hours.</div>
             </div>

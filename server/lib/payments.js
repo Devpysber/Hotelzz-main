@@ -71,6 +71,15 @@ async function createOrder({ userId, propertyId, purpose, referenceId, amount, n
     // a real Error carrying Razorpay's own description so it's actually
     // visible to whoever's debugging a failed checkout.
     const desc = (err && err.error && err.error.description) || (err && err.message) || 'Razorpay request failed.';
+    // A 401 means our own RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET are wrong — say
+    // so loudly in the server log, but don't show the customer "Authentication
+    // failed" as if their login had a problem.
+    if (err && err.statusCode === 401) {
+      console.error('[payments] Razorpay rejected RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET in .env: ' + desc);
+      const wrapped = new Error('Online payment is temporarily unavailable. Your request is saved — please try "Pay now" again later.');
+      wrapped.status = 503;
+      throw wrapped;
+    }
     const wrapped = new Error(desc);
     wrapped.status = (err && err.statusCode) || 502;
     throw wrapped;
@@ -125,7 +134,9 @@ function markPaid(payment, providerPaymentId) {
       WHERE id = ?`
   ).run(providerPaymentId || null, payment.id);
 
-  if (payment.property_id) {
+  // Only subscription payments settle a subscription invoice — a campaign
+  // payment used to mark the latest Pending plan invoice Paid as well.
+  if (payment.property_id && payment.purpose === 'subscription') {
     const invoice = db.prepare(
       'SELECT * FROM invoices WHERE property_id = ? AND status = ? ORDER BY issued_at DESC LIMIT 1'
     ).get(payment.property_id, 'Pending');

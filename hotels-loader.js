@@ -30,9 +30,13 @@
   // just shared "Anyone with the link") the export URL:
   //   https://docs.google.com/spreadsheets/d/<SHEET_ID>/export?format=csv
   // Leave the array empty to keep using the API/database instead.
-  var CSV_URLS = [
-    'https://docs.google.com/spreadsheets/d/1lEc1qdoa5QiYIGam-LZ8SgnN1m0Dl2La/export?format=csv'
-  ];
+  //
+  // Normally left empty: the server now pulls every Google Sheet listed in
+  // GOOGLE_SHEET_CSV_URLS (.env) into the database (server/lib/sheetSync.js),
+  // so sheet rows already arrive through the API — and the admin panel, owner
+  // dashboard, enquiries and claims all see them too. Only add a URL here for
+  // a sheet you deliberately want shown on the public site without importing.
+  var CSV_URLS = [];
 
   var API_URL = '/api/properties/catalog';
   var CACHE_KEY = 'hotelzz_catalog_v2';

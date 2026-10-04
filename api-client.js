@@ -60,6 +60,7 @@
       forgotPassword: function (email, role) { return request('POST', '/auth/password/forgot', { email: email, role: role || 'traveler' }); },
       resetPassword: function (payload) { return request('POST', '/auth/password/reset', payload); },
       changePassword: function (currentPassword, password) { return request('POST', '/auth/password/change', { currentPassword: currentPassword, password: password }); },
+      changeEmail: function (currentPassword, email) { return request('POST', '/auth/email/change', { currentPassword: currentPassword, email: email }); },
       updateProfile: function (payload) { return request('PATCH', '/auth/me', payload); },
       logout: function () { return request('POST', '/auth/logout'); }
     },
@@ -89,6 +90,10 @@
               currency: order.currency,
               name: 'Hotelzz.in',
               description: payload.purpose === 'campaign' ? 'Marketing campaign' : 'Subscription',
+              prefill: window.HZ_USER ? {
+                name: window.HZ_USER.name || '', email: window.HZ_USER.email || '', contact: window.HZ_USER.phone || ''
+              } : undefined,
+              theme: { color: '#2563EB' },
               handler: function (response) {
                 API.payments.verify({
                   orderId: response.razorpay_order_id,

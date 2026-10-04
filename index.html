@@ -131,6 +131,43 @@
   .search-field label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 2px; }
   .search-field input, .search-field select { border: none; outline: none; background: transparent; font-size: 15px; font-weight: 600; color: var(--text); width: 100%; font-family: inherit; padding: 0; }
   .search-field input::placeholder { color: var(--text-light); font-weight: 500; }
+  .hero-search { position: relative; max-width: 760px; }
+  .hero-search-bar { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 999px; padding: 8px 8px 8px 22px; box-shadow: 0 24px 60px rgba(15,23,42,0.18); }
+  .hero-search-bar > svg { width: 22px; height: 22px; color: #94A3B8; flex-shrink: 0; }
+  .hero-search-bar input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 17px; font-weight: 600; color: var(--text); padding: 12px 0; }
+  .hero-search-bar input::placeholder { color: var(--text-light); font-weight: 500; }
+  .hero-search-bar input::-webkit-search-cancel-button { cursor: pointer; }
+  .hero-suggest { position: absolute; left: 0; right: 0; top: calc(100% + 8px); background: #fff; border-radius: 16px; box-shadow: 0 24px 60px rgba(15,23,42,0.22); overflow: hidden; z-index: 50; max-height: 420px; overflow-y: auto; }
+  .hero-sg-label { padding: 10px 18px 4px; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #94A3B8; }
+  .hero-sg-item { display: flex; align-items: center; gap: 12px; padding: 10px 18px; color: var(--text); text-decoration: none; }
+  .hero-sg-item:hover, .hero-sg-item.active { background: #EFF6FF; }
+  .hero-sg-icon { width: 36px; height: 36px; border-radius: 8px; background: #DBEAFE; color: #1E3A8A; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
+  .hero-sg-icon.city { background: #DCFCE7; font-size: 16px; }
+  .hero-sg-body { flex: 1; min-width: 0; }
+  .hero-sg-name { font-weight: 700; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hero-sg-meta { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hero-sg-rating { background: #10B981; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 5px; flex-shrink: 0; }
+  .hero-sg-all { display: block; padding: 12px 18px; text-align: center; font-size: 13px; font-weight: 700; color: var(--primary); background: #F8FAFC; border-top: 1px solid var(--border); text-decoration: none; }
+  .hero-sg-empty { padding: 18px; font-size: 14px; color: var(--text-muted); text-align: center; }
+  .hero-quick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; }
+  .hero-quick-label { color: rgba(255,255,255,0.85); font-size: 14px; font-weight: 600; margin-right: 2px; }
+  .hero-chip { display: inline-flex; align-items: center; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35); color: #fff; padding: 6px 14px; border-radius: 999px; font-weight: 600; font-size: 13px; cursor: pointer; text-decoration: none; margin: 0 6px 6px 0; font-family: inherit; transition: background .15s; }
+  .hero-chip:hover { background: rgba(255,255,255,0.28); }
+  .hero-chip-filter { background: rgba(255,255,255,0.95); color: var(--primary); border-color: #fff; }
+  /* Phones/tablets: the header's Sign in stays visible next to the menu button. */
+  @media (max-width: 900px) {
+    .header-nav .nav-link.nav-signin { display: inline-flex !important; align-items: center; padding: 8px 12px; font-size: 13.5px; border-radius: 10px; white-space: nowrap; }
+    .header-nav .hz-sessnav-btn { max-width: 150px; }
+    .header-nav .hz-sessnav-btn span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  }
+  .hero-vendor { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 22px; max-width: 760px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.28); border-radius: 16px; padding: 14px 16px; }
+  .hero-vendor-text { display: flex; flex-direction: column; gap: 2px; color: #fff; min-width: 0; flex: 1 1 240px; }
+  .hero-vendor-text strong { font-size: 15px; }
+  .hero-vendor-text span { font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.45; }
+  .hero-vendor-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hero-vendor-btn { display: inline-flex; align-items: center; padding: 9px 14px; border-radius: 10px; font-weight: 700; font-size: 13px; text-decoration: none; color: #fff; border: 1px solid rgba(255,255,255,0.45); background: rgba(255,255,255,0.08); white-space: nowrap; }
+  .hero-vendor-btn:hover { background: rgba(255,255,255,0.2); }
+  .hero-vendor-btn.primary { background: #fff; color: var(--primary); border-color: #fff; }
   .search-btn { background: var(--warning); color: #1F2937; border-radius: 999px; padding: 0 28px; font-weight: 700; font-size: 16px; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; min-height: 56px; }
   .search-btn:hover { background: #FBBF24; }
   .search-btn svg { width: 18px; height: 18px; }
@@ -278,6 +315,11 @@
     .search-field { padding: 12px 14px; }
     .search-field + .search-field { border-left: none; border-top: 1px solid var(--border); }
     .search-btn { width: 100%; justify-content: center; padding: 14px; border-radius: 12px; }
+    .hero-search-bar { padding: 6px 6px 6px 14px; }
+    .hero-vendor-actions { width: 100%; }
+    .hero-vendor-btn { flex: 1 1 auto; justify-content: center; }
+    .hero-search-bar .search-btn { width: auto; padding: 0 18px; min-height: 48px; border-radius: 999px; }
+    .hero-search-bar input { font-size: 16px; }
     .hero { padding: 36px 0 48px; }
     .hero h1 { font-size: 30px; }
     .premium-card { grid-template-columns: 1fr; padding: 28px; }
@@ -291,6 +333,9 @@
   }
   @media (max-width: 480px) { footer .footer-grid { grid-template-columns: 1fr; } }
   @media (min-width: 769px) { .float-wa { display: none; } }
+  /* Phones: the floating WhatsApp button covered the hero search form's
+     Search button — keep it out of the way while that form is on screen. */
+  .float-wa.is-tucked { opacity: 0 !important; visibility: hidden; pointer-events: none; }
 
   @media (max-width: 480px) {
     .dest-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
@@ -353,9 +398,8 @@
       </div>
 
       <!-- SIGN IN BUTTON -->
-      <a href="login.html?type=traveler" class="nav-link" style="background:#EFF6FF; color:#2563EB; font-weight:700; border:1px solid #BFDBFE;">👤 Sign in</a>
+      <a href="login.html?type=traveler" class="nav-link nav-signin" style="background:#EFF6FF; color:#2563EB; font-weight:700; border:1px solid #BFDBFE;">👤 Sign in</a>
 
-      <button data-search-trigger aria-label="Search hotels" title="Search hotels (press /)" style="background:var(--bg-alt);border:1px solid var(--border);color:var(--text);width:38px;height:38px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
     </nav>
   </div>
 </header>
@@ -366,89 +410,34 @@
     <h1>India's hand-picked hotels &amp; stays — book direct on WhatsApp</h1>
     <p class="lead">3,000+ properties across 51 destinations — Goa beaches · Rajasthan palaces · Himalayan hill stations · Kerala backwaters · North-East valleys · the Andamans &amp; more. Zero booking fees. Best rate on WhatsApp.</p>
 
-    <form class="search-card" id="searchForm" onsubmit="event.preventDefault(); doSearch();">
-      <div class="search-field">
-        <label for="searchCity">Where to?</label>
-        <input list="cityList" id="searchCity" placeholder="Search city or area in Goa" autocomplete="off" />
-        <datalist id="cityList">
-          <option value="Calangute"></option><option value="Baga"></option>
-          <option value="Anjuna"></option><option value="Candolim"></option>
-          <option value="Vagator"></option><option value="Panaji"></option>
-          <option value="North Goa"></option>
-          <option value="Bandra"></option><option value="Khar"></option>
-          <option value="Santacruz"></option><option value="Vile Parle"></option>
-          <option value="Andheri"></option><option value="Jogeshwari"></option>
-          <option value="Goregaon"></option><option value="Malad"></option>
-          <option value="Kandivali"></option><option value="Borivali"></option>
-          <option value="Dahisar"></option>
-          <option value="Gorai"></option><option value="Manori"></option>
-          <option value="Uttan"></option>
-          <option value="Colaba"></option><option value="Fort"></option>
-          <option value="Marine Drive"></option><option value="Mahalaxmi"></option>
-          <option value="Worli"></option><option value="Lower Parel"></option>
-          <option value="Prabhadevi"></option><option value="Dadar"></option>
-          <option value="Thane"></option>
-          <option value="Vashi"></option><option value="Nerul"></option>
-          <option value="Belapur"></option><option value="Kharghar"></option>
-          <option value="Panvel"></option>
-          <option value="Manali"></option><option value="Shimla"></option>
-          <option value="Kasol"></option><option value="Dharamshala"></option>
-          <option value="McLeodganj"></option><option value="Dalhousie"></option>
-          <option value="Bir"></option><option value="Tosh"></option>
-          <option value="Kheerganga"></option><option value="Kaza"></option>
-          <option value="Chail"></option><option value="Solan"></option>
-          <option value="Palampur"></option><option value="Jibhi"></option>
-          <option value="Narkanda"></option><option value="Kalpa"></option>
-          <option value="Delhi"></option><option value="Agra"></option>
-          <option value="Varanasi"></option><option value="Amritsar"></option>
-          <option value="Jaipur"></option><option value="Udaipur"></option>
-          <option value="Jodhpur"></option><option value="Jaisalmer"></option>
-          <option value="Pushkar"></option><option value="Mt Abu"></option>
-          <option value="Rishikesh"></option><option value="Mussoorie"></option>
-          <option value="Nainital"></option><option value="Auli"></option>
-          <option value="Dhanaulti"></option>
-          <option value="Munnar"></option><option value="Alleppey"></option>
-          <option value="Wayanad"></option><option value="Kovalam"></option>
-          <option value="Bangalore"></option><option value="Mysore"></option>
-          <option value="Coorg"></option><option value="Hampi"></option>
-          <option value="Chikmagalur"></option><option value="Gokarna"></option>
-          <option value="Pondicherry"></option><option value="Ooty"></option>
-          <option value="Kodaikanal"></option>
-          <option value="Pune"></option><option value="Lonavala"></option>
-          <option value="Mahabaleshwar"></option>
-          <option value="Shillong"></option><option value="Gangtok"></option>
-          <option value="Darjeeling"></option><option value="Ziro"></option>
-          <option value="Tawang"></option>
-          <option value="Leh"></option><option value="Port Blair"></option>
-          <option value="Lakshadweep"></option><option value="Khajuraho"></option>
-        </datalist>
+    <!-- One search bar: hotel names, cities and areas, with live suggestions. -->
+    <form class="hero-search" id="searchForm" role="search" autocomplete="off" onsubmit="event.preventDefault(); heroSubmit();">
+      <div class="hero-search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="heroSearchInput" type="search" placeholder="Search hotels or cities" aria-label="Search hotels, cities or areas"
+               aria-autocomplete="list" aria-controls="heroSuggest" aria-expanded="false" />
+        <button type="submit" class="search-btn">Search</button>
       </div>
-      <div class="search-field">
-        <label for="searchDates">Check-in &amp; check-out</label>
-        <input id="searchDates" type="text" placeholder="Select dates" onfocus="(this.type='date')" />
-      </div>
-      <div class="search-field">
-        <label for="searchGuests">Guests</label>
-        <select id="searchGuests">
-          <option>1 guest</option>
-          <option selected>2 guests</option>
-          <option>3 guests</option>
-          <option>4 guests</option>
-          <option>5+ guests</option>
-        </select>
-      </div>
-      <button type="submit" class="search-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        Search
-      </button>
+      <div class="hero-suggest" id="heroSuggest" role="listbox" hidden></div>
     </form>
-    <p style="margin-top:20px;color:rgba(255,255,255,0.85);font-size:14px;">
-      Looking for a specific hotel?
-      <button data-search-trigger style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);color:#fff;padding:6px 14px;border-radius:999px;font-weight:600;font-size:13px;cursor:pointer;margin-left:6px;display:inline-flex;align-items:center;gap:6px;transition:all .15s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        Search 3,000+ hotels by name →
-      </button>
-    </p>
+    <div class="hero-quick">
+      <span class="hero-quick-label">Popular:</span>
+      <span id="heroCityChips"></span>
+      <button type="button" class="hero-chip hero-chip-filter" onclick="window.HZSearch && HZSearch.open(document.getElementById('heroSearchInput').value)">⚙ More filters</button>
+    </div>
+
+    <!-- For vendors: hotel / homestay owners -->
+    <div class="hero-vendor">
+      <div class="hero-vendor-text">
+        <strong>🏨 For Vendors</strong>
+        <span>Own a hotel, villa or homestay? List it on Hotelzz and get direct bookings — zero commission.</span>
+      </div>
+      <div class="hero-vendor-actions">
+        <a href="login.html?type=owner-register" class="hero-vendor-btn primary">Register your business</a>
+        <a href="claim.html" class="hero-vendor-btn">Claim your listing</a>
+        <a href="login.html?type=owner" class="hero-vendor-btn">Owner login</a>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -810,16 +799,90 @@
 </div>
 
 <script>
-  function doSearch() {
-    var city = document.getElementById('searchCity').value.trim().toLowerCase().replace(/\s+/g, '-');
-    var dates = document.getElementById('searchDates').value;
-    var guests = document.getElementById('searchGuests').value;
-    if (!city) city = 'calangute';
-    var url = 'city.html?city=' + encodeURIComponent(city);
-    if (dates) url += '&checkIn=' + encodeURIComponent(dates);
-    if (guests) url += '&guests=' + encodeURIComponent(guests);
-    window.location.href = url;
-  }
+  // ── Homepage search bar: live suggestions from window.HOTELS via search.js
+  (function () {
+    var input = document.getElementById('heroSearchInput');
+    var box = document.getElementById('heroSuggest');
+    var chips = document.getElementById('heroCityChips');
+    var links = [], active = -1, timer = null;
+    var esc = function (v) { return String(v || '').replace(/[<>&"]/g, function (c) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]; }); };
+
+    function hide() { box.hidden = true; input.setAttribute('aria-expanded', 'false'); active = -1; }
+
+    function render() {
+      var q = input.value.trim();
+      if (!q || !window.HZSearch) { hide(); return; }
+      var r = window.HZSearch.suggest(q, 6);
+      links = [];
+      var html = '';
+      if (r.cities.length) {
+        html += '<div class="hero-sg-label">Cities</div>' + r.cities.map(function (c) {
+          links.push('city.html?city=' + encodeURIComponent(c.slug));
+          return '<a class="hero-sg-item" role="option" href="' + links[links.length - 1] + '"><span class="hero-sg-icon city">📍</span>' +
+            '<span class="hero-sg-body"><span class="hero-sg-name">' + esc(c.name) + '</span><span class="hero-sg-meta" style="display:block">' + c.count + ' hotels</span></span></a>';
+        }).join('');
+      }
+      if (r.hotels.length) {
+        html += '<div class="hero-sg-label">Hotels</div>' + r.hotels.map(function (h) {
+          links.push('property.html?id=' + encodeURIComponent(h.id));
+          var initials = (h.name || 'H').split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ''; }).join('').toUpperCase();
+          return '<a class="hero-sg-item" role="option" href="' + links[links.length - 1] + '"><span class="hero-sg-icon">' + esc(initials) + '</span>' +
+            '<span class="hero-sg-body"><span class="hero-sg-name" style="display:block">' + esc(h.name) + '</span><span class="hero-sg-meta" style="display:block">' + esc(h.address || h.location || '') + '</span></span>' +
+            '<span class="hero-sg-rating">★ ' + (parseFloat(h.rating) || 4.5).toFixed(1) + '</span></a>';
+        }).join('');
+      }
+      html += html
+        ? '<a class="hero-sg-all" href="#" data-all>See all results &amp; filters for "' + esc(q) + '" →</a>'
+        : '<div class="hero-sg-empty">No hotels or cities match "' + esc(q) + '". Try a city like Jaipur or Manali.</div>';
+      box.innerHTML = html;
+      box.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+      active = -1;
+    }
+
+    function setActive(i) {
+      var items = box.querySelectorAll('.hero-sg-item');
+      if (!items.length) return;
+      active = (i + items.length) % items.length;
+      items.forEach(function (el, n) { el.classList.toggle('active', n === active); });
+      items[active].scrollIntoView({ block: 'nearest' });
+    }
+
+    window.heroSubmit = function () {
+      var q = input.value.trim();
+      if (active >= 0 && links[active]) { location.href = links[active]; return; }
+      if (!q) { input.focus(); return; }
+      // Exactly one city match → go straight to its page; otherwise full results.
+      var r = window.HZSearch ? window.HZSearch.suggest(q, 6) : { cities: [], hotels: [] };
+      if (r.cities.length === 1 && r.cities[0].name.toLowerCase() === q.toLowerCase()) {
+        location.href = 'city.html?city=' + encodeURIComponent(r.cities[0].slug);
+      } else if (window.HZSearch) {
+        hide(); window.HZSearch.open(q);
+      }
+    };
+
+    input.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(render, 80); });
+    input.addEventListener('focus', function () { if (input.value.trim()) render(); });
+    input.addEventListener('keydown', function (e) {
+      if (box.hidden) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); setActive(active + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1); }
+      else if (e.key === 'Escape') { hide(); }
+    });
+    box.addEventListener('click', function (e) {
+      if (e.target.closest('[data-all]')) { e.preventDefault(); hide(); window.HZSearch && window.HZSearch.open(input.value.trim()); }
+    });
+    document.addEventListener('click', function (e) { if (!e.target.closest('#searchForm')) hide(); });
+
+    function fillChips() {
+      if (!chips || !window.HZSearch) return;
+      chips.innerHTML = window.HZSearch.topCities(6).map(function (c) {
+        return '<a class="hero-chip" href="city.html?city=' + encodeURIComponent(c.slug) + '">' + esc(c.name) + '</a>';
+      }).join('');
+    }
+    window.addEventListener('hotelsUpdated', function () { fillChips(); if (!box.hidden) render(); });
+    window.addEventListener('load', fillChips);
+  })();
 
   (function(){
     if (window.innerWidth < 1024) return;
@@ -863,5 +926,16 @@
 </script>
   <script src="cookie-consent.js"></script>
 <script src="mobile-nav.js" defer></script>
+<script>
+  (function () {
+    var fab = document.querySelector('.float-wa');
+    var form = document.getElementById('searchForm');
+    if (!fab || !form || !('IntersectionObserver' in window)) return;
+    fab.style.transition = 'opacity .2s, transform .2s';
+    new IntersectionObserver(function (entries) {
+      fab.classList.toggle('is-tucked', entries[0].isIntersecting);
+    }, { threshold: 0.05 }).observe(form);
+  })();
+</script>
 </body>
 </html>

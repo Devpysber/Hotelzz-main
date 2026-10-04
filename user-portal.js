@@ -74,9 +74,9 @@
   const VIEWS = ['overview', 'search', 'enquiries', 'reviews', 'saved', 'profile'];
 
   function handleUrlHash() {
-    // On a phone the portal opens on Search: a traveller arrives to book, and
-    // the KPI overview is a desktop-dashboard idea. Desktop keeps Overview.
-    const fallback = isMobile() ? 'search' : 'overview';
+    // The portal opens on Search on every device: a traveller arrives to book.
+    // Overview stays one click away in the sidebar.
+    const fallback = 'search';
     const hash = window.location.hash.replace('#', '');
     switchView(VIEWS.includes(hash) ? hash : fallback);
   }
@@ -627,7 +627,6 @@
     }
 
     const saved = store.getSavedHotels();
-    const fallbackImg = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=450&fit=crop&q=70';
 
     if (isMobile()) setTsearchCollapsed(true);
 
@@ -641,7 +640,7 @@
       return `
       <article class="thotel-card">
         <div class="thotel-media">
-          <img src="${h.image_url || fallbackImg}" alt="${h.name}" loading="lazy" />
+          <img src="${h.image_url || stockPhotoFor(h.id)}" alt="${h.name}" loading="lazy" />
           ${h.claimStatus === 'verified' ? '<span class="thotel-verified">Verified</span>' : ''}
           <button class="thotel-fav" onclick="toggleSaved('${h.id}')"
                   aria-pressed="${isSaved}"
@@ -655,7 +654,7 @@
         </div>
         <div class="thotel-actions">
           <a href="property.html?id=${encodeURIComponent(h.id)}" class="btn-secondary">Details</a>
-          <button class="btn-primary" onclick="sendPortalEnquiryDirect('${h.id}', '${name}', '${city}')">Send Enquiry \u2192</button>
+          <button class="btn-primary" data-enq-id="${h.id}" onclick="sendPortalEnquiryDirect('${h.id}', '${name}', '${city}')">Send Enquiry \u2192</button>
         </div>
       </article>`;
     }).join('') + (total > portalResults.length
@@ -670,23 +669,107 @@
     runPortalSearch();
   };
 
+  // Listings without their own photo get a stock picture chosen from the
+  // hotel id — the same pool and formula property.html uses for its main
+  // image, so a card and its detail page show the same photo (it used to be
+  // one identical picture on every card).
+  const STOCK_PHOTOS = ['photo-1566073771259-6a8506099945', 'photo-1582719508461-905c673771fd', 'photo-1611892440504-42a792e24d32', 'photo-1564013799919-ab600027ffc6', 'photo-1542314831-068cd1dbfeeb', 'photo-1520250497591-112f2f40a3f4', 'photo-1571003123894-1f0594d2b5d9', 'photo-1551882547-ff40c63fe5fa', 'photo-1602002418082-a4443e081dd1', 'photo-1631049307264-da0ec9d70304', 'photo-1590490360182-c33d57733427', 'photo-1568084680786-a84f91d1153c', 'photo-1540541338287-41700207dee6', 'photo-1505693416388-ac5ce068fe85', 'photo-1578683010236-d716f9a3f461', 'photo-1551918120-9739cb430c6d'];
+  function stockPhotoFor(id) {
+    const seed = String(id || '').split('').reduce((t, c) => t + c.charCodeAt(0), 0);
+    return 'https://images.unsplash.com/' + STOCK_PHOTOS[seed % STOCK_PHOTOS.length] + '?w=600&h=450&fit=crop&q=70';
+  }
+
+  let enquiryTarget = null;
+
+  /** Opens the enquiry form for a hotel, pre-filled from the profile and search. */
   window.sendPortalEnquiryDirect = function (propId, propName, propCity) {
-    const checkIn = document.getElementById('portalSearchCheckIn').value || '2026-10-12';
-    const checkOut = document.getElementById('portalSearchCheckOut').value || '2026-10-14';
-    const guests = parseInt(document.getElementById('portalSearchGuests').value) || 2;
+    enquiryTarget = { id: propId, name: propName, city: propCity };
+    const user = store.getUser() || {};
+    const val = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+    const searchVal = (id) => (document.getElementById(id) || {}).value || '';
+
+    document.getElementById('enqHotelName').textContent = propName;
+    document.getElementById('enqHotelCity').textContent = propCity ? '\u{1F4CD} ' + propCity : '';
+    val('enqName', user.name);
+    val('enqPhone', user.phone);
+    val('enqEmail', user.email);
+    val('enqCheckIn', searchVal('portalSearchCheckIn'));
+    val('enqCheckOut', searchVal('portalSearchCheckOut'));
+    const guests = parseInt(searchVal('portalSearchGuests'), 10) || 2;
+    val('enqGuests', String(Math.min(Math.max(guests, 1), 6)));
+    val('enqMessage', '');
+
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById('enqCheckIn').min = today;
+    document.getElementById('enqCheckOut').min = today;
+    document.getElementById('enqError').textContent = '';
+    document.querySelectorAll('#enquiryForm .enq-invalid').forEach((el) => el.classList.remove('enq-invalid'));
+    const btn = document.getElementById('enqSubmitBtn');
+    btn.disabled = false; btn.textContent = 'Send Enquiry \u2192';
+
+    document.getElementById('enquiryModal').classList.add('show');
+    setTimeout(() => document.getElementById(user.name ? (user.phone ? 'enqCheckIn' : 'enqPhone') : 'enqName').focus(), 50);
+  };
+
+  window.submitPortalEnquiry = function (e) {
+    if (e) e.preventDefault();
+    if (!enquiryTarget) return;
+    const get = (id) => document.getElementById(id).value.trim();
+    const errEl = document.getElementById('enqError');
+    const flag = (id, msg) => {
+      document.getElementById(id).classList.add('enq-invalid');
+      document.getElementById(id).focus();
+      errEl.textContent = msg;
+      return false;
+    };
+    document.querySelectorAll('#enquiryForm .enq-invalid').forEach((el) => el.classList.remove('enq-invalid'));
+    errEl.textContent = '';
+
+    const name = get('enqName');
+    const phone = get('enqPhone');
+    const email = get('enqEmail');
+    const checkIn = get('enqCheckIn');
+    const checkOut = get('enqCheckOut');
+    const guests = parseInt(get('enqGuests'), 10) || 2;
+    const note = get('enqMessage');
+
+    if (name.length < 2) return flag('enqName', 'Please enter your name.');
+    if (phone.replace(/\D/g, '').length < 10) return flag('enqPhone', 'Please enter a valid 10-digit mobile number.');
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return flag('enqEmail', 'That email address doesn\u2019t look right.');
+    if (checkIn && checkOut && checkOut <= checkIn) return flag('enqCheckOut', 'Check-out must be after check-in.');
+
+    const dates = checkIn && checkOut ? ` from ${checkIn} to ${checkOut}` : checkIn ? ` from ${checkIn}` : '';
+    const message = note || `Hi! I am interested in booking ${enquiryTarget.name} for ${guests} guest${guests === 1 ? '' : 's'}${dates}. Please share availability and your best rate.`;
+
+    const btn = document.getElementById('enqSubmitBtn');
+    btn.disabled = true; btn.textContent = 'Sending\u2026';
+    const target = enquiryTarget;
 
     store.sendEnquiry({
-      propertyId: propId,
-      propertyName: propName,
-      propertyCity: propCity,
-      checkIn: checkIn,
-      checkOut: checkOut,
+      propertyId: target.id,
+      propertyName: target.name,
+      propertyCity: target.city,
+      name: name,
+      phone: phone,
+      email: email || undefined,
+      checkIn: checkIn || undefined,
+      checkOut: checkOut || undefined,
       guests: guests,
-      message: `Hi! I am interested in booking ${propName} for ${guests} guests from ${checkIn} to ${checkOut}. Please confirm best rate.`
+      message: message
     }).then(() => {
-      showToast(`Enquiry sent to ${propName}! Tracked in My Enquiries.`);
-      switchView('enquiries');
-    }).catch((err) => showToast(err.message, 'warning'));
+      closeModal('enquiryModal');
+      // Stay on Search — just confirm, and mark the card so it's clear which
+      // hotels already have an enquiry.
+      showToast(`Enquiry sent to ${target.name}. The hotel will contact you on ${phone}.`);
+      document.querySelectorAll(`[data-enq-id="${CSS.escape(target.id)}"]`).forEach((b) => {
+        b.textContent = '\u2713 Enquiry sent';
+        b.classList.add('is-sent');
+      });
+      if (typeof renderOverviewView === 'function') try { renderOverviewView(); } catch (_) { /* overview not on screen */ }
+    }).catch((err) => {
+      btn.disabled = false; btn.textContent = 'Send Enquiry \u2192';
+      errEl.textContent = err.message || 'Could not send the enquiry. Please try again.';
+    });
   };
 
 })();

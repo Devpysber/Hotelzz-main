@@ -2,7 +2,7 @@
 const express = require('express');
 const { z } = require('zod');
 const env = require('../lib/env');
-const { db, uid, audit } = require('../lib/db');
+const { db, uid, audit, pushLeadToSheet } = require('../lib/db');
 const A = require('../lib/auth');
 const { limiter, validate, validateQuery } = require('../lib/http');
 const { sendMailAsync } = require('../lib/mailer');
@@ -44,6 +44,11 @@ router.post('/',
           b.city || null, b.plan || null, b.message || null, b.propertyId || null, b.source || 'website');
 
     audit(req.user ? req.user.id : null, 'lead.create', 'lead', id, { plan: b.plan }, req.ip);
+    pushLeadToSheet({
+      name: b.name, hotel: b.hotelName, location: b.city, phone: b.phone, email: b.email,
+      service: b.plan || b.type || 'marketing', notes: b.message, source: b.source || 'website',
+      page: b.type === 'ota' ? 'ota-listing' : 'marketing'
+    });
     if (b.email) sendMailAsync(b.email, 'leadReceipt', { name: b.name, plan: b.plan });
     sendMailAsync(env.ADMIN_EMAIL, 'adminNewLead', {
       name: b.name, email: b.email, phone: b.phone, hotelName: b.hotelName,

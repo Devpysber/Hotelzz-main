@@ -313,7 +313,8 @@ router.post('/password/reset',
       .run(await A.hashPassword(password), user.id);
     audit(user.id, 'auth.password.reset', 'user', user.id, null, req.ip);
     sendMailAsync(user.email, 'passwordChanged', { name: user.name });
-    res.json({ ok: true, message: 'Password updated. You can sign in now.', redirect: '/login.html?type=' + user.role });
+    res.json({ ok: true, message: 'Password updated. You can sign in now.',
+               redirect: user.role === 'admin' ? '/admin-login.html' : '/login.html?type=' + user.role });
   });
 
 router.post('/password/change',
@@ -327,6 +328,31 @@ router.post('/password/change',
     audit(req.user.id, 'auth.password.change', 'user', req.user.id, null, req.ip);
     sendMailAsync(req.user.email, 'passwordChanged', { name: req.user.name });
     res.json({ ok: true, message: 'Password updated.' });
+  });
+
+/** Change your own sign-in email. Needs the current password. */
+router.post('/email/change',
+  A.requireAuth(),
+  limiter(10, 60),
+  validate(z.object({ currentPassword: z.string().min(1, 'Enter your current password'), email: emailSchema })),
+  async (req, res) => {
+    const ok = await A.verifyPassword(req.body.currentPassword, req.user.password_hash);
+    if (!ok) return res.status(400).json({ ok: false, field: 'currentPassword', error: 'Current password is incorrect.' });
+
+    const oldEmail = req.user.email;
+    const email = lower(req.body.email);
+    if (email === lower(oldEmail)) return res.status(400).json({ ok: false, field: 'email', error: 'That is already your sign-in email.' });
+    const taken = db.prepare('SELECT 1 FROM users WHERE lower(email) = ? AND role = ? AND id <> ?').get(email, req.user.role, req.user.id);
+    if (taken) return res.status(409).json({ ok: false, field: 'email', error: 'Another account already uses that email.' });
+
+    db.prepare(`UPDATE users SET email = ?, updated_at = datetime('now') WHERE id = ?`).run(email, req.user.id);
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+    A.setSessionCookie(res, user);
+    audit(user.id, 'auth.email.change', 'user', user.id, { from: oldEmail, to: email }, req.ip);
+    // Tell both addresses — the old one is how a hijack gets noticed.
+    sendMailAsync(oldEmail, 'emailChanged', { name: user.name, oldEmail, newEmail: email });
+    sendMailAsync(email, 'emailChanged', { name: user.name, oldEmail, newEmail: email });
+    res.json({ ok: true, user: A.publicUser(user), message: 'Sign-in email updated.' });
   });
 
 /* ------------------------------------------------------------ session/self */

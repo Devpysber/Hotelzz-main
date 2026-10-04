@@ -49,17 +49,32 @@
     + '.hz-view-all{padding:12px 18px;background:#F9FAFB;border-top:1px solid #E5E7EB;font-size:13px;text-align:center;color:#6B7280}'
     + '.hz-view-all a{color:#2563EB;font-weight:700;text-decoration:none}'
     + '.hz-view-all a:hover{text-decoration:underline}'
-    + '@media (max-width:600px){.hz-search-overlay{padding:40px 10px 10px}.hz-search-input{font-size:16px}}';
+    + '.hz-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 18px;border-bottom:1px solid #E5E7EB;background:#fff}'
+    + '.hz-city-select{border:1px solid #E5E7EB;border-radius:8px;padding:7px 10px;font:inherit;font-size:13px;font-weight:600;color:#1F2937;background:#F9FAFB;max-width:100%;flex:1 1 180px}'
+    + '.hz-chip{border:1px solid #E5E7EB;background:#fff;color:#374151;border-radius:999px;padding:6px 12px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}'
+    + '.hz-chip.on{background:#2563EB;border-color:#2563EB;color:#fff}'
+    + '.hz-popular{display:flex;gap:6px;overflow-x:auto;padding:8px 18px 10px;border-bottom:1px solid #E5E7EB;scrollbar-width:none}'
+    + '.hz-popular::-webkit-scrollbar{display:none}'
+    + '.hz-popular .hz-chip{font-weight:600}'
+    + '.hz-section-label{padding:10px 18px 4px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#9CA3AF}'
+    + '.hz-result-avatar.city{background:linear-gradient(135deg,#DCFCE7,#86EFAC);color:#14532D;font-size:18px}'
+    + '@media (max-width:600px){.hz-search-overlay{padding:12px 8px 8px}.hz-search-input{font-size:16px}.hz-search-hint{display:none}.hz-search-results{max-height:calc(100vh - 230px)}}';
 
   var HTML = ''
     + '<div class="hz-search-panel" role="dialog" aria-modal="true" aria-labelledby="hzSearchTitle">'
     + '  <div class="hz-search-head">'
     + '    <svg class="mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>'
-    + '    <input id="hzSearchInput" class="hz-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Search 3,000+ hotels by name, city or area…" aria-label="Search hotels" />'
+    + '    <input id="hzSearchInput" class="hz-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Hotel name, city or area…" aria-label="Search hotels" />'
     + '    <button class="hz-search-close" id="hzSearchClose" aria-label="Close search">ESC</button>'
     + '  </div>'
+    + '  <div class="hz-filters">'
+    + '    <select id="hzCityFilter" class="hz-city-select" aria-label="Filter by city"><option value="">All cities</option></select>'
+    + '    <button type="button" class="hz-chip" id="hzTopRated" aria-pressed="false">★ 4.5+</button>'
+    + '    <button type="button" class="hz-chip" id="hzVerified" aria-pressed="false">✓ Verified</button>'
+    + '  </div>'
+    + '  <div class="hz-popular" id="hzPopular" aria-label="Popular cities"></div>'
     + '  <div class="hz-search-hint">'
-    + '    <span>Type to search across name, city & address</span>'
+    + '    <span>Search hotel names, cities & areas</span>'
     + '    <span><kbd>↑</kbd><kbd>↓</kbd> navigate · <kbd>↵</kbd> open · <kbd>/</kbd> to open search</span>'
     + '  </div>'
     + '  <div class="hz-search-results" id="hzSearchResults"></div>'
@@ -70,17 +85,9 @@
     var overlay = document.createElement('div'); overlay.className = 'hz-search-overlay'; overlay.id = 'hzSearchOverlay';
     overlay.innerHTML = HTML;
     document.body.appendChild(overlay);
-
-    var fab = document.createElement('button');
-    fab.className = 'hz-search-fab'; fab.id = 'hzSearchFab'; fab.setAttribute('aria-label', 'Search hotels'); fab.setAttribute('data-search-trigger', '');
-    fab.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
-    document.body.appendChild(fab);
-
-    // FAB shown only on mobile-ish widths where header nav collapses
-    var mq = window.matchMedia('(max-width: 900px)');
-    var toggleFab = function () { fab.style.display = mq.matches ? 'flex' : 'none'; };
-    toggleFab();
-    if (mq.addEventListener) mq.addEventListener('change', toggleFab); else mq.addListener(toggleFab);
+    // No floating search button: it sat on top of the page's own search
+    // form and the WhatsApp button on phones. The header search icon and the
+    // phone menu's search box open this overlay instead.
   }
 
   // ─── Search index ───────────────────────────────────────────────────────
@@ -114,10 +121,52 @@
     return 0;
   }
 
+  // ─── Filters ────────────────────────────────────────────────────────────
+  var filters = { city: '', topRated: false, verified: false };
+
+  function citySlug(h) { return h.city_slug || normalize(h.location).replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-'); }
+  function passes(h) {
+    if (filters.city && citySlug(h) !== filters.city) return false;
+    if (filters.topRated && !((parseFloat(h.rating) || 0) >= 4.5)) return false;
+    if (filters.verified && h.claim_status !== 'verified') return false;
+    return true;
+  }
+
+  /** Every city with its hotel count, biggest first. */
+  function cityIndex() {
+    var map = {};
+    getHotels().forEach(function (h) {
+      var slug = citySlug(h); if (!slug) return;
+      if (!map[slug]) map[slug] = { slug: slug, name: h.location || slug, count: 0 };
+      map[slug].count++;
+    });
+    return Object.keys(map).map(function (k) { return map[k]; })
+      .sort(function (x, y) { return y.count - x.count || x.name.localeCompare(y.name); });
+  }
+
+  function fillCityFilter() {
+    var sel = document.getElementById('hzCityFilter');
+    var pop = document.getElementById('hzPopular');
+    if (!sel) return;
+    var cities = cityIndex();
+    var current = filters.city;
+    sel.innerHTML = '<option value="">All cities</option>' + cities.slice().sort(function (x, y) { return x.name.localeCompare(y.name); })
+      .map(function (c) { return '<option value="' + escHtml(c.slug) + '">' + escHtml(c.name) + ' (' + c.count + ')</option>'; }).join('');
+    sel.value = current;
+    if (pop) {
+      pop.innerHTML = cities.slice(0, 10).map(function (c) {
+        return '<button type="button" class="hz-chip' + (c.slug === current ? ' on' : '') + '" data-city="' + escHtml(c.slug) + '">' + escHtml(c.name) + '</button>';
+      }).join('');
+    }
+  }
+
   function search(q, limit) {
     q = normalize(q).trim();
-    if (!q) return [];
-    var list = getHotels();
+    var list = getHotels().filter(passes);
+    if (!q) {
+      // No text but a filter is on → best-rated matches.
+      return list.slice().sort(function (a, b) { return (b.rating || 0) - (a.rating || 0); }).slice(0, limit || 15);
+    }
     var scored = [];
     for (var i = 0; i < list.length; i++) {
       var s = score(list[i], q);
@@ -130,68 +179,108 @@
     return scored.slice(0, limit || 15).map(function (x) { return x.h; });
   }
 
+  function matchingCities(q) {
+    q = normalize(q).trim();
+    if (!q || filters.city) return [];
+    return cityIndex().filter(function (c) { return normalize(c.name).indexOf(q) > -1; })
+      .sort(function (x, y) { return (normalize(y.name).indexOf(q) === 0) - (normalize(x.name).indexOf(q) === 0) || y.count - x.count; })
+      .slice(0, 4);
+  }
+
   // ─── Render ─────────────────────────────────────────────────────────────
   var activeIdx = -1;
-  var currentResults = [];
+  var currentResults = [];   // [{ href }] in on-screen order, for keyboard nav
+
+  function anyFilter() { return !!(filters.city || filters.topRated || filters.verified); }
 
   function renderResults(q) {
     var box = document.getElementById('hzSearchResults');
     var hotels = getHotels();
+    q = q || '';
 
-    if (!q || !q.trim()) {
+    if (!q.trim() && !anyFilter()) {
       box.innerHTML = '<div class="hz-result-empty">'
         + '<strong>Search across ' + (hotels.length ? hotels.length.toLocaleString('en-IN') : '3,000') + '+ hotels</strong>'
-        + 'Try <em>"Calangute"</em>, <em>"Bandra"</em>, <em>"Manali"</em> or type any hotel name.'
+        + 'Type a hotel name or city — or pick a city above.'
         + '</div>';
       currentResults = [];
       activeIdx = -1;
       return;
     }
 
+    var cities = matchingCities(q);
     var results = search(q, 15);
-    currentResults = results;
-    activeIdx = results.length ? 0 : -1;
+    currentResults = [];
 
-    if (!results.length) {
+    var html = '';
+    if (cities.length) {
+      html += '<div class="hz-section-label">Cities</div>';
+      html += cities.map(function (c) {
+        var href = 'city.html?city=' + encodeURIComponent(c.slug);
+        currentResults.push({ href: href });
+        return '<a class="hz-result" href="' + href + '" data-idx="' + (currentResults.length - 1) + '">'
+          + '<div class="hz-result-avatar city">📍</div>'
+          + '<div class="hz-result-body"><div class="hz-result-name">' + highlight(c.name, q) + '</div>'
+          + '<div class="hz-result-meta">' + c.count + ' hotels · see all</div></div>'
+          + '</a>';
+      }).join('');
+    }
+
+    if (results.length) {
+      if (cities.length || anyFilter()) html += '<div class="hz-section-label">Hotels</div>';
+      html += results.map(function (h) {
+        var href = 'property.html?id=' + encodeURIComponent(h.id);
+        currentResults.push({ href: href });
+        var initials = (h.name || 'H').split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ''; }).join('');
+        var meta = [h.location, (h.pincode || '').toString().trim()].filter(Boolean).join(' · ');
+        return '<a class="hz-result" href="' + href + '" data-idx="' + (currentResults.length - 1) + '">'
+          + '<div class="hz-result-avatar">' + escHtml(initials) + '</div>'
+          + '<div class="hz-result-body">'
+          + '<div class="hz-result-name">' + highlight(h.name, q) + '</div>'
+          + '<div class="hz-result-meta">' + escHtml(meta || 'India') + (h.claim_status === 'verified' ? ' · ✓ Verified' : '') + '</div>'
+          + '</div>'
+          + '<span class="hz-result-rating">★ ' + (parseFloat(h.rating) || 4.5).toFixed(1) + '</span>'
+          + '</a>';
+      }).join('');
+    }
+
+    if (!html) {
       box.innerHTML = '<div class="hz-result-empty">'
-        + '<strong>No hotels found for "' + escHtml(q) + '"</strong>'
-        + 'Try a shorter search or <a href="https://wa.me/919930090487?text=Hi%20Hotelzz!%20Looking%20for%20a%20hotel%20-%20' + encodeURIComponent(q) + '" target="_blank" rel="noopener">ask on WhatsApp →</a>'
+        + '<strong>No hotels found' + (q.trim() ? ' for "' + escHtml(q) + '"' : '') + '</strong>'
+        + (anyFilter() ? 'Try removing a filter, or ' : 'Try a shorter search, or ')
+        + '<a href="https://wa.me/919930090487?text=Hi%20Hotelzz!%20Looking%20for%20a%20hotel%20-%20' + encodeURIComponent(q) + '" target="_blank" rel="noopener">ask on WhatsApp →</a>'
         + '</div>';
+      activeIdx = -1;
       return;
     }
 
-    var html = results.map(function (h, i) {
-      var initials = (h.name || 'H').split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ''; }).join('');
-      var meta = [h.location, (h.pincode || '').toString().trim()].filter(Boolean).join(' · ');
-      return '<a class="hz-result' + (i === 0 ? ' active' : '') + '" href="property.html?id=' + encodeURIComponent(h.id) + '" data-idx="' + i + '">'
-        + '<div class="hz-result-avatar">' + escHtml(initials) + '</div>'
-        + '<div class="hz-result-body">'
-        + '<div class="hz-result-name">' + highlight(h.name, q) + '</div>'
-        + '<div class="hz-result-meta">' + escHtml(meta || 'India') + '</div>'
-        + '</div>'
-        + '<span class="hz-result-rating">★ ' + (h.rating || 4.5).toFixed(1) + '</span>'
-        + '</a>';
-    }).join('');
-
-    if (results.length >= 15) {
-      html += '<div class="hz-view-all">Showing top 15 · <a href="city.html?city=' + encodeURIComponent(normalize(q).replace(/\s+/g, '-')) + '">Try city page →</a></div>';
+    if (filters.city) {
+      var c = cityIndex().filter(function (x) { return x.slug === filters.city; })[0];
+      if (c) html += '<div class="hz-view-all"><a href="city.html?city=' + encodeURIComponent(c.slug) + '">See all ' + c.count + ' hotels in ' + escHtml(c.name) + ' →</a></div>';
+    } else if (results.length >= 15) {
+      html += '<div class="hz-view-all">Showing top 15 — pick a city above to narrow it down.</div>';
     }
 
     box.innerHTML = html;
+    activeIdx = 0;
+    var first = box.querySelector('.hz-result');
+    if (first) first.classList.add('active');
   }
 
   // ─── Open / close ───────────────────────────────────────────────────────
   var overlayEl, inputEl;
 
-  function open() {
+  function open(initial) {
     overlayEl = overlayEl || document.getElementById('hzSearchOverlay');
     inputEl = inputEl || document.getElementById('hzSearchInput');
     overlayEl.classList.add('show');
     document.body.style.overflow = 'hidden';
+    fillCityFilter();
     // Clear browser autofill that Chrome injects into type=search fields
-    inputEl.value = '';
-    renderResults('');
-    setTimeout(function () { inputEl.value = ''; inputEl.focus(); }, 20);
+    var q = typeof initial === 'string' ? initial : '';
+    inputEl.value = q;
+    renderResults(q);
+    setTimeout(function () { inputEl.value = q; inputEl.focus(); }, 20);
   }
   function close() {
     if (!overlayEl) return;
@@ -247,7 +336,7 @@
       if (e.key === 'ArrowUp')   { e.preventDefault(); updateActive(-1); }
       if (e.key === 'Enter' && activeIdx >= 0 && currentResults[activeIdx]) {
         e.preventDefault();
-        location.href = 'property.html?id=' + encodeURIComponent(currentResults[activeIdx].id);
+        location.href = currentResults[activeIdx].href;
       }
     });
 
@@ -257,9 +346,41 @@
     inputEl.addEventListener('change', onInput);   // catches paste + autofill
     inputEl.addEventListener('paste', function () { setTimeout(function () { renderResults(inputEl.value); }, 10); });
 
+    // Filters
+    var rerender = function () { renderResults(inputEl.value); };
+    document.getElementById('hzCityFilter').addEventListener('change', function (e) {
+      filters.city = e.target.value; fillCityFilter(); rerender();
+    });
+    document.getElementById('hzPopular').addEventListener('click', function (e) {
+      var chip = e.target.closest('[data-city]'); if (!chip) return;
+      var slug = chip.getAttribute('data-city');
+      filters.city = filters.city === slug ? '' : slug;
+      fillCityFilter(); rerender();
+    });
+    [['hzTopRated', 'topRated'], ['hzVerified', 'verified']].forEach(function (pair) {
+      var btn = document.getElementById(pair[0]);
+      btn.addEventListener('click', function () {
+        filters[pair[1]] = !filters[pair[1]];
+        btn.classList.toggle('on', filters[pair[1]]);
+        btn.setAttribute('aria-pressed', filters[pair[1]] ? 'true' : 'false');
+        rerender();
+      });
+    });
+
+    // Lets other scripts (the phone menu's search box) open it with text.
+    window.HZSearch = {
+      open: open,
+      close: close,
+      /** Live suggestions for an inline search bar (homepage hero). */
+      suggest: function (q, limit) {
+        return { cities: matchingCities(q), hotels: normalize(q).trim() ? search(q, limit || 6) : [] };
+      },
+      topCities: function (n) { return cityIndex().slice(0, n || 8); }
+    };
+
     // Re-render if live CSV replaces window.HOTELS mid-session
     window.addEventListener('hotelsUpdated', function () {
-      if (overlayEl.classList.contains('show')) renderResults(inputEl.value);
+      if (overlayEl.classList.contains('show')) { fillCityFilter(); renderResults(inputEl.value); }
     });
   }
 

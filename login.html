@@ -301,8 +301,11 @@
     function nextUrl(fallback) {
       var next = new URLSearchParams(window.location.search).get('next');
       // Only allow same-site relative paths — never an attacker-supplied origin.
-      if (next && /^\/[^/\\]/.test(next)) return next;
-      return fallback;
+      var url = (next && /^\/[^/\\]/.test(next)) ? next : fallback;
+      // Travelers always start on Search Hotels after signing in, whichever
+      // portal section they were on when the session ran out.
+      if (/^\/?user-portal\.html/.test(url)) url = '/user-portal.html#search';
+      return url;
     }
 
     /** Wraps a submit handler: disables the button, shows errors, re-enables. */
@@ -476,5 +479,6 @@
       }).catch(function () {});
     })();
   </script>
+  <script src="password-toggle.js" defer></script>
 </body>
 </html>

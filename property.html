@@ -319,7 +319,7 @@
             <button class="share-btn" onclick="alert(\'Saved! Sign up coming soon.\')">♡ Save</button>\
           </div>\
         </div>\
-        <div class="gallery">\
+        <div class="gallery" id="pdGallery">\
           <img class="g0" src="' + imgs[0] + '" alt="' + esc(hotel.name) + ' main view" loading="eager">\
           <img src="' + imgs[1] + '" alt="Room view" loading="lazy">\
           <img src="' + imgs[2] + '" alt="Property view" loading="lazy">\
@@ -330,7 +330,7 @@
           <div class="pdp-main">\
             <section>\
               <h2>About this property</h2>\
-              <p>' + esc(hotel.name) + ' is a verified ' + (hotel.rating >= 4.7 ? 'top-rated' : 'highly-rated') + ' stay located in ' + esc(hotel.location) + '. Perfect for couples, families and groups looking for a comfortable, well-located base to explore the area\'s attractions, restaurants and nightlife. The property offers modern amenities, friendly hosts, and easy WhatsApp coordination — no commission cuts, no middlemen.</p>\
+              <p id="pdAboutText">' + esc(hotel.name) + ' is a verified ' + (hotel.rating >= 4.7 ? 'top-rated' : 'highly-rated') + ' stay located in ' + esc(hotel.location) + '. Perfect for couples, families and groups looking for a comfortable, well-located base to explore the area\'s attractions, restaurants and nightlife. The property offers modern amenities, friendly hosts, and easy WhatsApp coordination — no commission cuts, no middlemen.</p>\
               <p style="margin-top:14px;">📍 <strong>Address:</strong> ' + esc(hotel.address || hotel.location) + '</p>\
             </section>\
             <section>\
@@ -362,13 +362,13 @@
               <div class="info-grid">\
                 <div class="info-block"><strong>Location</strong><span>' + esc(hotel.location) + '</span></div>\
                 <div class="info-block"><strong>Pincode</strong><span>' + esc(hotel.pincode || '—') + '</span></div>\
-                <div class="info-block"><strong>Property type</strong><span>' + esc(hotel.property_type || 'Verified Stay') + '</span></div>\
+                <div class="info-block"><strong>Property type</strong><span id="pdTypeVal">' + esc(hotel.property_type || 'Verified Stay') + '</span></div>\
                 <div class="info-block"><strong>Guest rating</strong><span>★ ' + hotel.rating.toFixed(1) + ' / 5</span></div>\
               </div>\
             </section>\
             <section>\
               <h2>Booking policies</h2>\
-              <ul class="policy-list">\
+              <ul class="policy-list" id="pdPolicyList">\
                 <li><span>Check-in</span><span>2:00 PM onwards</span></li>\
                 <li><span>Check-out</span><span>11:00 AM</span></li>\
                 <li><span>Cancellation</span><span>Free cancellation up to 48hrs before check-in</span></li>\
@@ -385,14 +385,14 @@
                 <li class="amenity-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Best rate guaranteed</li>\
                 <li class="amenity-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Verified properties only</li>\
                 <li class="amenity-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Instant booking confirmation</li>\
-                <li class="amenity-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Local Goa support team</li>\
+                <li class="amenity-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Local support team</li>\
               </ul>\
             </section>\
           </div>\
           <aside>\
             <div class="booking-card" id="bookingForm">\
-              <div class="price-block">' + priceHtml + '</div>\
-              <div class="price-tax">' + (hotel.min_price ? 'per night + taxes & fees' : 'Confirm the rate directly with the host') + '</div>\
+              <div class="price-block" id="pdPriceBlock">' + priceHtml + '</div>\
+              <div class="price-tax" id="pdPriceTax">' + (hotel.min_price ? 'per night + taxes & fees' : 'Confirm the rate directly with the host') + '</div>\
               <a href="https://wa.me/919930090487?text=' + encodeURIComponent("Hi Hotelzz! I want the best rate for " + hotel.name + " in " + hotel.location + ". Please share availability and your best price.") + '&utm_source=website&utm_medium=property_page&utm_campaign=best_rate" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:var(--whatsapp);color:#fff;padding:13px;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;margin:14px 0;box-shadow:0 6px 16px rgba(37,211,102,0.25);transition:all 0.2s;" onmouseover="this.style.background=\'#1DA851\'" onmouseout="this.style.background=\'#25D366\'">\
                 <svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>\
                 Best Rate on WhatsApp →\
@@ -420,14 +420,15 @@
                   <div class="form-field form-field-full"><label>Anything special? (optional)</label><textarea id="fNotes" placeholder="Early check-in, airport pickup, dietary needs, occasion..."></textarea></div>\
                 </div>\
                 <div class="form-error" id="formError"></div>\
-                <button type="submit" class="submit-wa">\
+                <button type="submit" class="submit-wa" id="bookSubmitBtn">\
                   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>\
                   Book on WhatsApp\
                 </button>\
+                <div id="bookModeNote" style="font-size:12.5px;color:var(--text-muted);text-align:center;margin-top:10px;line-height:1.5;"></div>\
                 <a href="tel:+919930090487" class="secondary-call">📞 Or call +91 99300 90487</a>\
               </form>\
               <ul class="trust-points">\
-                <li>Free cancellation till 48hrs before check-in</li>\
+                <li id="pdTrustCancel">Free cancellation till 48hrs before check-in</li>\
                 <li>Best price guaranteed · No hidden fees</li>\
                 <li>Verified property · Instant confirmation</li>\
                 <li>We respond on WhatsApp within 5 minutes</li>\
@@ -438,6 +439,7 @@
       </div>';
 
     loadRealReviews();
+    loadOwnerListing();
 
     document.getElementById('mbPrice').textContent = hotel.min_price ? '₹' + Math.round(hotel.min_price).toLocaleString('en-IN') : 'On request';
 
@@ -459,6 +461,41 @@
 
   // Real traveler reviews for this property — replaces any fabricated rating
   // data with what actually exists in the database.
+  // Owner-edited listing content (description, photos, price, booking
+  // policies — Owner dashboard → Property Details). The catalogue row that
+  // painted the page doesn't carry these, so fill them in once they arrive.
+  function loadOwnerListing() {
+    if (!window.HotelzzAPI) return;
+    window.HotelzzAPI.get('/properties/' + encodeURIComponent(hotel.id)).then(function (r) {
+      var L = r && r.listing;
+      if (!L) return;
+      var el = function (id) { return document.getElementById(id); };
+
+      if (L.description && el('pdAboutText')) el('pdAboutText').textContent = L.description;
+      if (L.propertyType && el('pdTypeVal')) el('pdTypeVal').textContent = L.propertyType;
+
+      if (L.photos && L.photos.length && el('pdGallery')) {
+        var imgsEl = el('pdGallery').querySelectorAll('img');
+        // Owner photos only — repeat them to fill the 5-tile grid rather than
+        // mixing in stock pictures of some other place.
+        for (var i = 0; i < imgsEl.length; i++) imgsEl[i].src = L.photos[i % L.photos.length];
+      }
+
+      if (L.policies && L.policies.length && el('pdPolicyList')) {
+        el('pdPolicyList').innerHTML = L.policies.map(function (p) {
+          return '<li><span>' + esc(p.label) + '</span><span>' + esc(p.value) + '</span></li>';
+        }).join('');
+        var cancel = L.policies.filter(function (p) { return p.key === 'cancellationPolicy'; })[0];
+        if (cancel && el('pdTrustCancel')) el('pdTrustCancel').textContent = cancel.value;
+      }
+
+      if (L.startingPrice && el('pdPriceBlock')) {
+        el('pdPriceBlock').innerHTML = '<span class="now">₹' + Math.round(L.startingPrice).toLocaleString('en-IN') + '</span>';
+        if (el('pdPriceTax')) el('pdPriceTax').textContent = 'per night + taxes & fees';
+      }
+    }).catch(function () { /* keep the catalogue version */ });
+  }
+
   function loadRealReviews() {
     var summaryEl = document.getElementById('realReviewsSummary');
     var listEl = document.getElementById('realReviewsList');
@@ -546,15 +583,25 @@
       (notes ? "\n*Special requests:* " + notes + "\n" : "") +
       "\nPlease confirm availability & best rate. Thanks!";
 
-    var btn = ev.target && ev.target.querySelector ? ev.target.querySelector('button[type=submit]') : null;
-    var btnLabel = btn ? btn.textContent : '';
+    var waUrl = 'https://wa.me/919930090487?text=' + encodeURIComponent(msg) + '&utm_source=website&utm_medium=property_form&utm_campaign=booking';
+
+    // Not signed in as a traveler → the enquiry goes to the Hotelzz WhatsApp
+    // number only (nothing is stored, nothing is emailed).
+    if (!bookingTraveler) {
+      window.open(waUrl, '_blank', 'noopener');
+      showWhatsAppSent();
+      return false;
+    }
+
+    // Signed-in traveler → stored on the server: it lands on the hotel owner's
+    // dashboard and the owner is emailed straight away (routes/enquiries.js).
+    var btn = document.getElementById('bookSubmitBtn');
+    var btnHtml = btn ? btn.innerHTML : '';
     if (btn) { btn.disabled = true; btn.textContent = 'Sending enquiry...'; }
 
-    // The enquiry is stored on the server, which emails the hotel, the guest
-    // and the Hotelzz team. WhatsApp opens as a second, optional channel.
     window.HotelzzEnquiryStore.sendEnquiry({
       name: name,
-      email: email,
+      email: email || bookingTraveler.email,
       phone: phone,
       propertyId: hotel.id,
       propertyName: hotel.name,
@@ -565,17 +612,63 @@
       message: notes || ('Booking enquiry for ' + rooms + ' room(s), ' + guests + ' guest(s).'),
       source: 'property_form'
     }).then(function (enq) {
-      if (btn) { btn.disabled = false; btn.textContent = btnLabel; }
+      if (btn) { btn.disabled = false; btn.innerHTML = btnHtml; }
       showEnquirySuccess(enq);
-      var url = 'https://wa.me/919930090487?text=' + encodeURIComponent(msg) + '&utm_source=website&utm_medium=property_form&utm_campaign=booking';
-      window.open(url, '_blank');
     }).catch(function (error) {
-      if (btn) { btn.disabled = false; btn.textContent = btnLabel; }
+      if (btn) { btn.disabled = false; btn.innerHTML = btnHtml; }
       err.textContent = error.message || 'Could not send the enquiry. Please try again.';
       err.classList.add('show');
     });
 
     return false;
+  }
+
+  // Who is booking: a signed-in traveler sends straight to the hotel's
+  // dashboard; anyone else books through the Hotelzz WhatsApp number.
+  var bookingTraveler = null;
+
+  function applyBookingMode() {
+    var btn = document.getElementById('bookSubmitBtn');
+    var note = document.getElementById('bookModeNote');
+    if (!btn) return;
+    var label = btn.lastChild && btn.lastChild.nodeType === 3 ? btn.lastChild : null;
+    if (bookingTraveler) {
+      if (label) label.nodeValue = ' Send Enquiry to Hotel';
+      btn.querySelector('svg') && (btn.querySelector('svg').style.display = 'none');
+      btn.style.background = 'var(--primary)';
+      btn.style.boxShadow = '0 8px 20px rgba(37,99,235,0.3)';
+      if (note) note.innerHTML = 'Signed in as <strong>' + esc(bookingTraveler.name || bookingTraveler.email) + '</strong> — your enquiry goes straight to the hotel and you can track replies in <a href="user-portal.html#enquiries" style="color:var(--primary);font-weight:700;">My Enquiries</a>.';
+      var setIfEmpty = function (id, v) { var el = document.getElementById(id); if (el && !el.value && v) el.value = v; };
+      setIfEmpty('fName', bookingTraveler.name);
+      setIfEmpty('fPhone', bookingTraveler.phone);
+      setIfEmpty('fEmail', bookingTraveler.email);
+      // Signed-in enquiries go to the hotel, so drop the Hotelzz call line.
+      var call = document.querySelector('#bookForm .secondary-call');
+      if (call) call.style.display = 'none';
+    } else if (note) {
+      note.innerHTML = 'Opens WhatsApp to the Hotelzz booking team. <a href="login.html?type=traveler&next=' +
+        encodeURIComponent(location.pathname + location.search) + '" style="color:var(--primary);font-weight:700;">Sign in</a> to send it directly to the hotel and track replies.';
+    }
+  }
+
+  function showWhatsAppSent() {
+    var err = document.getElementById('formError');
+    err.classList.remove('show');
+    var form = document.getElementById('bookForm');
+    if (!form || document.getElementById('waSentNote')) return;
+    var box = document.createElement('div');
+    box.id = 'waSentNote';
+    box.style.cssText = 'background:#ECFDF5;border:1px solid #A7F3D0;color:#047857;padding:12px 14px;border-radius:10px;font-size:13.5px;line-height:1.6;margin-top:12px;';
+    box.innerHTML = '<strong>WhatsApp opened with your enquiry.</strong> Press send in WhatsApp and the Hotelzz team will reply there. ' +
+      'Didn\u2019t open? <a href="https://wa.me/919930090487" target="_blank" rel="noopener" style="color:#047857;font-weight:700;">Chat on WhatsApp</a>.';
+    form.appendChild(box);
+  }
+
+  if (window.HotelzzAPI && hotel) {
+    window.HotelzzAPI.auth.me().then(function (r) {
+      bookingTraveler = (r && r.user && r.user.role === 'traveler') ? r.user : null;
+      applyBookingMode();
+    }).catch(function () { applyBookingMode(); });
   }
 
   function showEnquirySuccess(enq) {
@@ -585,8 +678,12 @@
     var box = document.createElement('div');
     box.className = 'enquiry-success';
     box.style.cssText = 'background:#ECFDF5;border:1px solid #A7F3D0;color:#047857;padding:16px;border-radius:10px;font-size:14px;line-height:1.6;';
+    var claimed = hotel.claim_status === 'verified';
     box.innerHTML = '<strong>Enquiry sent to ' + esc(hotel.name) + '.</strong><br/>' +
-      'Reference <strong>' + esc(enq.id) + '</strong>. The hotel replies to you directly — we emailed you a copy. ' +
+      'Reference <strong>' + esc(enq.id) + '</strong>. ' +
+      (claimed ? 'The hotel has been notified and will contact you directly. '
+               : 'The Hotelzz team will confirm availability with the hotel and get back to you. ') +
+      'We emailed you a copy. ' +
       '<a href="user-portal.html#enquiries" style="color:#047857;font-weight:700;">Track it in your portal →</a>';
     if (form) { form.style.display = 'none'; form.parentNode.insertBefore(box, form); }
   }

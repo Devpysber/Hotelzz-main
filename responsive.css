@@ -753,3 +753,16 @@
     z-index: 90;
   }
 }
+
+
+/* Phone menu: search box + account buttons at the top */
+.hz-mnav-search { display: flex; align-items: center; gap: 8px; margin: 14px 16px 6px; padding: 4px 4px 4px 12px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #F8FAFC; }
+.hz-mnav-search:focus-within { border-color: #2563EB; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+.hz-mnav-search svg { width: 18px; height: 18px; color: #94A3B8; flex-shrink: 0; }
+.hz-mnav-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; padding: 9px 0; color: #0F172A; }
+.hz-mnav-search button { border: 0; background: #2563EB; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 14px; padding: 9px 14px; border-radius: 9px; cursor: pointer; }
+.hz-mnav-account { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 16px 6px; }
+.hz-mnav-account a { display: flex; align-items: center; justify-content: center; padding: 11px 10px; border-radius: 10px; font-weight: 700; font-size: 14.5px; text-decoration: none; text-align: center; }
+.hz-mnav-signin { background: #2563EB; color: #FFFFFF !important; }
+.hz-mnav-signup { background: #EFF6FF; color: #2563EB !important; border: 1px solid #BFDBFE; }
+.hz-mnav-account .hz-mnav-acct-name { grid-column: 1 / -1; justify-content: flex-start; padding: 4px 2px; font-size: 13px; color: #64748B; font-weight: 600; }

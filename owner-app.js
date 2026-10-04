@@ -12,6 +12,11 @@
   /** Server timestamps arrive as "YYYY-MM-DD HH:MM:SS" in UTC. */
   const fmt = function (value) {
     if (!value) return '—';
+    // Date-only values (campaign start/end) have no time — don't invent one.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [y, m, dd] = value.split('-').map(Number);
+      return new Date(y, m - 1, dd).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
     const iso = /^\d{4}-\d{2}-\d{2} /.test(value) ? value.replace(' ', 'T') + 'Z' : value;
     const d = new Date(iso);
     if (isNaN(d)) return value;
@@ -440,6 +445,21 @@
     document.getElementById('editPropCity').value = p.city || '';
     document.getElementById('editPropPincode').value = p.pincode || '';
 
+    const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+    setVal('editPropPrice', p.startingPrice || '');
+    setVal('editPolCheckIn', p.checkIn);
+    setVal('editPolCheckOut', p.checkOut);
+    setVal('editPolCancel', p.cancellationPolicy);
+    setVal('editPolPayment', p.paymentPolicy);
+    setVal('editPolId', p.idPolicy);
+    setVal('editPolChildren', p.childPolicy);
+    setVal('editPolPets', p.petPolicy);
+    setVal('editPolSmoking', p.smokingPolicy);
+    const priceHint = document.getElementById('editPropPriceHint');
+    if (priceHint) priceHint.textContent = p.roomPrice
+      ? `Your rooms start at ₹${Number(p.roomPrice).toLocaleString('en-IN')}/night — the listing shows that room rate; this price is used only when no room rates are set.`
+      : 'Guests see "₹… per night + taxes". Leave empty and the listing shows "Price on request".';
+
     renderListingPhotos();
     renderAmenitiesView();
     updateDescCount();
@@ -622,7 +642,16 @@
       pincode: document.getElementById('editPropPincode').value,
       details: {
         category: document.getElementById('editPropType').value,
-        description: document.getElementById('editPropDesc').value
+        description: document.getElementById('editPropDesc').value,
+        startingPrice: Math.max(0, parseInt(document.getElementById('editPropPrice').value, 10) || 0),
+        checkIn: document.getElementById('editPolCheckIn').value.trim(),
+        checkOut: document.getElementById('editPolCheckOut').value.trim(),
+        cancellationPolicy: document.getElementById('editPolCancel').value.trim(),
+        paymentPolicy: document.getElementById('editPolPayment').value.trim(),
+        idPolicy: document.getElementById('editPolId').value.trim(),
+        childPolicy: document.getElementById('editPolChildren').value.trim(),
+        petPolicy: document.getElementById('editPolPets').value.trim(),
+        smokingPolicy: document.getElementById('editPolSmoking').value.trim()
       }
     })
       // Amenities live on their own endpoint, so one Save covers both.
@@ -1196,54 +1225,132 @@
   // 10. Subscriptions & Upgrade Checkout Modal
   let livePlans = null; // fetched once — admin-editable catalogue, not a hardcoded copy
 
+  // Short one-liners under each plan name — keyed by catalogue id.
+  const PLAN_TAGLINES = {
+    free: 'Get listed and receive enquiries',
+    starter: 'Stand out with photos and contact buttons',
+    professional: 'Rank higher and manage every lead',
+    premium: 'Maximum visibility in your destination'
+  };
+  const inr = (n) => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
+  const planAmount = (price) => parseFloat(String(price || '').replace(/[^\d.]/g, '')) || 0;
+  const attr = (v) => String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
   function renderSubscriptionView() {
     const s = currentProp.subscription;
-    document.getElementById('subPlanName').textContent = s.planName;
-    document.getElementById('subPlanPrice').textContent = `${s.price} / ${s.billingCycle}`;
-    document.getElementById('subRenewalDate').textContent = s.renewalDate;
+    const nameEl = document.getElementById('subPropName');
+    if (nameEl) nameEl.textContent = currentProp.name || 'this property';
 
-    const list = document.getElementById('subFeaturesList');
-    if (list) {
-      list.innerHTML = (s.features || []).map(f => `<li>✓ ${f}</li>`).join('');
+    const amount = planAmount(s.price);
+    const isFree = amount === 0;
+    // Plan changes go live straight away with a Pending invoice; show that
+    // honestly instead of a blanket "Active".
+    const dueInvoice = (s.invoices || []).find((i) => i.status === 'Pending' && i.plan === s.planName);
+    const statusHtml = dueInvoice
+      ? '<span class="sub-status due">Payment due</span>'
+      : `<span class="sub-status ok">${s.status || 'Active'}</span>`;
+
+    // Same feature list as the plan's card below (admin-editable catalogue).
+    const catalogue = (livePlans || []).find((p) => p.name === s.planName);
+    const features = (catalogue && catalogue.features && catalogue.features.length) ? catalogue.features : (s.features || []);
+
+    const card = document.getElementById('subCurrentCard');
+    if (card) {
+      card.innerHTML = `
+        <div class="sub-current-top">
+          <div>
+            <div class="sub-current-eyebrow">Current plan</div>
+            <div class="sub-current-name">${s.planName}</div>
+            ${statusHtml}
+          </div>
+          <div class="sub-current-price">
+            <div class="amount">${isFree ? 'Free' : inr(amount)}</div>
+            <div class="per">${isFree ? 'No charges' : 'per ' + String(s.billingCycle || 'Monthly').toLowerCase().replace(/ly$/, '')}</div>
+          </div>
+        </div>
+        ${features.length ? `<ul class="sub-current-features">${features.map((f) => `<li>${f}</li>`).join('')}</ul>` : ''}
+        <div class="sub-current-meta">
+          <div><span>${isFree ? 'Renewal' : 'Next renewal'}</span><strong>${isFree || !s.renewalDate ? 'Not needed' : fmt(s.renewalDate)}</strong></div>
+          <div><span>Billing</span><strong>${isFree ? '—' : (s.billingCycle || 'Monthly')}</strong></div>
+          <div><span>Invoices</span><strong>${(s.invoices || []).length}</strong></div>
+        </div>
+        ${dueInvoice ? `<div class="sub-current-actions">
+          <button class="btn-light" onclick="payPendingSubscription(this)">Pay ${dueInvoice.amount} now</button>
+        </div>` : ''}`;
     }
 
     if (livePlans) return renderPlansComparisonGrid(s.planName);
     window.HotelzzAPI.get('/marketing/plans').then((r) => {
       livePlans = r.plans || [];
-      renderPlansComparisonGrid(s.planName);
+      renderSubscriptionView(); // repaint the current card with catalogue features too
     }).catch(() => { /* comparison grid stays as last render on failure */ });
   }
 
-  // Upgrade cards, built from the real (admin-editable) plan catalogue — this
-  // used to be 3 hardcoded prices, so an admin price change here never
-  // reached the page the owner actually sees.
+  // Plan cards, built from the real (admin-editable) plan catalogue so an
+  // admin price change reaches this page.
   function renderPlansComparisonGrid(currentPlanName) {
     const grid = document.getElementById('plansComparisonGrid');
     if (!grid || !livePlans) return;
-    grid.innerHTML = livePlans.filter((p) => p.price > 0).map((p) => {
+    const plans = livePlans.slice().sort((x, y) => x.price - y.price);
+    const current = plans.find((p) => p.name === currentPlanName);
+    const currentPrice = current ? current.price : 0;
+    const paid = plans.filter((p) => p.price > 0);
+    // "Most popular" goes to the middle paid tier (Professional by default).
+    const popularId = paid.length >= 3 ? paid[Math.floor(paid.length / 2)].id : null;
+
+    grid.innerHTML = plans.map((p) => {
       const isCurrent = p.name === currentPlanName;
-      const priceLabel = `₹${p.price.toLocaleString('en-IN')} / month`;
-      const btn = isCurrent
-        ? '<button class="btn-primary" disabled>Current Active Plan</button>'
-        : `<button class="${p.id === 'premium' ? 'btn-primary' : 'btn-secondary'}" onclick="openUpgradeModal('${p.name.replace(/'/g, "\\'")}', '${priceLabel}')">${p.id === 'premium' ? 'Upgrade to Premium →' : 'Select Plan'}</button>`;
-      return `<div class="room-card" style="padding:20px; ${isCurrent ? 'border-color:var(--owner-primary);' : ''}" data-plan-card="${p.name}">
-          <h3>${p.name}</h3>
-          <div style="font-size:22px; font-weight:800; color:var(--owner-primary); margin:8px 0;">₹${p.price.toLocaleString('en-IN')} / mo</div>
-          <ul style="font-size:12.5px; color:var(--owner-text-muted); list-style:none; margin:0 0 12px; padding:0;">${(p.features || []).slice(0, 3).map(f => `<li>✓ ${f}</li>`).join('')}</ul>
+      const isPopular = !isCurrent && p.id === popularId;
+      const ribbon = isCurrent ? 'YOUR PLAN' : isPopular ? 'MOST POPULAR' : '';
+      let btn;
+      if (isCurrent) btn = '<button class="sub-plan-current-btn" disabled>✓ Current plan</button>';
+      else if (p.price === 0) btn = ''; // never offer a self-serve downgrade to free
+      else {
+        const label = p.price > currentPrice ? `Upgrade to ${p.name.replace(/ Plan$/, '')}` : `Switch to ${p.name.replace(/ Plan$/, '')}`;
+        btn = `<button class="${isPopular || p.price > currentPrice ? 'btn-primary' : 'btn-secondary'}" data-plan-name="${attr(p.name)}" onclick="openUpgradeModal(this.dataset.planName)">${label} →</button>`;
+      }
+      return `
+        <div class="sub-plan ${isCurrent ? 'current' : ''} ${isPopular ? 'popular' : ''}" data-plan-card="${attr(p.name)}">
+          ${ribbon ? `<div class="sub-plan-ribbon">${ribbon}</div>` : ''}
+          <div class="sub-plan-name">${p.name}</div>
+          <div class="sub-plan-tagline">${PLAN_TAGLINES[p.id] || ''}</div>
+          <div class="sub-plan-price">
+            <span class="amount">${p.price ? inr(p.price) : 'Free'}</span>
+            <span class="per">${p.price ? '/ ' + (p.period || 'month') : 'forever'}</span>
+          </div>
+          <ul class="sub-feature-list">${(p.features || []).map((f) => `<li>${f}</li>`).join('')}</ul>
           ${btn}
         </div>`;
     }).join('');
   }
 
+  /** Re-opens checkout for the plan's unpaid invoice. */
+  window.payPendingSubscription = function (btn) {
+    if (btn) { btn.disabled = true; btn.textContent = 'Opening…'; }
+    window.HotelzzAPI.payments.checkout({ purpose: 'subscription', referenceId: activePropId, propertyId: activePropId })
+      .then((result) => data.load().then(() => result))
+      .then((result) => {
+        loadPropertyData(activePropId);
+        showToast(result.mode === 'paid' ? 'Payment received — thank you!' : (result.message || 'Recorded. Our team will confirm your payment.'));
+      })
+      .catch((err) => { showToast(err.message, 'warning'); loadPropertyData(activePropId); });
+  };
+
   let pendingPlan = null;
 
   window.openUpgradeModal = function (planName, price) {
+    const plan = (livePlans || []).find((p) => p.name === planName);
+    if (!price && plan) price = `${inr(plan.price)} / ${plan.period || 'month'}`;
     pendingPlan = { planName: planName, price: price };
     const modal = document.getElementById('upgradeModal');
     const nameEl = document.getElementById('checkoutPlanName');
     const priceEl = document.getElementById('checkoutPlanPrice');
+    const featEl = document.getElementById('checkoutPlanFeatures');
     if (nameEl) nameEl.textContent = planName;
     if (priceEl) priceEl.textContent = price;
+    if (featEl) featEl.innerHTML = ((plan && plan.features) || []).map((f) => `<li>${f}</li>`).join('');
+    const btn = document.getElementById('checkoutConfirmBtn');
+    if (btn) { btn.disabled = false; btn.textContent = 'Confirm & pay'; }
     if (modal) { modal.classList.add('show'); return; }
     // No checkout modal on this page — confirm straight away.
     if (window.confirm(`Request the ${planName} plan at ${price}?`)) confirmPlanUpgrade();
@@ -1258,6 +1365,8 @@
     // catalogue the comparison cards render from.
     const catalogueMatch = (livePlans || []).find((p) => p.name === plan.planName);
     const features = catalogueMatch ? catalogueMatch.features : [];
+    const confirmBtn = document.getElementById('checkoutConfirmBtn');
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Processing…'; }
 
     data.changePlan(activePropId, { planName: plan.planName, price: plan.price, billingCycle: 'Monthly', features: features })
       .then(() => window.HotelzzAPI.payments.checkout({
@@ -1274,6 +1383,7 @@
       })
       .catch((err) => {
         // The plan change is saved either way; only the payment step failed.
+        if (document.getElementById('upgradeModal')) closeModal('upgradeModal');
         loadPropertyData(activePropId);
         fail(err);
       });
@@ -1281,6 +1391,12 @@
 
   // 11. Public Property Preview Modal (`Preview Listing`)
   window.openPublicPreviewModal = function () {
+    // Show the real public page — the only preview guaranteed to match what
+    // travellers see (saved changes appear there immediately).
+    if (currentProp && currentProp.id) {
+      window.open('property.html?id=' + encodeURIComponent(currentProp.id), '_blank', 'noopener');
+      return;
+    }
     const p = currentProp;
     const modal = document.getElementById('previewModal');
     const body = document.getElementById('previewModalBody');
@@ -1322,36 +1438,71 @@
     if (!tbody) return;
 
     const sub = currentProp.subscription || {};
-    const invoices = sub.invoices || [];
-    const paid = invoices.filter((i) => String(i.status).toLowerCase() === 'paid');
+    const amountOf = (v) => parseFloat(String(v || '').replace(/[^\d.]/g, '')) || 0;
+    const inr = (n) => '₹' + Math.round(n || 0).toLocaleString('en-IN');
 
+    // One ledger: plan invoices + Grow Business campaign purchases.
+    const rows = (sub.invoices || []).map((inv) => ({
+      number: inv.number || inv.id,
+      kind: 'Subscription',
+      item: inv.plan || 'Hotelzz plan',
+      date: inv.date,
+      amount: amountOf(inv.amount),
+      amountLabel: inv.amount,
+      paid: String(inv.status).toLowerCase() === 'paid',
+      statusLabel: inv.status,
+      href: '/api/owner/invoices/' + encodeURIComponent(inv.number || inv.id),
+      payCampaign: null
+    })).concat(window.HotelzzMarketingStore.getCampaignsForProperty(currentProp.id).map((c) => ({
+      number: c.id,
+      kind: 'Grow Business',
+      item: `${c.packageName} · ${c.duration}`,
+      date: c.createdAt,
+      amount: Number(c.total) || 0,
+      amountLabel: inr(c.total) + ' <small style="color:var(--owner-text-muted);">incl. GST</small>',
+      paid: !!c.paid,
+      statusLabel: c.paid ? 'Paid' : (c.payment && c.payment.status === 'manual' ? 'Awaiting confirmation' : 'Pending'),
+      href: '/api/owner/campaigns/' + encodeURIComponent(c.id) + '/invoice',
+      payCampaign: c.paid ? null : c.id
+    })));
+    rows.sort((x, y) => String(y.date || '').localeCompare(String(x.date || '')));
+
+    const totalPaid = rows.filter((r) => r.paid).reduce((t, r) => t + r.amount, 0);
+    const outstanding = rows.filter((r) => !r.paid).reduce((t, r) => t + r.amount, 0);
     statStrip('billingStats', [
-      { label: 'Current plan', value: sub.planName || 'Free Listing' },
-      { label: 'Billing', value: sub.price || '\u20B90' , sub: sub.billingCycle || 'monthly' },
-      { label: 'Invoices', value: invoices.length },
-      { label: 'Next renewal', value: sub.renewalDate ? fmt(sub.renewalDate) : '\u2014' }
+      { label: 'Current plan', value: sub.planName || 'Free Listing', sub: sub.renewalDate ? 'Renews ' + fmt(sub.renewalDate) : '' },
+      { label: 'Total paid', value: inr(totalPaid), sub: `${rows.filter((r) => r.paid).length} paid of ${rows.length}` },
+      { label: 'Outstanding', value: inr(outstanding), sub: outstanding ? 'Pay from the list below' : 'Nothing due' },
+      { label: 'Campaign purchases', value: rows.filter((r) => r.kind === 'Grow Business').length, sub: 'Grow Business' }
     ]);
 
-    if (!invoices.length) {
-      tbody.innerHTML = emptyRow(5, {
+    if (!rows.length) {
+      tbody.innerHTML = emptyRow(6, {
         icon: '\u{1F9FE}',
         title: 'No invoices yet',
-        text: 'You are on the free listing, so there is nothing to bill. Invoices appear here once you upgrade.',
+        text: 'Plan upgrades and Grow Business campaign purchases are billed here.',
         action: { label: 'See plans', onclick: "switchView('subscription')" }
       });
       return;
     }
 
-    tbody.innerHTML = invoices.map((inv) => `
+    tbody.innerHTML = rows.map((r) => `
       <tr>
-        <td data-label="Invoice" style="font-weight:700;">${inv.number || inv.id}</td>
-        <td data-label="Billed on">${fmt(inv.date)}</td>
-        <td data-label="Amount">${inv.amount}</td>
-        <td data-label="Status"><span class="badge ${String(inv.status).toLowerCase() === 'paid' ? 'badge-success' : 'badge-warning'}">${inv.status}</span></td>
-        <td data-label="Download"><a class="btn-secondary btn-tiny" target="_blank" rel="noopener" href="/api/owner/invoices/${encodeURIComponent(inv.number)}">Download</a></td>
+        <td data-label="Invoice" style="font-weight:700;">${r.number}</td>
+        <td data-label="For"><span class="badge ${r.kind === 'Subscription' ? 'badge-info' : 'badge-gray'}">${r.kind}</span><div style="font-size:12.5px; margin-top:4px;">${r.item}</div></td>
+        <td data-label="Billed on">${fmt(r.date)}</td>
+        <td data-label="Amount">${r.amountLabel}</td>
+        <td data-label="Status"><span class="badge ${r.paid ? 'badge-success' : 'badge-warning'}">${r.statusLabel}</span></td>
+        <td data-label="Actions" style="white-space:nowrap;">
+          <a class="btn-secondary btn-tiny" target="_blank" rel="noopener" href="${r.href}">Download</a>
+          ${r.payCampaign ? `<button class="btn-primary btn-tiny" onclick="payForCampaign('${r.payCampaign}', this)">Pay</button>` : ''}
+        </td>
       </tr>
     `).join('');
   }
+
+  // Campaign purchases/payments refresh the marketing store — keep Billing in step.
+  window.addEventListener('hotelzz:marketing-updated', () => { if (currentProp) renderBillingView(); });
 
   // Scoped to the currently selected property only — data.recentActivity is
   // a combined feed across every property this account can see (real for an
@@ -1397,7 +1548,8 @@
   // GROW BUSINESS & MARKETING LOGIC
   let currentPurchasePkg = null;
   let currentPurchaseDuration = 30;
-  let currentPurchasePrice = 13999;
+  let currentPurchaseLabel = '30 Days';
+  let currentPurchasePrice = 0;
   let currentTargetLocations = ["Mumbai", "Pune"];
   let currentAudienceList = ["Families", "Couples", "Business Travelers"];
 
@@ -1423,7 +1575,11 @@
   function renderOwnerPackagesGrid() {
     const container = document.getElementById('ownerPackagesGrid');
     if (!container) return;
-    const pkgs = window.HotelzzMarketingStore.getPackages();
+    const pkgs = window.HotelzzMarketingStore.getPackages().filter(p => p.active !== false);
+    if (!pkgs.length) {
+      container.innerHTML = '<div style="padding:24px; color:var(--owner-text-muted);">No marketing packages are available right now.</div>';
+      return;
+    }
 
     container.innerHTML = pkgs.map((p, idx) => `
       <div class="mkt-package-card ${p.recommended ? 'recommended' : ''}">
@@ -1437,12 +1593,12 @@
             <div class="pkg-kpi-row"><span>Est. Reach:</span> <span>${p.estimatedReach}</span></div>
             <div class="pkg-kpi-row"><span>Est. Leads:</span> <span>${p.estimatedLeads}</span></div>
             <div class="pkg-kpi-row"><span>WhatsApp Enquiries:</span> <span>${p.estimatedWhatsAppEnquiries}</span></div>
-            <div class="pkg-kpi-row"><span>Platforms:</span> <span>${p.platforms.join(', ')}</span></div>
+            <div class="pkg-kpi-row"><span>Platforms:</span> <span>${(p.platforms || []).join(', ')}</span></div>
           </div>
         </div>
 
         <div>
-          <div class="pkg-price-tag">₹${p.startingPrice.toLocaleString('en-IN')} <small>/ campaign</small></div>
+          <div class="pkg-price-tag"><small>from</small> ₹${Number(p.startingPrice || 0).toLocaleString('en-IN')} <small>/ campaign</small></div>
           <button class="btn-primary" style="width:100%; justify-content:center;" onclick="openCampaignPurchaseModal('${p.id}')">Choose Package →</button>
         </div>
       </div>
@@ -1452,8 +1608,7 @@
   window.openCampaignPurchaseModal = function (pkgId) {
     const pkgs = window.HotelzzMarketingStore.getPackages();
     currentPurchasePkg = pkgs.find(p => p.id === pkgId) || pkgs[0];
-    currentPurchaseDuration = 30;
-    currentPurchasePrice = 13999;
+    renderDurationOptions();
     currentTargetLocations = [currentProp.city || "Mumbai", "Pune"];
     currentAudienceList = ["Families", "Couples", "Business Travelers"];
 
@@ -1468,18 +1623,46 @@
     document.getElementById('campaignPurchaseModal').classList.add('show');
   };
 
-  window.selectDurationOption = function (el, days, price) {
+  /** "10 Days" → 10, "3 Months" → 90 (mirrors labelToDays in routes/marketing.js). */
+  function durationDays(label) {
+    const m = String(label || '').match(/(\d+)\s*(day|week|month)/i);
+    if (!m) return null;
+    const n = parseInt(m[1], 10);
+    return /month/i.test(m[2]) ? n * 30 : /week/i.test(m[2]) ? n * 7 : n;
+  }
+
+  /** Duration cards come from the selected package — the server charges these exact prices. */
+  function durationChoices(pkg) {
+    const list = (pkg.durations || []).filter(d => !d.custom && durationDays(d.label) && Number(d.price) > 0);
+    return list.length ? list : [{ label: '30 Days', price: Number(pkg.startingPrice) || 0, recommended: true }];
+  }
+
+  function renderDurationOptions() {
+    const grid = document.getElementById('durationOptionsGrid');
+    const choices = durationChoices(currentPurchasePkg);
+    const pick = choices.findIndex(d => d.recommended);
+    const selected = pick === -1 ? 0 : pick;
+    if (grid) {
+      grid.innerHTML = choices.map((d, i) => `
+        <div class="duration-card${i === selected ? ' selected' : ''}" onclick="selectDurationOption(this, ${i})">
+          ${d.recommended ? '<span class="dur-badge">RECOMMENDED</span>' : ''}
+          <div class="dur-title">${d.label}</div>
+          <div class="dur-price">₹${Number(d.price).toLocaleString('en-IN')}${d.origPrice ? ` <span style="font-size:11px; text-decoration:line-through; color:#94A3B8;">₹${Number(d.origPrice).toLocaleString('en-IN')}</span>` : ''}</div>
+        </div>`).join('');
+    }
+    applyDuration(choices[selected]);
+  }
+
+  function applyDuration(d) {
+    currentPurchaseLabel = d.label;
+    currentPurchaseDuration = durationDays(d.label) || 30;
+    currentPurchasePrice = Number(d.price) || 0;
+  }
+
+  window.selectDurationOption = function (el, idx) {
     document.querySelectorAll('.duration-card').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
-    currentPurchaseDuration = days;
-    currentPurchasePrice = price;
-
-    // Recalculate estimates
-    const mult = days / 30;
-    document.getElementById('estReach').textContent = `${Math.round(100000 * mult).toLocaleString('en-IN')}+`;
-    document.getElementById('estImpressions').textContent = `${Math.round(400000 * mult).toLocaleString('en-IN')}+`;
-    document.getElementById('estLeads').textContent = `${Math.round(150 * mult)}–${Math.round(250 * mult)}`;
-    document.getElementById('estWhatsapp').textContent = `${Math.round(100 * mult)}–${Math.round(200 * mult)}`;
+    applyDuration(durationChoices(currentPurchasePkg)[idx]);
   };
 
   window.addLocationChip = function () {
@@ -1538,7 +1721,7 @@
     if (stepNum === 2) {
       document.getElementById('sumPropName').textContent = currentProp.name;
       document.getElementById('sumPkgName').textContent = currentPurchasePkg.name;
-      document.getElementById('sumDuration').textContent = `${currentPurchaseDuration} Days`;
+      document.getElementById('sumDuration').textContent = currentPurchaseLabel;
       document.getElementById('sumPrice').textContent = `₹${currentPurchasePrice.toLocaleString('en-IN')}`;
       const gst = Math.round(currentPurchasePrice * 0.18);
       document.getElementById('sumGst').textContent = `₹${gst.toLocaleString('en-IN')}`;
@@ -1547,18 +1730,13 @@
 
     if (stepNum === 3) {
       document.getElementById('payPkgName').textContent = currentPurchasePkg.name;
-      document.getElementById('payDuration').textContent = `${currentPurchaseDuration} Days`;
+      document.getElementById('payDuration').textContent = currentPurchaseLabel;
       document.getElementById('payLocations').textContent = currentTargetLocations.join(', ');
       document.getElementById('payAmount').textContent = `₹${currentPurchasePrice.toLocaleString('en-IN')}`;
       const gst = Math.round(currentPurchasePrice * 0.18);
       document.getElementById('payGst').textContent = `₹${gst.toLocaleString('en-IN')}`;
       document.getElementById('payTotal').textContent = `₹${(currentPurchasePrice + gst).toLocaleString('en-IN')}`;
     }
-  };
-
-  window.selectPayMethod = function (el) {
-    document.querySelectorAll('.payment-method-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
   };
 
   window.simulateLaunchCampaign = function () {
@@ -1570,8 +1748,7 @@
       propertyId: currentProp.id,
       packageId: currentPurchasePkg.id,
       durationDays: currentPurchaseDuration,
-      durationLabel: currentPurchaseDuration + ' Days',
-      amount: currentPurchasePrice,
+      durationLabel: currentPurchaseLabel,
       targetLocations: currentTargetLocations.slice(),
       audience: currentAudienceList.slice(),
       gender: (document.getElementById('genderSelect') || {}).value || 'All',
@@ -1589,6 +1766,17 @@
       if (btn) { btn.disabled = false; btn.textContent = label; }
       const idEl = document.getElementById('successCampId');
       if (idEl) idEl.textContent = camp.id;
+      const paid = out.result.mode === 'paid';
+      const setText = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+      setText('successTitle', paid ? 'Payment Successful — Campaign Submitted!' : 'Campaign Saved — Payment Not Completed');
+      setText('successLine', paid
+        ? 'Your payment was received and your campaign is with the Hotelzz marketing team.'
+        : 'Your campaign is saved. Finish the payment any time with "Pay now" under My Campaigns.');
+      const badge = document.getElementById('successPayStatus');
+      if (badge) {
+        badge.textContent = paid ? 'Payment Successful' : (out.result.mode === 'manual' ? 'Awaiting confirmation' : 'Payment pending');
+        badge.className = 'badge ' + (paid ? 'badge-success' : 'badge-warning');
+      }
       const form = document.getElementById('paymentFormState');
       const success = document.getElementById('paymentSuccessState');
       if (form) form.style.display = 'none';
@@ -1620,25 +1808,33 @@
       return;
     }
 
+    const statusBadge = { Active: 'badge-success', Completed: 'badge-info', Paused: 'badge-gray' };
+    const num = v => Number(v || 0).toLocaleString('en-IN');
     container.innerHTML = list.map(c => `
       <div style="background:#FFF; border:1px solid var(--owner-border); border-radius:10px; padding:20px; margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
           <div>
-            <span class="badge ${c.campaignStatus === 'Active' ? 'badge-success' : 'badge-warning'}">${c.campaignStatus}</span>
+            <span class="badge ${statusBadge[c.campaignStatus] || 'badge-warning'}">${c.campaignStatus === 'Pending' ? 'Pending review' : c.campaignStatus}</span>
             <h3 style="font-size:17px; font-weight:800; margin-top:4px;">${c.packageName} (${c.duration})</h3>
-            <div style="font-size:12px; color:var(--owner-text-muted);">ID: ${c.id} • Target Locations: ${c.targetLocations.join(', ')}</div>
+            <div style="font-size:12px; color:var(--owner-text-muted);">ID: ${c.id} • Target Locations: ${(c.targetLocations || []).join(', ') || '—'}</div>
+            <div style="font-size:12px; color:var(--owner-text-muted);">${c.campaignStatus === 'Pending' ? 'Requested ' + fmt(c.createdAt) : `Runs ${fmt(c.startDate)} → ${fmt(c.endDate)}`}</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:18px; font-weight:800; color:var(--owner-primary);">₹${c.total.toLocaleString('en-IN')}</div>
-            <div style="font-size:11px; color:#10B981; font-weight:700;">✓ Payment Verified</div>
+            <div style="font-size:18px; font-weight:800; color:var(--owner-primary);">₹${num(c.total)}</div>
+            ${c.paid
+              ? '<div style="font-size:11px; color:#10B981; font-weight:700;">✓ Payment received</div>'
+              : `<div style="font-size:11px; color:#D97706; font-weight:700;">${c.payment && c.payment.status === 'manual' ? 'Awaiting payment confirmation' : 'Payment pending'}</div>
+                 <button class="btn-primary" style="margin-top:6px; padding:4px 10px; font-size:12px;" onclick="payForCampaign('${c.id}', this)">Pay now</button>`}
           </div>
         </div>
 
-        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; background:#F8FAFC; padding:12px; border-radius:8px; margin-bottom:14px; text-align:center;">
-          <div><div style="font-size:11px; color:#64748B;">Reach</div><div style="font-size:16px; font-weight:800;">${c.kpis.reach.toLocaleString('en-IN')}</div></div>
-          <div><div style="font-size:11px; color:#64748B;">Impressions</div><div style="font-size:16px; font-weight:800;">${c.kpis.impressions.toLocaleString('en-IN')}</div></div>
-          <div><div style="font-size:11px; color:#64748B;">Leads</div><div style="font-size:16px; font-weight:800; color:#10B981;">${c.kpis.leads}</div></div>
-          <div><div style="font-size:11px; color:#64748B;">WhatsApp</div><div style="font-size:16px; font-weight:800; color:#2563EB;">${c.kpis.whatsappEnquiries}</div></div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(90px, 1fr)); gap:10px; background:#F8FAFC; padding:12px; border-radius:8px; margin-bottom:14px; text-align:center;">
+          <div><div style="font-size:11px; color:#64748B;">Reach</div><div style="font-size:16px; font-weight:800;">${num(c.kpis.reach)}</div></div>
+          <div><div style="font-size:11px; color:#64748B;">Impressions</div><div style="font-size:16px; font-weight:800;">${num(c.kpis.impressions)}</div></div>
+          <div><div style="font-size:11px; color:#64748B;">Clicks</div><div style="font-size:16px; font-weight:800;">${num(c.kpis.clicks)}</div></div>
+          <div><div style="font-size:11px; color:#64748B;">Leads</div><div style="font-size:16px; font-weight:800; color:#10B981;">${num(c.kpis.leads)}</div></div>
+          <div><div style="font-size:11px; color:#64748B;">WhatsApp</div><div style="font-size:16px; font-weight:800; color:#2563EB;">${num(c.kpis.whatsappEnquiries)}</div></div>
+          <div><div style="font-size:11px; color:#64748B;">Enquiries</div><div style="font-size:16px; font-weight:800; color:#7C3AED;">${num(c.kpis.enquiries)}</div></div>
         </div>
 
         <h4 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--owner-text-muted); margin-bottom:6px;">Campaign Lifecycle Progress Timeline</h4>
@@ -1653,6 +1849,20 @@
       </div>
     `).join('');
   }
+
+  /** Re-opens checkout for a campaign whose payment never completed. */
+  window.payForCampaign = function (campId, btn) {
+    if (btn) { btn.disabled = true; btn.textContent = 'Opening…'; }
+    window.HotelzzAPI.payments.checkout({ purpose: 'campaign', referenceId: campId, propertyId: currentProp.id })
+      .then((result) => {
+        showToast(result.mode === 'paid'
+          ? `Payment received for ${campId} — we email you when the ads go live.`
+          : (result.message || 'Recorded. Our team will confirm your payment.'));
+      })
+      .catch((err) => showToast(err.message, 'warning'))
+      .then(() => window.HotelzzMarketingStore.refresh())
+      .then(renderOwnerCampaignsList);
+  };
 
   function renderOwnerMarketingLeads() {
     const tbody = document.getElementById('mktLeadsTableBody');

@@ -61,6 +61,22 @@
     .auth-alert.success { background: #ECFDF5; color: #047857; border-color: #A7F3D0; }
     .auth-footer { text-align: center; padding: 20px; font-size: 12.5px; color: #94A3B8; }
 
+    /* Password / OTP switch */
+    .mode-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: #F1F5F9; padding: 4px; border-radius: 10px; margin-bottom: 20px; }
+    .mode-tab { border: none; background: transparent; padding: 9px 10px; border-radius: 8px; font: inherit; font-size: 13.5px; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: background .15s, color .15s; }
+    .mode-tab.active { background: #FFF; color: var(--text); box-shadow: 0 1px 3px rgba(15,23,42,.12); }
+    .mode-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+    .label-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+    .label-row label { margin-bottom: 0 !important; }
+    .link-btn { background: none; border: none; padding: 0; font: inherit; font-size: 12.5px; font-weight: 700; color: #2563EB; cursor: pointer; }
+    .link-btn:hover { text-decoration: underline; }
+    .link-btn[disabled] { color: #94A3B8; cursor: default; text-decoration: none; }
+    .form-hint { font-size: 12.5px; color: var(--text-muted); margin: -4px 0 14px; line-height: 1.5; }
+    .otp-input { letter-spacing: 0.5em; font-size: 20px; font-weight: 800; text-align: center; }
+    .sub-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 12.5px; color: var(--text-muted); }
+    .back-row { margin-top: 16px; text-align: center; }
+    [hidden] { display: none !important; }
+
     @media (max-width: 480px) {
       .auth-header { padding: 0 16px; }
       .auth-card { padding: 28px 18px; margin: 0 10px; }
@@ -83,10 +99,53 @@
 
         <div id="authAlert" class="auth-alert" style="display:none;"></div>
 
-        <form id="formAdminLogin">
-          <div class="form-group"><label>Admin Username / Email</label><input type="text" name="identifier" class="form-control" placeholder="admin@hotelzz.in" autocomplete="username" required /></div>
-          <div class="form-group"><label>Admin Secret Key</label><input type="password" name="password" class="form-control" placeholder="••••••••" autocomplete="current-password" required /></div>
+        <!-- Sign-in method (password is the default) -->
+        <div class="mode-tabs" role="tablist" id="modeTabs">
+          <button type="button" class="mode-tab active" role="tab" aria-selected="true" data-mode="password">Password</button>
+          <button type="button" class="mode-tab" role="tab" aria-selected="false" data-mode="otp">Email OTP</button>
+        </div>
+
+        <!-- 1. PASSWORD -->
+        <form id="formAdminLogin" data-panel="password" novalidate>
+          <div class="form-group"><label for="pwIdentifier">Admin Username / Email</label><input type="text" id="pwIdentifier" name="identifier" class="form-control" placeholder="admin@hotelzz.in" autocomplete="username" required /></div>
+          <div class="form-group">
+            <div class="label-row">
+              <label for="pwPassword">Admin Secret Key</label>
+              <button type="button" class="link-btn" onclick="showMode('forgot')">Forgot password?</button>
+            </div>
+            <input type="password" id="pwPassword" name="password" class="form-control" placeholder="••••••••" autocomplete="current-password" required />
+          </div>
           <button type="submit" class="btn-submit">Login to Admin Operations →</button>
+          <div class="back-row" style="margin-top:14px; font-size:12.5px; color:var(--text-muted);">
+            Forgot your password? <button type="button" class="link-btn" onclick="showMode('forgot')">Reset it by email →</button>
+          </div>
+        </form>
+
+        <!-- 2. EMAIL OTP — step 1: send the code -->
+        <form id="formOtpRequest" data-panel="otp" novalidate hidden>
+          <div class="form-group"><label for="otpIdentifier">Admin Email</label><input type="email" id="otpIdentifier" class="form-control" placeholder="admin@hotelzz.in" autocomplete="username" required /></div>
+          <p class="form-hint">We'll email a 6-digit sign-in code to this address.</p>
+          <button type="submit" class="btn-submit">Send OTP →</button>
+        </form>
+
+        <!-- 2. EMAIL OTP — step 2: enter the code -->
+        <form id="formOtpVerify" data-panel="otp-verify" novalidate hidden>
+          <p class="form-hint" style="margin-top:0;">Code sent to <strong id="otpSentTo"></strong>. It expires in <span id="otpTtl">10</span> minutes.</p>
+          <div class="form-group"><label for="otpCode">6-digit code</label><input type="text" id="otpCode" class="form-control otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" required /></div>
+          <button type="submit" class="btn-submit">Verify &amp; Login →</button>
+          <div class="sub-actions">
+            <button type="button" class="link-btn" onclick="showMode('otp')">← Change email</button>
+            <button type="button" class="link-btn" id="otpResendBtn" onclick="resendOtp()">Resend code</button>
+          </div>
+        </form>
+
+        <!-- 3. FORGOT PASSWORD -->
+        <form id="formForgot" data-panel="forgot" novalidate hidden>
+          <h3 style="font-size:16px; font-weight:800; margin-bottom:4px;">Reset your password</h3>
+          <p class="form-hint" style="margin:0 0 16px;">Enter your admin email and we'll send a link to set a new password. The link is valid for 60 minutes.</p>
+          <div class="form-group"><label for="forgotEmail">Admin Email</label><input type="email" id="forgotEmail" class="form-control" placeholder="admin@hotelzz.in" autocomplete="username" required /></div>
+          <button type="submit" class="btn-submit">Send reset link →</button>
+          <div class="back-row"><button type="button" class="link-btn" onclick="showMode('password')">← Back to sign in</button></div>
         </form>
       </div>
     </div>
@@ -115,23 +174,136 @@
       return fallback;
     }
 
-    var form = document.getElementById('formAdminLogin');
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      clearAlert();
+    /** Disables a form's submit button while `promise` runs. */
+    function busy(form, promise) {
       var btn = form.querySelector('button[type=submit]');
       var label = btn.textContent;
       btn.disabled = true; btn.textContent = 'Please wait…';
-      var d = {};
-      new FormData(form).forEach(function (v, k) { d[k] = String(v).trim(); });
+      return promise.then(function (v) { btn.disabled = false; btn.textContent = label; return v; },
+                          function (err) { btn.disabled = false; btn.textContent = label; throw err; });
+    }
+    function val(id) { return document.getElementById(id).value.trim(); }
+    var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-      API.auth.login('admin', d.identifier, d.password)
-        .then(function (r) { window.location.href = nextUrl(r.redirect || '/admin.html'); })
-        .catch(function (err) {
-          alertBox(err.message || 'Something went wrong. Try again.');
-          btn.disabled = false; btn.textContent = label;
-        });
+    // ----------------------------------------------------------- mode switch
+    var PANELS = { password: 'password', otp: 'otp', 'otp-verify': 'otp-verify', forgot: 'forgot' };
+    window.showMode = function (mode) {
+      clearAlert();
+      document.querySelectorAll('[data-panel]').forEach(function (f) { f.hidden = f.getAttribute('data-panel') !== PANELS[mode]; });
+      // Tabs stay on the method in use; the forgot form hides them.
+      var tabMode = mode === 'otp-verify' ? 'otp' : mode;
+      document.getElementById('modeTabs').hidden = mode === 'forgot';
+      document.querySelectorAll('.mode-tab').forEach(function (t) {
+        var on = t.getAttribute('data-mode') === tabMode;
+        t.classList.toggle('active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      // Carry the email typed in one form into the others.
+      var known = val('pwIdentifier') || val('otpIdentifier') || val('forgotEmail');
+      if (known && EMAIL_RE.test(known)) {
+        ['otpIdentifier', 'forgotEmail'].forEach(function (id) { if (!val(id)) document.getElementById(id).value = known; });
+      }
+      var first = { password: 'pwIdentifier', otp: 'otpIdentifier', 'otp-verify': 'otpCode', forgot: 'forgotEmail' }[mode];
+      var el = document.getElementById(first);
+      if (el) setTimeout(function () { el.focus(); }, 30);
+    };
+    document.querySelectorAll('.mode-tab').forEach(function (t) {
+      t.addEventListener('click', function () { showMode(t.getAttribute('data-mode')); });
     });
+
+    function signedIn(r) { window.location.href = nextUrl(r.redirect || '/admin.html'); }
+
+    // -------------------------------------------------------------- password
+    var pwForm = document.getElementById('formAdminLogin');
+    pwForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      clearAlert();
+      if (!val('pwIdentifier') || !document.getElementById('pwPassword').value) {
+        return alertBox('Enter your admin email and password.');
+      }
+      busy(pwForm, API.auth.login('admin', val('pwIdentifier'), document.getElementById('pwPassword').value))
+        .then(signedIn)
+        .catch(function (err) { alertBox(err.message || 'Something went wrong. Try again.'); });
+    });
+
+    // ------------------------------------------------------------------- OTP
+    var otpEmail = '';
+    var resendTimer = null;
+
+    function startResendCountdown(seconds) {
+      var btn = document.getElementById('otpResendBtn');
+      clearInterval(resendTimer);
+      var left = seconds;
+      btn.disabled = true; btn.textContent = 'Resend in ' + left + 's';
+      resendTimer = setInterval(function () {
+        left -= 1;
+        if (left <= 0) { clearInterval(resendTimer); btn.disabled = false; btn.textContent = 'Resend code'; return; }
+        btn.textContent = 'Resend in ' + left + 's';
+      }, 1000);
+    }
+
+    function requestOtp(email) {
+      return API.auth.requestOtp(email, 'admin').then(function (r) {
+        otpEmail = email;
+        document.getElementById('otpSentTo').textContent = email;
+        document.getElementById('otpTtl').textContent = r.expiresInMinutes || 10;
+        document.getElementById('otpCode').value = r.devCode || '';
+        startResendCountdown(30);
+        return r;
+      });
+    }
+
+    var otpReqForm = document.getElementById('formOtpRequest');
+    otpReqForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      clearAlert();
+      var email = val('otpIdentifier');
+      if (!EMAIL_RE.test(email)) return alertBox('Enter a valid admin email address.');
+      busy(otpReqForm, requestOtp(email))
+        .then(function () {
+          showMode('otp-verify');
+          alertBox('If this is an admin account, a 6-digit code is on its way to ' + email + '.', 'success');
+        })
+        .catch(function (err) { alertBox(err.message || 'Could not send the code. Try again.'); });
+    });
+
+    window.resendOtp = function () {
+      if (!otpEmail) return showMode('otp');
+      clearAlert();
+      requestOtp(otpEmail)
+        .then(function () { alertBox('A new code has been sent to ' + otpEmail + '.', 'success'); })
+        .catch(function (err) { alertBox(err.message || 'Could not resend the code.'); });
+    };
+
+    var otpCode = document.getElementById('otpCode');
+    otpCode.addEventListener('input', function () { otpCode.value = otpCode.value.replace(/\D/g, '').slice(0, 6); });
+
+    var otpVerifyForm = document.getElementById('formOtpVerify');
+    otpVerifyForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      clearAlert();
+      if (!/^\d{6}$/.test(otpCode.value)) return alertBox('Enter the 6-digit code from the email.');
+      busy(otpVerifyForm, API.auth.verifyOtp(otpEmail, otpCode.value, 'admin'))
+        .then(signedIn)
+        .catch(function (err) { alertBox(err.message || 'That code did not work. Try again.'); });
+    });
+
+    // ------------------------------------------------------- forgot password
+    var forgotForm = document.getElementById('formForgot');
+    forgotForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      clearAlert();
+      var email = val('forgotEmail');
+      if (!EMAIL_RE.test(email)) return alertBox('Enter a valid admin email address.');
+      busy(forgotForm, API.auth.forgotPassword(email, 'admin'))
+        .then(function () {
+          alertBox('If an admin account exists for ' + email + ', a reset link is on its way. Check your inbox (and spam).', 'success');
+        })
+        .catch(function (err) { alertBox(err.message || 'Could not send the reset link. Try again.'); });
+    });
+
+    if (window.location.hash === '#forgot') showMode('forgot');
+    else if (window.location.hash === '#otp') showMode('otp');
 
     // Already signed in as admin — skip the form. A different role's session
     // stays here rather than being bounced into a portal they didn't ask for.
@@ -141,5 +313,6 @@
       }
     }).catch(function () { /* no session — show the form as normal */ });
   </script>
+  <script src="password-toggle.js" defer></script>
 </body>
 </html>

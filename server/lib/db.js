@@ -426,4 +426,18 @@ function mirrorToSheet(userId, action, entity, entityId, meta, ip) {
     .catch((err) => console.warn('[sheet-mirror] failed:', err.message));
 }
 
-module.exports = { db, uid, audit, dbPath };
+// Full lead row → the "Leads" tab (handleLead_ in LEADS-APPS-SCRIPT.gs: a POST
+// with no action). Called for marketing leads and guest booking enquiries so
+// the sales Sheet carries name/phone/email/dates, not just an audit id.
+// Same webhook and same fire-and-forget rules as mirrorToSheet above.
+function pushLeadToSheet(lead) {
+  if (!env.sheetWebhookConfigured) return;
+  const body = new URLSearchParams();
+  ['name', 'hotel', 'location', 'phone', 'email', 'service', 'size', 'notes', 'source', 'page']
+    .forEach((k) => body.set(k, lead[k] == null ? '' : String(lead[k])));
+  body.set('userAgent', 'hotelzz-server');
+  fetch(env.GOOGLE_SHEET_WEBHOOK_URL, { method: 'POST', body })
+    .catch((err) => console.warn('[sheet-lead] failed:', err.message));
+}
+
+module.exports = { db, uid, audit, pushLeadToSheet, dbPath };

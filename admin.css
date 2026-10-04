@@ -1555,3 +1555,9 @@ body.admin-body {
     font-size: 20px;
   }
 }
+
+
+/* Settings → Your Admin Account */
+.acct-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1000px; }
+.acct-grid .admin-card { margin: 0; }
+.acct-error { color: #B91C1C; font-size: 13px; font-weight: 600; min-height: 18px; margin-bottom: 10px; }

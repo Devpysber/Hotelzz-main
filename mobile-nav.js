@@ -49,6 +49,9 @@
 
     function push(entry) {
       if (!entry.label) return;
+      // Links a page script has hidden (e.g. session-nav.js for signed-in
+      // travelers) stay out of the menu too.
+      if (entry.href && header.querySelector('a[href="' + entry.href.replace(/"/g, '\\"') + '"][style*="display: none"]')) return;
       var key = entry.kind + '|' + (entry.href || entry.label);
       if (seen[key]) return;
       seen[key] = true;
@@ -143,6 +146,39 @@
     close.innerHTML = '&times;';
     head.appendChild(close);
     panel.appendChild(head);
+
+    // Search box + Sign in sit at the top of the menu, above the page links.
+    var hasSearch = items.some(function (it) { return it.kind === 'search'; });
+    var isSignIn = function (it) { return it.kind === 'link' && /^login\.html(\?type=traveler|$)/.test(it.href || ''); };
+    var signIn = items.filter(isSignIn)[0];
+    items = items.filter(function (it) { return it.kind !== 'search' && !isSignIn(it); });
+
+    if (hasSearch) {
+      var form = document.createElement('form');
+      form.className = 'hz-mnav-search';
+      form.setAttribute('role', 'search');
+      form.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>' +
+        '<input type="search" name="q" placeholder="Search hotels or cities" aria-label="Search hotels or cities" autocomplete="off" />' +
+        '<button type="submit">Go</button>';
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var q = form.q.value.trim();
+        closeNav();
+        if (window.HZSearch) window.HZSearch.open(q);
+        else { var t = document.querySelector('[data-search-trigger]'); if (t) t.click(); }
+        form.q.value = '';
+      });
+      panel.appendChild(form);
+    }
+
+    if (signIn) {
+      var acct = document.createElement('div');
+      acct.className = 'hz-mnav-account';
+      acct.innerHTML = '<a class="hz-mnav-signin" href="' + signIn.href + '">Sign in</a>' +
+        '<a class="hz-mnav-signup" href="login.html?type=traveler-signup">Create account</a>';
+      panel.appendChild(acct);
+    }
 
     var list = document.createElement('nav');
     list.className = 'hz-mnav-list';

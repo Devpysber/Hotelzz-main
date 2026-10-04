@@ -2,7 +2,7 @@
 const express = require('express');
 const { z } = require('zod');
 const env = require('../lib/env');
-const { db, uid, audit } = require('../lib/db');
+const { db, uid, audit, pushLeadToSheet } = require('../lib/db');
 const A = require('../lib/auth');
 const { limiter, validate, validateQuery, wrap } = require('../lib/http');
 const { sendMailAsync, sendMail } = require('../lib/mailer');
@@ -103,6 +103,12 @@ router.post('/',
 
     addEvent(id, 'Enquiry Sent', 'Delivered to Hotelzz platform.');
     audit(req.user ? req.user.id : null, 'enquiry.create', 'enquiry', id, { propertyId: b.propertyId }, req.ip);
+    pushLeadToSheet({
+      name: b.name, hotel: propertyName, location: b.propertyCity || (property ? property.location : ''),
+      phone: b.phone, email: b.email, service: 'Booking Enquiry', size: b.guests + ' guests',
+      notes: [b.checkIn && b.checkOut ? `${b.checkIn} → ${b.checkOut}` : '', b.message || ''].filter(Boolean).join(' | '),
+      source: 'property_form:' + b.propertyId + ' (' + id + ')', page: 'property'
+    });
 
     const mailData = {
       hotelName: propertyName, guestName: b.name, guestEmail: b.email, guestPhone: b.phone,

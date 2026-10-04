@@ -165,6 +165,18 @@ define('passwordChanged',
       `<p style="line-height:1.6">Hi ${name || 'there'}, your password was just changed. If this wasn't you, contact us immediately.</p>`)
   }));
 
+define('emailChanged',
+  { account: 'info', category: 'Auth', label: 'Sign-in email changed',
+    description: 'Sent to both the old and the new address when an account email changes.',
+    sample: { name: 'Aarav Shah', oldEmail: 'old@example.com', newEmail: 'new@example.com' } },
+  ({ name, oldEmail, newEmail }) => ({
+    subject: 'Your Hotelzz sign-in email was changed',
+    text: `Hi ${name || 'there'}, the sign-in email for your Hotelzz account was changed from ${oldEmail} to ${newEmail}. If this wasn't you, contact support immediately.`,
+    html: layout('Sign-in email changed',
+      `<p style="line-height:1.6">Hi ${name || 'there'}, the sign-in email for your Hotelzz account was changed from <strong>${oldEmail}</strong> to <strong>${newEmail}</strong>.</p>
+       <p style="line-height:1.6">If this wasn't you, contact us immediately.</p>`)
+  }));
+
 /* =========================================================================
    ENQUIRIES — guest side on info@, partner side on support@
    ========================================================================= */

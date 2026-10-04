@@ -84,6 +84,30 @@
       if (loginLink) loginLink.replaceWith(wrap);
       else header.appendChild(wrap);
 
+      // Phone menu: swap its Sign in / Create account buttons for the account.
+      var acct = document.querySelector('#hzMobileNav .hz-mnav-account');
+      if (acct) {
+        acct.innerHTML =
+          '<span class="hz-mnav-acct-name">Signed in as ' + escapeHtml(user.name || user.email) + '</span>' +
+          '<a class="hz-mnav-signin" href="' + portalFor(user.role) + '">My Portal</a>' +
+          '<a class="hz-mnav-signup" href="#" id="hzMnavLogout">Log out</a>';
+        document.getElementById('hzMnavLogout').addEventListener('click', function (ev) {
+          ev.preventDefault();
+          window.HotelzzAPI.auth.logout().then(function () { window.location.reload(); })
+            .catch(function () { window.location.reload(); });
+        });
+      }
+
+      // A signed-in traveler enquires through their account (it goes to the
+      // hotel), so the header's Hotelzz phone and WhatsApp shortcuts go away.
+      if (user.role === 'traveler') {
+        var contactLinks = 'a[href^="tel:"], a[href^="https://wa.me"], a[href^="https://api.whatsapp.com"]';
+        header.querySelectorAll(contactLinks).forEach(function (a) { a.style.display = 'none'; });
+        // The phone menu (mobile-nav.js) may already have copied them.
+        var drawer = document.getElementById('hzMobileNav');
+        if (drawer) drawer.querySelectorAll(contactLinks).forEach(function (a) { a.style.display = 'none'; });
+      }
+
       var btn = document.getElementById('hzSessNavBtn');
       var menu = document.getElementById('hzSessNavMenu');
       btn.addEventListener('click', function (ev) {

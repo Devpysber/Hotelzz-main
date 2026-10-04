@@ -175,8 +175,10 @@
           <div class="user-dropdown-menu" id="userDropdownMenu">
             <div class="dropdown-menu-item" onclick="switchView('settings')">Settings</div>
             <div class="dropdown-menu-item" onclick="switchView('activity')">Activity Log</div>
+            <div class="dropdown-menu-item" onclick="openChangePasswordModal()">Change Password</div>
             <div class="dropdown-divider"></div>
-            <a href="index.html" class="dropdown-menu-item" style="color: #EF4444;">Exit Admin</a>
+            <a href="index.html" class="dropdown-menu-item">Exit to Website</a>
+            <div class="dropdown-menu-item" style="color: #EF4444;" onclick="hzLogout()">Log Out</div>
           </div>
         </div>
       </header>
@@ -299,10 +301,6 @@
             <input type="text" id="propSearchInput" class="filter-input" placeholder="Search property name, ID, city..." style="width: 260px;" oninput="filterProperties()" />
             <select id="propCityFilter" class="filter-select" onchange="filterProperties()">
               <option value="">All Cities</option>
-              <option value="Mumbai">Mumbai</option>
-              <option value="Delhi">Delhi</option>
-              <option value="Bengaluru">Bengaluru</option>
-              <option value="Goa">Goa</option>
             </select>
             <select id="propClaimFilter" class="filter-select" onchange="filterProperties()">
               <option value="">All Claim Statuses</option>
@@ -374,6 +372,18 @@
             <div class="page-title-group">
               <h1>Import Listings</h1>
               <p>Import hotel listings from CSV files with automated duplicate detection, city exclusions, and column mapping.</p>
+            </div>
+          </div>
+
+          <!-- Google Sheet sync -->
+          <div class="admin-card" id="sheetSyncCard" style="margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+              <div style="min-width:0; flex:1;">
+                <div class="card-title">Google Sheet sync</div>
+                <div class="card-subtitle" id="sheetSyncSummary">Checking…</div>
+                <div style="font-size:12px; color: var(--admin-text-muted); margin-top:8px; word-break:break-all;" id="sheetSyncUrls"></div>
+              </div>
+              <button class="btn-primary" id="sheetSyncBtn" onclick="runSheetSync()">Sync now</button>
             </div>
           </div>
 
@@ -862,6 +872,37 @@
             <div class="form-group"><label>Cities excluded from CSV import (comma separated)</label><input type="text" id="setExcludedCities" class="form-control" placeholder="e.g. Mumbai, Pune" /></div>
             <button class="btn-primary" onclick="savePlatformSettings()">Save Settings</button>
           </div>
+        
+          <!-- The signed-in admin's own login -->
+          <div class="page-header" style="margin-top:32px;">
+            <div class="page-title-group">
+              <h1 style="font-size:20px;">Your Admin Account</h1>
+              <p>Change the email and password you use to sign in. Signed in as <strong id="acctCurrentEmail">—</strong>.</p>
+            </div>
+          </div>
+          <div class="acct-grid">
+            <form class="admin-card" id="acctEmailForm" novalidate onsubmit="submitChangeEmail(event)">
+              <div class="card-title" style="margin-bottom:4px;">Sign-in email</div>
+              <div class="card-subtitle" style="margin-bottom:16px;">Login codes and password-reset links go to this address.</div>
+              <div class="form-group"><label for="acctNewEmail">New email</label><input type="email" id="acctNewEmail" class="filter-input" style="width:100%;" autocomplete="email" placeholder="you@hotelzz.in" /></div>
+              <div class="form-group"><label for="acctEmailPw">Current password</label><input type="password" id="acctEmailPw" class="filter-input" style="width:100%;" autocomplete="current-password" /></div>
+              <div class="acct-error" id="acctEmailError"></div>
+              <button type="submit" class="btn-primary" id="acctEmailBtn">Update Email</button>
+            </form>
+
+            <form class="admin-card" id="acctPwForm" novalidate onsubmit="submitSettingsPassword(event)">
+              <div class="card-title" style="margin-bottom:4px;">Password</div>
+              <div class="card-subtitle" style="margin-bottom:16px;">At least 8 characters. You stay signed in on this device.</div>
+              <div class="form-group"><label for="acctPwCurrent">Current password</label><input type="password" id="acctPwCurrent" class="filter-input" style="width:100%;" autocomplete="current-password" /></div>
+              <div class="form-group"><label for="acctPwNew">New password</label><input type="password" id="acctPwNew" class="filter-input" style="width:100%;" autocomplete="new-password" /></div>
+              <div class="form-group"><label for="acctPwConfirm">Confirm new password</label><input type="password" id="acctPwConfirm" class="filter-input" style="width:100%;" autocomplete="new-password" /></div>
+              <div class="acct-error" id="acctPwError"></div>
+              <button type="submit" class="btn-primary" id="acctPwBtn">Update Password</button>
+              <div style="margin-top:12px; font-size:12.5px; color:var(--admin-text-muted);">
+                Forgot your current password? <a href="#" onclick="forgotFromPanel(); return false;" style="color:var(--admin-primary); font-weight:700;">Reset it by email</a>
+              </div>
+            </form>
+          </div>
         </section>
 
         <!-- ADMIN MARKETING MANAGEMENT VIEW -->
@@ -878,9 +919,12 @@
           <div class="kpi-grid" style="margin-bottom: 20px;">
             <div class="kpi-card"><div class="kpi-label">Total Campaigns</div><div class="kpi-value" id="admTotalCamps">—</div></div>
             <div class="kpi-card"><div class="kpi-label">Active Campaigns</div><div class="kpi-value" style="color: #10B981;" id="admActiveCamps">—</div></div>
-            <div class="kpi-card"><div class="kpi-label">Marketing Revenue</div><div class="kpi-value" style="color: var(--admin-primary);" id="admMktRev">—</div></div>
-            <div class="kpi-card"><div class="kpi-label">Leads Generated</div><div class="kpi-value" style="color: #F59E0B;" id="admMktLeads">—</div></div>
-            <div class="kpi-card"><div class="kpi-label">Avg Cost Per Lead</div><div class="kpi-value" id="admCostPerLead">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Pending Review</div><div class="kpi-value" style="color: #F59E0B;" id="admPendingCamps">—</div><div style="font-size:12px; color:var(--admin-text-muted); margin-top:4px;" id="admPendingSub"></div></div>
+            <div class="kpi-card"><div class="kpi-label">Completed</div><div class="kpi-value" id="admCompletedCamps">—</div><div style="font-size:12px; color:var(--admin-text-muted); margin-top:4px;" id="admPausedSub"></div></div>
+            <div class="kpi-card"><div class="kpi-label">Marketing Revenue (paid)</div><div class="kpi-value" style="color: var(--admin-primary);" id="admMktRev">—</div><div style="font-size:12px; color:var(--admin-text-muted); margin-top:4px;" id="admMktRevSub"></div></div>
+            <div class="kpi-card"><div class="kpi-label">Leads Generated</div><div class="kpi-value" style="color: #F59E0B;" id="admMktLeads">—</div><div style="font-size:12px; color:var(--admin-text-muted); margin-top:4px;">reported by ad platforms / team</div></div>
+            <div class="kpi-card"><div class="kpi-label">Enquiries During Campaigns</div><div class="kpi-value" style="color: #7C3AED;" id="admMktEnquiries">—</div><div style="font-size:12px; color:var(--admin-text-muted); margin-top:4px;">guest enquiries on promoted hotels</div></div>
+            <div class="kpi-card"><div class="kpi-label">Avg Cost Per Lead</div><div class="kpi-value" id="admCostPerLead">—</div><div style="font-size:12px; color:var(--admin-text-muted); margin-top:4px;" id="admSpendSub"></div></div>
           </div>
 
           <!-- Admin Marketing Sub Tabs -->
@@ -905,12 +949,12 @@
                     <tr>
                       <th>Campaign ID</th>
                       <th>Hotel Property</th>
-                      <th>City</th>
+                      <th>Owner</th>
                       <th>Package</th>
-                      <th>Duration</th>
                       <th>Total Amount</th>
                       <th>Payment Status</th>
                       <th>Campaign Status</th>
+                      <th>Performance</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -945,7 +989,8 @@
                       <th>Guest Name</th>
                       <th>Contact</th>
                       <th>Target Hotel</th>
-                      <th>Campaign ID</th>
+                      <th>Date</th>
+                      <th>Campaign</th>
                       <th>Channel Source</th>
                       <th>Status</th>
                     </tr>
@@ -1078,14 +1123,30 @@
         <div class="form-group">
           <label style="font-weight:700;">Campaign Lifecycle Status</label>
           <select id="admModStatusSelect" class="filter-select" style="width:100%;">
-            <option value="Pending Review">Pending Review</option>
-            <option value="Preparing">Preparing Campaign</option>
+            <option value="Pending">Pending Review</option>
             <option value="Active">Active & Live</option>
             <option value="Paused">Paused</option>
             <option value="Completed">Completed</option>
-            <option value="Cancelled">Cancelled</option>
           </select>
-          <small style="color:var(--admin-text-muted); font-size:11.5px; margin-top:4px; display:block;">Updating status here immediately updates the Hotel Owner's dashboard!</small>
+          <small style="color:var(--admin-text-muted); font-size:11.5px; margin-top:4px; display:block;">Updating status here immediately updates the Hotel Owner's dashboard and emails them.</small>
+        </div>
+
+        <div class="form-group">
+          <label style="font-weight:700;">Note to the hotel (optional)</label>
+          <textarea id="admModNoteInput" class="filter-input" style="width:100%; height:60px;" placeholder="e.g. Ads approved by Meta, live from today."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label style="font-weight:700;">Campaign performance</label>
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+            <div><small>Reach</small><input type="number" min="0" id="admModReach" class="filter-input" style="width:100%;" /></div>
+            <div><small>Impressions</small><input type="number" min="0" id="admModImpressions" class="filter-input" style="width:100%;" /></div>
+            <div><small>Clicks</small><input type="number" min="0" id="admModClicks" class="filter-input" style="width:100%;" /></div>
+            <div><small>Leads</small><input type="number" min="0" id="admModLeads" class="filter-input" style="width:100%;" /></div>
+            <div><small>WhatsApp enquiries</small><input type="number" min="0" id="admModWhatsapp" class="filter-input" style="width:100%;" /></div>
+            <div><small>Ad spend (₹)</small><input type="number" min="0" id="admModSpend" class="filter-input" style="width:100%;" /></div>
+          </div>
+          <small style="color:var(--admin-text-muted); font-size:11.5px; margin-top:4px; display:block;" id="admModMetricsHint">Shown to the hotel owner on their campaign card.</small>
         </div>
 
         <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="saveAdminCampaignStatus()">Save & Update Owner Dashboard</button>
@@ -1102,16 +1163,45 @@
       </div>
       <div style="padding:24px;">
         <div class="form-group"><label>Package Name</label><input type="text" id="admPkgFormName" class="filter-input" style="width:100%;" /></div>
-        <div class="form-group"><label>Starting Price (₹)</label><input type="number" id="admPkgFormPrice" class="filter-input" style="width:100%;" /></div>
+        <div class="form-group">
+          <label>Duration prices (₹) — what owners are charged</label>
+          <div id="admPkgFormDurations" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;"></div>
+          <small style="color:var(--admin-text-muted); font-size:11.5px;">"Starting from" on the package card is the cheapest of these.</small>
+        </div>
         <div class="form-group"><label>Description</label><textarea id="admPkgFormDesc" class="filter-input" style="width:100%; height:75px;"></textarea></div>
         
         <div style="margin-bottom:16px; display:flex; align-items:center; gap:8px;">
           <input type="checkbox" id="admPkgFormRec" />
           <label for="admPkgFormRec" style="font-size:13px; font-weight:700; cursor:pointer;">Mark as RECOMMENDED package</label>
         </div>
+        <div style="margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="admPkgFormActive" />
+          <label for="admPkgFormActive" style="font-size:13px; font-weight:700; cursor:pointer;">Available to hotel owners</label>
+        </div>
 
         <button class="btn-primary" style="width:100%;" onclick="saveAdminPackageForm()">Save Package (Syncs Live to Owners)</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Change password (signed-in admin) -->
+  <div class="admin-modal-overlay" id="changePasswordModal">
+    <div class="admin-modal" style="max-width:440px;">
+      <div class="modal-header">
+        <h3>Change Password</h3>
+        <button class="modal-close-btn" onclick="closeModal('changePasswordModal')">×</button>
+      </div>
+      <form style="padding:24px;" id="changePasswordForm" novalidate onsubmit="submitChangePassword(event)">
+        <div class="form-group"><label for="cpCurrent">Current password</label><input type="password" id="cpCurrent" class="filter-input" style="width:100%;" autocomplete="current-password" /></div>
+        <div class="form-group"><label for="cpNew">New password</label><input type="password" id="cpNew" class="filter-input" style="width:100%;" autocomplete="new-password" placeholder="At least 8 characters" /></div>
+        <div class="form-group"><label for="cpConfirm">Confirm new password</label><input type="password" id="cpConfirm" class="filter-input" style="width:100%;" autocomplete="new-password" /></div>
+        <div id="cpError" style="color:#B91C1C; font-size:13px; font-weight:600; min-height:18px; margin-bottom:10px;"></div>
+        <button type="submit" class="btn-primary" id="cpSubmit" style="width:100%; justify-content:center;">Update Password</button>
+        <div style="text-align:center; margin-top:14px; font-size:12.5px; color:var(--admin-text-muted);">
+          Don't know your current password?
+          <a href="#" onclick="forgotFromPanel(); return false;" style="color:var(--admin-primary); font-weight:700;">Reset it by email</a>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -1124,5 +1214,6 @@
   <script src="admin-emails.js"></script>
   <script src="admin-users.js"></script>
   <script src="admin-app.js"></script>
+  <script src="password-toggle.js" defer></script>
 </body>
 </html>

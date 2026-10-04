@@ -3,7 +3,8 @@ const express = require('express');
 const { z } = require('zod');
 const { db, uid, audit } = require('../lib/db');
 const A = require('../lib/auth');
-const { validate, wrap } = require('../lib/http');
+const { validate, wrap, slugify } = require('../lib/http');
+const { DEFAULT_POLICIES } = require('../lib/listing');
 const { sendMailAsync } = require('../lib/mailer');
 const { invalidateCatalog } = require('./properties');
 
@@ -116,14 +117,19 @@ function shapeProperty(p) {
     website: p.website || '',
     whatsapp: details.whatsapp || p.phone || '',
     description: details.description || p.google_summary || '',
-    checkIn: details.checkIn || '02:00 PM',
-    checkOut: details.checkOut || '11:00 AM',
+    // Same defaults the public property page shows (lib/listing.js), so the
+    // editor opens with exactly what travellers currently see.
+    checkIn: details.checkIn || DEFAULT_POLICIES.checkIn,
+    checkOut: details.checkOut || DEFAULT_POLICIES.checkOut,
     receptionHours: details.receptionHours || '24 Hours',
-    cancellationPolicy: details.cancellationPolicy || '',
-    childPolicy: details.childPolicy || '',
+    cancellationPolicy: details.cancellationPolicy || DEFAULT_POLICIES.cancellationPolicy,
+    paymentPolicy: details.paymentPolicy || DEFAULT_POLICIES.paymentPolicy,
+    childPolicy: details.childPolicy || DEFAULT_POLICIES.childPolicy,
     petPolicy: details.petPolicy || '',
     smokingPolicy: details.smokingPolicy || '',
-    idPolicy: details.idPolicy || '',
+    idPolicy: details.idPolicy || DEFAULT_POLICIES.idPolicy,
+    startingPrice: Number(details.startingPrice) || 0,
+    roomPrice: (db.prepare('SELECT MIN(price) m FROM rooms WHERE property_id = ? AND active = 1 AND price > 0').get(p.id) || {}).m || 0,
     highlights: details.highlights || [],
     coverPhoto: p.image_url || (photos[0] && photos[0].url) || '',
     gmbLink: p.gmb_link || '',
@@ -274,10 +280,16 @@ router.patch('/properties/:id',
               address = COALESCE(?, address), pincode = COALESCE(?, pincode),
               phone = COALESCE(?, phone), email = COALESCE(?, email), website = COALESCE(?, website),
               image_url = COALESCE(?, image_url), status_label = COALESCE(?, status_label),
+              property_type = COALESCE(?, property_type),
+              city_slug = CASE WHEN ? IS NOT NULL THEN ? ELSE city_slug END,
               details = ?, updated_at = datetime('now')
         WHERE id = ?`
     ).run(b.name || null, b.city || null, b.address || null, b.pincode || null, b.phone || null,
           b.email || null, b.website || null, b.coverPhoto || null, b.status || null,
+          // The public page reads property_type — keep it in step with the
+          // owner's category instead of only storing it inside details.
+          (b.details && b.details.category) || null,
+          b.city || null, b.city ? slugify(b.city) : null,
           JSON.stringify(details), p.id);
     invalidateCatalog();
 
@@ -477,27 +489,14 @@ router.get('/properties/:id/performance', guard, (req, res) => {
 
 /* ---------------------------------------------------------------- invoices */
 
-// A printable invoice. The browser opens it in a tab; Ctrl-P saves a PDF.
-router.get('/invoices/:invoiceId', (req, res) => {
-  const invoice = db.prepare('SELECT * FROM invoices WHERE id = ? OR number = ?')
-    .get(req.params.invoiceId, req.params.invoiceId);
-  if (!invoice) return res.status(404).send('Invoice not found.');
+const escHtml = (v) => String(v == null ? '' : v)
+  .replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
 
-  const property = db.prepare('SELECT * FROM properties WHERE id = ?').get(invoice.property_id);
-  if (!property) return res.status(404).send('Invoice not found.');
-  if (req.user.role !== 'admin' && property.owner_id !== req.user.id) {
-    return res.status(403).send('This invoice belongs to another partner.');
-  }
-
-  const owner = property.owner_id ? db.prepare('SELECT * FROM users WHERE id = ?').get(property.owner_id) : null;
-  const payment = db.prepare(
-    'SELECT * FROM payments WHERE invoice_id = ? ORDER BY created_at DESC LIMIT 1'
-  ).get(invoice.id);
-  const esc = (v) => String(v == null ? '' : v)
-    .replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
-
-  res.type('html').send(`<!doctype html>
-<html><head><meta charset="utf-8"/><title>Invoice ${esc(invoice.number)} — Hotelzz.in</title>
+/** Printable invoice page shared by plan and campaign invoices. */
+function invoiceHtml({ number, issuedAt, paid, owner, property, lines, total, footnote }) {
+  const esc = escHtml;
+  return `<!doctype html>
+<html><head><meta charset="utf-8"/><title>Invoice ${esc(number)} — Hotelzz.in</title>
 <style>
   body { font-family: Inter, Segoe UI, Arial, sans-serif; color:#0F172A; margin:0; padding:40px; }
   .sheet { max-width:720px; margin:0 auto; }
@@ -508,7 +507,7 @@ router.get('/invoices/:invoiceId', (req, res) => {
   th { background:#F8FAFC; font-size:12px; text-transform:uppercase; color:#64748B; }
   .total { font-size:18px; font-weight:800; }
   .badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700;
-           background:${invoice.status === 'Paid' ? '#ECFDF5;color:#047857' : '#FEF3C7;color:#B45309'}; }
+           background:${paid ? '#ECFDF5;color:#047857' : '#FEF3C7;color:#B45309'}; }
   @media print { body { padding:0; } .noprint { display:none; } }
 </style></head>
 <body><div class="sheet">
@@ -518,9 +517,9 @@ router.get('/invoices/:invoiceId', (req, res) => {
       <div class="muted">India's hotel marketplace &amp; marketing platform</div>
     </div>
     <div style="text-align:right">
-      <h1>Invoice ${esc(invoice.number)}</h1>
-      <div class="muted">Issued ${esc(invoice.issued_at)}</div>
-      <div style="margin-top:6px"><span class="badge">${esc(invoice.status)}</span></div>
+      <h1>Invoice ${esc(number)}</h1>
+      <div class="muted">Issued ${esc(issuedAt)}</div>
+      <div style="margin-top:6px"><span class="badge">${paid ? 'Paid' : 'Pending'}</span></div>
     </div>
   </div>
 
@@ -534,22 +533,86 @@ router.get('/invoices/:invoiceId', (req, res) => {
 
   <table>
     <tr><th>Description</th><th style="text-align:right">Amount</th></tr>
-    <tr><td>${esc(invoice.plan || 'Hotelzz subscription')}</td><td style="text-align:right">${esc(invoice.amount)}</td></tr>
-    <tr><td class="total">Total</td><td class="total" style="text-align:right">${esc(invoice.amount)}</td></tr>
+    ${lines.map((l) => `<tr><td>${esc(l.desc)}${l.note ? `<br/><span class="muted">${esc(l.note)}</span>` : ''}</td><td style="text-align:right">${esc(l.amount)}</td></tr>`).join('')}
+    <tr><td class="total">Total</td><td class="total" style="text-align:right">${esc(total)}</td></tr>
   </table>
 
-  <p class="muted" style="margin-top:24px">
-    ${payment && payment.status === 'paid'
-      ? 'Paid via ' + esc(payment.provider) + ' on ' + esc(payment.updated_at) + '.'
-      : 'Payment pending. Our team will share payment instructions.'}
-  </p>
+  <p class="muted" style="margin-top:24px">${esc(footnote)}</p>
 
   <p class="muted">Questions? Reply to support@hotelzz.in or call +91 99300 90487.</p>
   <button class="noprint" onclick="window.print()"
     style="margin-top:20px;background:#2563EB;color:#fff;border:none;padding:11px 20px;border-radius:8px;font-weight:700;cursor:pointer">
     Print / save as PDF
   </button>
-</div></body></html>`);
+</div></body></html>`;
+}
+
+function ownerOf(property) {
+  return property.owner_id ? db.prepare('SELECT * FROM users WHERE id = ?').get(property.owner_id) : null;
+}
+
+// A printable invoice. The browser opens it in a tab; Ctrl-P saves a PDF.
+router.get('/invoices/:invoiceId', (req, res) => {
+  const invoice = db.prepare('SELECT * FROM invoices WHERE id = ? OR number = ?')
+    .get(req.params.invoiceId, req.params.invoiceId);
+  if (!invoice) return res.status(404).send('Invoice not found.');
+
+  const property = db.prepare('SELECT * FROM properties WHERE id = ?').get(invoice.property_id);
+  if (!property) return res.status(404).send('Invoice not found.');
+  if (req.user.role !== 'admin' && property.owner_id !== req.user.id) {
+    return res.status(403).send('This invoice belongs to another partner.');
+  }
+
+  const payment = db.prepare(
+    'SELECT * FROM payments WHERE invoice_id = ? ORDER BY created_at DESC LIMIT 1'
+  ).get(invoice.id);
+  const paid = invoice.status === 'Paid';
+
+  res.type('html').send(invoiceHtml({
+    number: invoice.number, issuedAt: invoice.issued_at, paid,
+    owner: ownerOf(property), property,
+    lines: [{ desc: invoice.plan || 'Hotelzz subscription', amount: invoice.amount }],
+    total: invoice.amount,
+    footnote: payment && payment.status === 'paid'
+      ? 'Paid via ' + payment.provider + ' on ' + payment.updated_at + '.'
+      : (paid ? 'Paid.' : 'Payment pending. Our team will share payment instructions.')
+  }));
+});
+
+// Grow Business purchases are invoiced by campaign — the campaign id is the
+// invoice number, and the amounts come from the campaign record itself.
+router.get('/campaigns/:campaignId/invoice', (req, res) => {
+  const camp = db.prepare('SELECT * FROM campaigns WHERE id = ?').get(req.params.campaignId);
+  if (!camp) return res.status(404).send('Invoice not found.');
+  const property = db.prepare('SELECT * FROM properties WHERE id = ?').get(camp.property_id);
+  if (!property) return res.status(404).send('Invoice not found.');
+  if (req.user.role !== 'admin' && camp.owner_id !== req.user.id && property.owner_id !== req.user.id) {
+    return res.status(403).send('This invoice belongs to another partner.');
+  }
+
+  const d = json(camp.details, {});
+  const payment = db.prepare(
+    "SELECT * FROM payments WHERE purpose = 'campaign' AND reference_id = ? ORDER BY (status = 'paid') DESC, created_at DESC LIMIT 1"
+  ).get(camp.id);
+  const paid = d.paymentStatus === 'Payment received' || Boolean(payment && payment.status === 'paid');
+  const inr = (n) => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
+  const amount = Number(camp.budget) || 0;
+  const gst = Number(d.gst) || Math.round(amount * 0.18);
+
+  res.type('html').send(invoiceHtml({
+    number: camp.id, issuedAt: camp.created_at, paid,
+    owner: ownerOf(property), property,
+    lines: [
+      { desc: 'Marketing campaign — ' + (d.packageName || camp.plan || camp.name),
+        note: [d.duration, (d.targetLocations || []).length ? 'Target: ' + d.targetLocations.join(', ') : ''].filter(Boolean).join(' · '),
+        amount: inr(amount) },
+      { desc: 'GST (18%)', amount: inr(gst) }
+    ],
+    total: inr(Number(d.total) || amount + gst),
+    footnote: paid
+      ? (payment && payment.status === 'paid' ? 'Paid via ' + payment.provider + ' on ' + payment.updated_at + '.' : 'Paid.')
+      : 'Payment pending — pay any time from Grow Business → My Campaigns or Billing & Invoices.'
+  }));
 });
 
 module.exports = router;
