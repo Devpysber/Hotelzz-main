@@ -77,6 +77,13 @@ const env = {
   // GOOGLE_SHEET_SYNC_MIN minutes, and on demand from Admin → Import Listings.
   GOOGLE_SHEET_CSV_URLS: String(process.env.GOOGLE_SHEET_CSV_URLS || '')
     .split(',').map((u) => u.trim()).filter(Boolean),
+  // Android app (Trusted Web Activity, android/). The SHA-256 fingerprint(s) of
+  // the app signing key, comma separated — served at /.well-known/assetlinks.json
+  // so Android trusts the app to show hotelzz.in full-screen.
+  ANDROID_PACKAGE: process.env.ANDROID_PACKAGE || 'com.hotelzz.app',
+  ANDROID_CERT_SHA256: String(process.env.ANDROID_CERT_SHA256 || '')
+    .split(',').map((f) => f.trim().toUpperCase()).filter(Boolean),
+
   GOOGLE_SHEET_SYNC_MIN: Math.max(1, parseInt(process.env.GOOGLE_SHEET_SYNC_MIN, 10) || 15)
 };
 

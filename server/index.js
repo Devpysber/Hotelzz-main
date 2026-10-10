@@ -56,6 +56,16 @@ app.use('/api/marketing', require('./routes/marketing'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/uploads', require('./routes/uploads'));
 
+// Digital Asset Links for the Android app (android/). express.static skips
+// dot-folders, so this is served explicitly.
+app.get('/.well-known/assetlinks.json', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=3600');
+  res.json(env.ANDROID_CERT_SHA256.length ? [{
+    relation: ['delegate_permission/common.handle_all_urls'],
+    target: { namespace: 'android_app', package_name: env.ANDROID_PACKAGE, sha256_cert_fingerprints: env.ANDROID_CERT_SHA256 }
+  }] : []);
+});
+
 // Uploaded partner photos, served read-only from outside the repo.
 const { UPLOAD_ROOT } = require('./lib/uploads');
 app.use('/uploads', express.static(UPLOAD_ROOT, { maxAge: '30d', index: false, dotfiles: 'ignore' }));
