@@ -10,7 +10,7 @@ async function upsertUser({ role, name, email, phone, password, city }) {
   db.prepare(
     `INSERT INTO users (id, role, name, email, phone, password_hash, city, email_verified, status)
      VALUES (?,?,?,?,?,?,?,1,'active')`
-  ).run(id, role, name, email.toLowerCase(), phone || null, await hashPassword(password), city || null);
+  ).run(id, role, name, email.toLowerCase(), phone || null, password ? await hashPassword(password) : null, city || null);
   console.log(`[seed] created ${role}: ${email}`);
   return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
 }
@@ -50,13 +50,17 @@ async function seed() {
   // seed account — otherwise changing the admin email in Settings would bring
   // SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD back on the next restart.
   const anyAdmin = db.prepare("SELECT 1 FROM users WHERE role = 'admin' LIMIT 1").get();
-  if (!anyAdmin) await upsertUser({
-    role: 'admin',
-    name: 'Hotelzz Admin',
-    email: env.SEED_ADMIN_EMAIL,
-    phone: '+919930090487',
-    password: env.SEED_ADMIN_PASSWORD
-  });
+  if (!anyAdmin) {
+    const weak = env.WEAK_ADMIN_PASSWORDS.includes(env.SEED_ADMIN_PASSWORD) || env.SEED_ADMIN_PASSWORD.length < 10;
+    if (env.isProd && weak) {
+      // Never create a production admin with a guessable password: create it
+      // without one — sign in with an email code or "Forgot password".
+      await upsertUser({ role: 'admin', name: 'Hotelzz Admin', email: env.SEED_ADMIN_EMAIL, phone: '+919930090487', password: null });
+      console.warn('[seed] SEED_ADMIN_PASSWORD is weak — admin created without a password. Use Email OTP or Forgot password at /admin-login.html.');
+    } else {
+      await upsertUser({ role: 'admin', name: 'Hotelzz Admin', email: env.SEED_ADMIN_EMAIL, phone: '+919930090487', password: env.SEED_ADMIN_PASSWORD });
+    }
+  }
 
   if (!env.isProd) {
     await upsertUser({

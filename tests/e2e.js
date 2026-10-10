@@ -384,6 +384,20 @@ async function flows(browser) {
     if (!t.includes('@')) throw new Error('email not shown: ' + t);
   });
 
+  await step('Security: owner cannot set their own plan price', async () => {
+    await api('post', `/owner/properties/${encodeURIComponent(ownerProp)}/subscription`, { planName: 'Premium Plan', price: '₹1' });
+    const boot = await api('get', '/owner/bootstrap');
+    const sub = boot.properties[ownerProp].subscription;
+    if (/^₹1$/.test(sub.price) || sub.status === 'Active') throw new Error('price/status taken from client: ' + sub.price + ' ' + sub.status);
+  });
+
+  await step('Security: owner cannot claim a listing someone else manages', async () => {
+    const other = props.find((p) => p.ownerId && p.id !== ownerProp);
+    if (!other) { console.log('    (no other owned listing)'); return; }
+    const r = await ctx.request.post(BASE + `/api/properties/${encodeURIComponent(other.id)}/claim`, { data: {} });
+    if (r.status() !== 409) throw new Error('claim allowed: ' + r.status());
+  });
+
   await step('Owner: subscription upgrade creates pending payment', async () => {
     await api('post', `/owner/properties/${encodeURIComponent(ownerProp)}/subscription`, { planName: 'Starter Plan', price: '₹999', features: ['x'] });
     const o = await api('post', '/payments/orders', { purpose: 'subscription', referenceId: ownerProp, propertyId: ownerProp });
@@ -436,6 +450,30 @@ async function flows(browser) {
   await step('Admin: every panel view opens without errors', async () => {
     await page.goto(BASE + '/admin.html', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
+  });
+
+  await step('Security: script in a public lead never runs in the admin panel', async () => {
+    const anon = await newContext(browser);
+    const payload = '<img src=x onerror="window.__pwned=1">';
+    await anon.request.post(BASE + '/api/leads', { data: { name: 'XSS ' + payload, hotelName: payload, city: 'Goa', phone: '9876543210',
+      email: `xss.${stamp}@example.com`, message: payload, source: 'e2e' } });
+    await anon.close();
+    const adminPage = await ctx.newPage();
+    for (const v of ['leads', 'emails', 'dashboard']) {
+      await adminPage.goto(BASE + '/admin.html#' + v, { waitUntil: 'domcontentloaded' });
+      await adminPage.waitForTimeout(2500);
+      if (await adminPage.evaluate(() => window.__pwned)) throw new Error('payload executed in ' + v);
+      if (await adminPage.$('img[src="x"]')) throw new Error('payload rendered as HTML in ' + v);
+    }
+    await adminPage.close();
+  });
+
+  await step('Security: links must be real web addresses', async () => {
+    const lead = await ctx.request.post(BASE + '/api/admin/import', { data: { rows: [{ id: 'e2e-js-' + stamp, name: 'JS Link', location: 'Goa',
+      image_url: 'javascript:alert(1)', website: 'x" onmouseover="alert(1)', google_cid: '12" onclick="x' }] } });
+    if (!lead.ok()) throw new Error('import failed');
+    const p = (await (await ctx.request.get(BASE + '/api/properties/e2e-js-' + stamp)).json()).property;
+    if (p.image_url || p.website || /\D/.test(p.google_cid || '')) throw new Error('unsafe value stored: ' + JSON.stringify([p.image_url, p.website, p.google_cid]));
   });
 
   await step('Forgot password works for every role', async () => {

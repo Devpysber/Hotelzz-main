@@ -200,6 +200,8 @@ async function activate(payment, ip) {
   if (payment.purpose === 'subscription') {
     db.prepare("UPDATE subscriptions SET status = 'Active', updated_at = datetime('now') WHERE property_id = ?")
       .run(payment.property_id);
+    const sub = db.prepare('SELECT plan_name FROM subscriptions WHERE property_id = ?').get(payment.property_id);
+    if (sub) db.prepare("UPDATE properties SET plan = ?, updated_at = datetime('now') WHERE id = ?").run(sub.plan_name, payment.property_id);
   }
 
   if (payment.purpose === 'campaign') {
@@ -293,7 +295,9 @@ router.get('/', A.requireAuth('admin'), (_req, res) => {
 });
 
 const csvCell = (v) => {
-  const s = v === null || v === undefined ? '' : String(v);
+  let s = v === null || v === undefined ? '' : String(v);
+  // Spreadsheet apps run cells starting with = + - @ as formulas.
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
   return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 };
 

@@ -389,6 +389,13 @@ CREATE TABLE IF NOT EXISTS property_stats (
   add('sender_user_id', 'TEXT');
 })();
 
+// A password change bumps session_epoch, which every session token carries,
+// so sign-ins made with the old password stop working everywhere.
+(function migrateUserSessionEpoch() {
+  const cols = db.prepare("PRAGMA table_info(users)").all().map((c) => c.name);
+  if (!cols.includes('session_epoch')) db.exec('ALTER TABLE users ADD COLUMN session_epoch INTEGER NOT NULL DEFAULT 0');
+})();
+
 // Offers became public "Deals" (deals.html): they gained a category, an image,
 // price points, terms, a featured flag and view/grab counters.
 (function migrateOfferDealColumns() {

@@ -299,10 +299,20 @@
       if (el) el.style.display = visible ? 'block' : 'none';
     }
 
+function safeNext(next) {
+      // Same-site paths only: resolve against this origin and compare, so
+      // tricks like /%09/evil.com or /\\evil.com can't leave the site.
+      if (!next) return null;
+      try {
+        var u = new URL(next, window.location.origin);
+        if (u.origin !== window.location.origin || !/^\/[\w-]/.test(u.pathname)) return null;
+        return u.pathname + u.search + u.hash;
+      } catch (_) { return null; }
+    }
     function nextUrl(fallback) {
       var next = new URLSearchParams(window.location.search).get('next');
       // Only allow same-site relative paths — never an attacker-supplied origin.
-      var url = (next && /^\/[^/\\]/.test(next)) ? next : fallback;
+      var url = safeNext(next) || fallback;
       // Travelers always start on Search Hotels after signing in, whichever
       // portal section they were on when the session ran out.
       if (/^\/?user-portal\.html/.test(url)) url = '/user-portal.html#search';

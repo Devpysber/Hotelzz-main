@@ -484,6 +484,11 @@
       list.innerHTML = '<div class="empty" style="text-align:center; padding:40px; background:#fff; border-radius:12px;"><h3>No properties match your search criteria</h3><p style="color:#6B7280;">Try selecting "All Destinations" or clearing your price/rating filters.</p><button class="btn-primary" style="margin-top:12px; background:#2563EB; color:#fff; padding:8px 16px; border-radius:8px;" onclick="resetFilters()">Reset Filters</button></div>';
       return;
     }
+    // Listing text comes from owners and imports — escape it, and only allow
+    // real image URLs.
+    var cEsc = function (v) { return String(v == null ? '' : v).replace(/[&<>"'`]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' }[c]; }); };
+    var cArg = function (v) { return JSON.stringify(String(v == null ? '' : v)).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+    var cImg = function (u) { return /^(https?:\/\/|\/uploads\/|[\w.-]+\.(jpe?g|png|webp|avif)$)/i.test(String(u || '')) ? cEsc(u) : ''; };
     list.innerHTML = filtered.map(function(h, i){
       var badge = h.claim_status === 'verified' ? '<span class="badge" style="background:#10B981;">🟢 Claimed & Verified</span>' : (h.rating >= 4.8 ? '<span class="badge">Top Rated</span>' : (i === 0 ? '<span class="badge" style="background:var(--warning);color:#1F2937;">Featured</span>' : ''));
       // Only ever show a real rate the property owner actually set — never a
@@ -497,25 +502,25 @@
         <article class="hotel-card">\
           <a class="hotel-img" href="property.html?id=' + encodeURIComponent(h.id) + '">\
             ' + badge + '\
-            <img loading="lazy" src="' + h._img + '" alt="' + h.name.replace(/"/g,'&quot;') + '">\
+            <img loading="lazy" src="' + cImg(h._img) + '" alt="' + cEsc(h.name) + '">\
           </a>\
           <div class="hotel-info">\
-            <h3><a href="property.html?id=' + encodeURIComponent(h.id) + '">' + h.name + '</a></h3>\
+            <h3><a href="property.html?id=' + encodeURIComponent(h.id) + '">' + cEsc(h.name) + '</a></h3>\
             <div class="hotel-loc">\
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>\
-              ' + (h.address || h.location || 'India') + '\
+              ' + cEsc(h.address || h.location || 'India') + '\
             </div>\
             <div class="hotel-rating">\
               <span class="rating-pill">★ ' + h.rating.toFixed(1) + '</span>\
               ' + (h.google_review_count ? '<span class="gscore">' + h.google_review_count + ' Google reviews</span>' : '') + '\
             </div>\
-            ' + ((h.realAmenities || []).length ? '<div class="amenities" style="margin-top:8px;">' + h.realAmenities.slice(0, 4).map(function(a){return '<span class="amenity" style="display:inline-block; background:#EFF6FF; color:#2563EB; font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; margin-right:4px;">'+a+'</span>';}).join('') + '</div>' : '') + '\
+            ' + ((h.realAmenities || []).length ? '<div class="amenities" style="margin-top:8px;">' + h.realAmenities.slice(0, 4).map(function(a){return '<span class="amenity" style="display:inline-block; background:#EFF6FF; color:#2563EB; font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; margin-right:4px;">'+cEsc(a)+'</span>';}).join('') + '</div>' : '') + '\
           </div>\
           <div class="hotel-price">\
             <div>' + priceBlock + '\
             </div>\
             <div class="price-actions" style="display:flex; flex-direction:column; gap:6px; width:100%; margin-top:10px;">\
-              <button class="book-btn" style="background:#2563EB; color:#fff; padding:8px 12px; border-radius:6px; font-weight:700; font-size:13px; text-align:center;" onclick="openQuickEnquiryModal(\'' + h.id + '\', \'' + h.name.replace(/'/g,"\\'") + '\', \'' + (h.location||h.city_slug).replace(/'/g,"\\'") + '\')">Send Enquiry</button>\
+              <button class="book-btn" style="background:#2563EB; color:#fff; padding:8px 12px; border-radius:6px; font-weight:700; font-size:13px; text-align:center;" onclick="openQuickEnquiryModal(' + cArg(h.id) + ', ' + cArg(h.name) + ', ' + cArg(h.location || h.city_slug) + ')">Send Enquiry</button>\
               <a class="book-btn book-btn-secondary" style="padding:8px 12px; border-radius:6px; font-weight:600; font-size:12.5px; text-align:center;" href="property.html?id=' + encodeURIComponent(h.id) + '">View Details</a>\
             </div>\
           </div>\

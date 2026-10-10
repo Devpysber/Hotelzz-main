@@ -88,8 +88,8 @@
     dropdown.innerHTML = ids.map((id) => {
       const p = data.properties[id];
       return `<div class="selector-item${id === activePropId ? ' selected' : ''}" onclick="switchProperty('${id}')">
-                <div class="selector-item-title">${p.name}</div>
-                <div class="selector-item-city">${p.city || ''} • ${p.claimedStatus}</div>
+                <div class="selector-item-title">${hz(p.name)}</div>
+                <div class="selector-item-city">${hz(p.city || '')} • ${p.claimedStatus}</div>
               </div>`;
     }).join('') || '<div style="padding:12px; font-size:12.5px;">No properties yet</div>';
   }
@@ -230,7 +230,7 @@
     currentProp = data.properties[propId];
 
     document.getElementById('propertySelectorDropdown').classList.remove('show');
-    showToast(`Switched active property to ${currentProp.name}`);
+    showToast(`Switched active property to ${hz(currentProp.name)}`);
     loadPropertyData(propId);
   };
 
@@ -459,7 +459,7 @@
 
     el.innerHTML = steps.map((st) => `
       <div class="perf-funnel-row">
-        <div class="perf-funnel-label">${st.label}</div>
+        <div class="perf-funnel-label">${hz(st.label)}</div>
         <div class="perf-funnel-track"><div class="perf-funnel-fill" style="width:${Math.max(2, (st.value / peak) * 100)}%"></div></div>
         <div class="perf-funnel-value">${st.value}</div>
       </div>`).join('')
@@ -536,7 +536,7 @@
 
     const cells = photos.map((ph, i) => `
       <div class="pd-photo ${ph.isCover || i === 0 ? 'is-cover' : ''}">
-        <img src="${ph.url}" alt="${ph.title || 'Listing photo'}" loading="lazy" />
+        <img src="${ph.url}" alt="${hz(ph.title || 'Listing photo')}" loading="lazy" />
         ${ph.isCover || i === 0 ? '<span class="pd-photo-badge">Cover</span>' : ''}
         <div class="pd-photo-actions">
           ${ph.isCover || i === 0 ? '' : `<button type="button" class="pd-photo-btn" onclick="setCoverPhoto('${ph.id}')">Make cover</button>`}
@@ -669,7 +669,7 @@
     }
     if (chips) {
       chips.innerHTML = missing.length
-        ? missing.map((m) => `<span class="pd-progress-chip">${m.label}</span>`).join('')
+        ? missing.map((m) => `<span class="pd-progress-chip">${hz(m.label)}</span>`).join('')
         : '<span class="pd-progress-chip is-done">All done</span>';
     }
 
@@ -746,7 +746,7 @@
       const activeList = p.amenities[cat.key] || [];
       return `
         <div class="amenity-category-group">
-          <div class="amenity-category-title">${cat.title}</div>
+          <div class="amenity-category-title">${hz(cat.title)}</div>
           <div class="amenity-chips-grid">
             ${cat.items.map(item => {
               const isSelected = activeList.includes(item);
@@ -795,9 +795,9 @@
     return `
       <div class="owner-empty">
         <div class="owner-empty-icon">${opts.icon}</div>
-        <div class="owner-empty-title">${opts.title}</div>
-        <p class="owner-empty-text">${opts.text}</p>
-        ${opts.action ? `<button class="btn-primary owner-empty-action" onclick="${opts.action.onclick}">${opts.action.label}</button>` : ''}
+        <div class="owner-empty-title">${hz(opts.title)}</div>
+        <p class="owner-empty-text">${hz(opts.text)}</p>
+        ${opts.action ? `<button class="btn-primary owner-empty-action" onclick="${opts.action.onclick}">${hz(opts.action.label)}</button>` : ''}
       </div>`;
   }
 
@@ -810,7 +810,7 @@
     if (!node) return;
     node.innerHTML = stats.map((st) => `
       <div class="stat-tile${st.tone ? ' is-' + st.tone : ''}">
-        <div class="stat-tile-label">${st.label}</div>
+        <div class="stat-tile-label">${hz(st.label)}</div>
         <div class="stat-tile-value">${st.value}</div>
         ${st.sub ? `<div class="stat-tile-sub">${st.sub}</div>` : ''}
       </div>`).join('');
@@ -905,11 +905,11 @@
 
     tbody.innerHTML = list.map((l) => `
       <tr onclick="openLeadDrawer('${l.id}')" style="cursor:pointer;">
-        <td data-label="Guest" style="font-weight:700;">${l.guestName}</td>
-        <td data-label="Contact">${l.phone}<br/><small style="color:var(--owner-text-muted);">${l.email}</small></td>
-        <td data-label="Enquiry" class="cell-wrap">${l.inquiry}</td>
+        <td data-label="Guest" style="font-weight:700;">${hz(l.guestName)}</td>
+        <td data-label="Contact">${hz(l.phone)}<br/><small style="color:var(--owner-text-muted);">${hz(l.email)}</small></td>
+        <td data-label="Enquiry" class="cell-wrap">${hz(l.inquiry)}</td>
         <td data-label="Received">${fmt(l.date)}</td>
-        <td data-label="Status"><span class="badge ${l.status === 'Converted' ? 'badge-success' : l.status === 'Responded' ? 'badge-info' : 'badge-warning'}">${l.status}</span></td>
+        <td data-label="Status"><span class="badge ${l.status === 'Converted' ? 'badge-success' : l.status === 'Responded' ? 'badge-info' : 'badge-warning'}">${hz(l.status)}</span></td>
         <td data-label="Action"><button class="btn-secondary btn-tiny" onclick="event.stopPropagation(); openLeadDrawer('${l.id}')">View</button></td>
       </tr>
     `).join('');
@@ -926,26 +926,26 @@
 
     body.innerHTML = `
       <div style="margin-bottom: 16px;">
-        <span class="badge badge-success">${l.status}</span>
-        <h3 style="font-size:18px; font-weight:800; margin-top:6px;">${l.guestName}</h3>
+        <span class="badge badge-success">${hz(l.status)}</span>
+        <h3 style="font-size:18px; font-weight:800; margin-top:6px;">${hz(l.guestName)}</h3>
         <p style="font-size:12.5px; color:var(--owner-text-muted);">${fmt(l.date)}</p>
       </div>
 
       <div style="background:var(--owner-bg); padding:14px; border-radius:8px; margin-bottom:16px; font-size:13px;">
-        <div><strong>Phone:</strong> <a href="tel:${l.phone}">${l.phone}</a></div>
-        <div><strong>Email:</strong> ${l.email}</div>
+        <div><strong>Phone:</strong> <a href="tel:${hz(l.phone)}">${hz(l.phone)}</a></div>
+        <div><strong>Email:</strong> ${hz(l.email)}</div>
       </div>
 
       <div style="margin-bottom: 20px;">
         <h4 style="font-size:13px; font-weight:700; text-transform:uppercase; margin-bottom:6px; color:var(--owner-text-muted);">Guest Message Inquiry</h4>
         <div style="padding:12px; background:#FFF; border:1px solid var(--owner-border); border-radius:8px; font-size:13.5px;">
-          "${l.inquiry}"
+          "${hz(l.inquiry)}"
         </div>
       </div>
 
       ${l.response ? `
         <div style="background:#F0FDF4; border-left:3px solid #10B981; padding:12px; border-radius:8px; margin-bottom:16px; font-size:13px;">
-          <strong>Your response:</strong> ${l.response}
+          <strong>Your response:</strong> ${hz(l.response)}
           <div style="font-size:11px; color:var(--owner-text-muted); margin-top:4px;">Sent ${fmt(l.respondedAt)}</div>
         </div>
       ` : `
@@ -958,7 +958,7 @@
 
       <div style="margin-bottom:16px;">
         <h4 style="font-size:13px; font-weight:700; text-transform:uppercase; margin-bottom:6px; color:var(--owner-text-muted);">Email this guest</h4>
-        <p style="font-size:12px; color:var(--owner-text-muted); margin:0 0 8px;">Goes to ${l.email} only — from Hotelzz Partner Support, reply-to this hotel.</p>
+        <p style="font-size:12px; color:var(--owner-text-muted); margin:0 0 8px;">Goes to ${hz(l.email)} only — from Hotelzz Partner Support, reply-to this hotel.</p>
         <input id="guestMsgSubject" class="form-control" placeholder="Subject (optional)" style="margin-bottom:8px;" />
         <textarea id="guestMsgText" class="form-control" placeholder="Write a message for this guest…" style="height:70px; width:100%; margin-bottom:8px;"></textarea>
         <button class="btn-secondary" style="width:100%;" onclick="messageGuest('${l.id}')">Send email →</button>
@@ -1089,17 +1089,17 @@
           <div class="review-guest">
             <span class="review-avatar">${(r.guestName || '?').charAt(0).toUpperCase()}</span>
             <div>
-              <div class="review-name">${r.guestName}</div>
+              <div class="review-name">${hz(r.guestName)}</div>
               <div class="review-date">${r.date ? fmt(r.date) : ''}</div>
             </div>
           </div>
           <span class="review-rating">${'\u2605'.repeat(Math.round(Number(r.rating) || 0))}<em>${r.rating}</em></span>
         </div>
-        <p class="review-comment">${r.comment}</p>
+        <p class="review-comment">${hz(r.comment)}</p>
         ${r.ownerReply ? `
           <div class="review-reply">
             <strong>Your reply</strong>
-            <span>${r.ownerReply}</span>
+            <span>${hz(r.ownerReply)}</span>
           </div>
         ` : `
           <button class="btn-secondary btn-tiny" onclick="toggleReplyBox('${r.id}')">Reply to guest</button>
@@ -1177,12 +1177,12 @@
 
     tbody.innerHTML = all.map((o) => `
       <tr>
-        <td data-label="Offer" style="font-weight:700;">${o.title}</td>
-        <td data-label="Discount"><span class="badge badge-info">${o.discount}</span></td>
+        <td data-label="Offer" style="font-weight:700;">${hz(o.title)}</td>
+        <td data-label="Discount"><span class="badge badge-info">${hz(o.discount)}</span></td>
         <td data-label="Validity">${o.validFrom} \u2013 ${o.validUntil}</td>
         <td data-label="Views">${o.views}</td>
         <td data-label="Grabs">${o.clicks}</td>
-        <td data-label="Status"><span class="badge ${o.status === 'Active' ? 'badge-success' : 'badge-warning'}">${o.status}</span></td>
+        <td data-label="Status"><span class="badge ${o.status === 'Active' ? 'badge-success' : 'badge-warning'}">${hz(o.status)}</span></td>
         <td data-label="Actions">
           <button class="btn-secondary btn-tiny" onclick="openEditOfferModal('${o.id}')">Edit</button>
           <button class="btn-secondary btn-tiny" onclick="deleteOffer('${o.id}')">Delete</button>
@@ -1266,7 +1266,7 @@
       editingOfferId = null;
       loadPropertyData(activePropId);
       closeModal('offerModal');
-      showToast(wasEditing ? `Updated offer "${v.title}".` : `Published offer "${v.title}".`);
+      showToast(wasEditing ? `Updated offer "${hz(v.title)}".` : `Published offer "${hz(v.title)}".`);
     }).catch(fail);
   };
 
@@ -1308,7 +1308,7 @@
     list.innerHTML = checks.map((c) => `
       <li class="vis-check ${c.ok ? 'is-ok' : 'is-missing'}">
         <span class="vis-check-mark">${c.ok ? '\u2713' : '\u25CB'}</span>
-        <span class="vis-check-label">${c.label}</span>
+        <span class="vis-check-label">${hz(c.label)}</span>
         ${c.ok ? '<span class="vis-check-state">Added</span>'
                : '<button type="button" class="vis-check-action" onclick="switchView(\'property-details\')">Add</button>'}
       </li>`).join('');
@@ -1340,7 +1340,7 @@
     const dueInvoice = (s.invoices || []).find((i) => i.status === 'Pending' && i.plan === s.planName);
     const statusHtml = dueInvoice
       ? '<span class="sub-status due">Payment due</span>'
-      : `<span class="sub-status ok">${s.status || 'Active'}</span>`;
+      : `<span class="sub-status ok">${hz(s.status || 'Active')}</span>`;
 
     // Same feature list as the plan's card below (admin-editable catalogue).
     const catalogue = (livePlans || []).find((p) => p.name === s.planName);
@@ -1352,7 +1352,7 @@
         <div class="sub-current-top">
           <div>
             <div class="sub-current-eyebrow">Current plan</div>
-            <div class="sub-current-name">${s.planName}</div>
+            <div class="sub-current-name">${hz(s.planName)}</div>
             ${statusHtml}
           </div>
           <div class="sub-current-price">
@@ -1404,7 +1404,7 @@
       return `
         <div class="sub-plan ${isCurrent ? 'current' : ''} ${isPopular ? 'popular' : ''}" data-plan-card="${attr(p.name)}">
           ${ribbon ? `<div class="sub-plan-ribbon">${ribbon}</div>` : ''}
-          <div class="sub-plan-name">${p.name}</div>
+          <div class="sub-plan-name">${hz(p.name)}</div>
           <div class="sub-plan-tagline">${PLAN_TAGLINES[p.id] || ''}</div>
           <div class="sub-plan-price">
             <span class="amount">${p.price ? inr(p.price) : 'Free'}</span>
@@ -1460,17 +1460,17 @@
     const confirmBtn = document.getElementById('checkoutConfirmBtn');
     if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Processing…'; }
 
+    const isFree = !(parseFloat(String(plan.price || '0').replace(/[^\d.]/g, '')) > 0);
     data.changePlan(activePropId, { planName: plan.planName, price: plan.price, billingCycle: 'Monthly', features: features })
-      .then(() => window.HotelzzAPI.payments.checkout({
-        purpose: 'subscription', referenceId: activePropId, propertyId: activePropId
-      }))
+      .then(() => isFree ? { mode: 'free', message: 'Your listing is now on the free plan.' }
+        : window.HotelzzAPI.payments.checkout({ purpose: 'subscription', referenceId: activePropId, propertyId: activePropId }))
       .then((result) => data.load().then(() => result))
       .then((result) => {
         loadPropertyData(activePropId);
         if (document.getElementById('upgradeModal')) closeModal('upgradeModal');
-        showToast(result.mode === 'paid'
-          ? `${plan.planName} is active — payment received.`
-          : `${plan.planName} requested. ${result.message || 'Our team will invoice you.'}`);
+        showToast(result.mode === 'paid' || result.mode === 'free'
+          ? `${hz(plan.planName)} is active${result.mode === 'paid' ? ' — payment received' : ''}.`
+          : `${hz(plan.planName)} requested. ${hz(result.message || 'Our team will invoice you.')}`);
         pendingPlan = null;
       })
       .catch((err) => {
@@ -1498,14 +1498,14 @@
       <div style="position:relative; height:240px; border-radius:12px; overflow:hidden; margin-bottom:20px;">
         <img src="${p.coverPhoto}" style="width:100%; height:100%; object-fit:cover;" />
         <div style="position:absolute; bottom:16px; left:20px; color:#FFF; text-shadow:0 2px 4px rgba(0,0,0,0.6);">
-          <h2 style="font-size:24px; font-weight:800;">${p.name}</h2>
-          <div>${p.city}, ${p.state} • ⭐ ${p.rating} (${p.reviewCount} reviews)</div>
+          <h2 style="font-size:24px; font-weight:800;">${hz(p.name)}</h2>
+          <div>${hz(p.city)}, ${p.state} • ⭐ ${p.rating} (${p.reviewCount} reviews)</div>
         </div>
       </div>
 
       <div style="margin-bottom:20px;">
         <h4 style="font-size:14px; font-weight:700; margin-bottom:6px;">About Property</h4>
-        <p style="font-size:13.5px; color:var(--owner-text-muted);">${p.description}</p>
+        <p style="font-size:13.5px; color:var(--owner-text-muted);">${hz(p.description)}</p>
       </div>
 
       <div style="margin-bottom:20px;">
@@ -1513,7 +1513,7 @@
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
           ${p.rooms.map(r => `
             <div style="border:1px solid var(--owner-border); border-radius:8px; padding:12px;">
-              <strong style="font-size:14px;">${r.name}</strong>
+              <strong style="font-size:14px;">${hz(r.name)}</strong>
               <div style="font-size:16px; font-weight:800; color:var(--owner-primary);">₹${r.priceBase.toLocaleString('en-IN')} <small style="font-size:11px;">/ night</small></div>
             </div>
           `).join('')}
@@ -1548,7 +1548,7 @@
     })).concat(window.HotelzzMarketingStore.getCampaignsForProperty(currentProp.id).map((c) => ({
       number: c.id,
       kind: 'Grow Business',
-      item: `${c.packageName} · ${c.duration}`,
+      item: `${hz(c.packageName)} · ${c.duration}`,
       date: c.createdAt,
       amount: Number(c.total) || 0,
       amountLabel: inr(c.total) + ' <small style="color:var(--owner-text-muted);">incl. GST</small>',
@@ -1583,7 +1583,7 @@
         <td data-label="Invoice" style="font-weight:700;">${r.number}</td>
         <td data-label="For"><span class="badge ${r.kind === 'Subscription' ? 'badge-info' : 'badge-gray'}">${r.kind}</span><div style="font-size:12.5px; margin-top:4px;">${r.item}</div></td>
         <td data-label="Billed on">${fmt(r.date)}</td>
-        <td data-label="Amount">${r.amountLabel}</td>
+        <td data-label="Amount">${hz(r.amountLabel)}</td>
         <td data-label="Status"><span class="badge ${r.paid ? 'badge-success' : 'badge-warning'}">${r.statusLabel}</span></td>
         <td data-label="Actions" style="white-space:nowrap;">
           <a class="btn-secondary btn-tiny" target="_blank" rel="noopener" href="${r.href}">Download</a>
@@ -1616,7 +1616,7 @@
       <div style="display:flex; gap:12px; margin-bottom:14px;">
         <div style="width:8px; height:8px; border-radius:50%; background:var(--owner-primary); margin-top:6px;"></div>
         <div>
-          <div style="font-weight:700; font-size:13px;">${a.title}</div>
+          <div style="font-weight:700; font-size:13px;">${hz(a.title)}</div>
           <div style="font-size:12px; color:var(--owner-text-muted);">${a.desc}</div>
           <div style="font-size:11px; color:var(--owner-text-light);">${fmt(a.time)}</div>
         </div>
@@ -1678,8 +1678,8 @@
         ${p.recommended ? '<div class="mkt-recommended-badge">RECOMMENDED</div>' : ''}
         <div>
           <div class="pkg-header-num">PACKAGE ${idx + 1}</div>
-          <div class="pkg-header-title">${p.name}</div>
-          <div class="pkg-header-desc">${p.description}</div>
+          <div class="pkg-header-title">${hz(p.name)}</div>
+          <div class="pkg-header-desc">${hz(p.description)}</div>
 
           <div class="pkg-kpis-box">
             <div class="pkg-kpi-row"><span>Est. Reach:</span> <span>${p.estimatedReach}</span></div>
@@ -1738,7 +1738,7 @@
       grid.innerHTML = choices.map((d, i) => `
         <div class="duration-card${i === selected ? ' selected' : ''}" onclick="selectDurationOption(this, ${i})">
           ${d.recommended ? '<span class="dur-badge">RECOMMENDED</span>' : ''}
-          <div class="dur-title">${d.label}</div>
+          <div class="dur-title">${hz(d.label)}</div>
           <div class="dur-price">₹${Number(d.price).toLocaleString('en-IN')}${d.origPrice ? ` <span style="font-size:11px; text-decoration:line-through; color:#94A3B8;">₹${Number(d.origPrice).toLocaleString('en-IN')}</span>` : ''}</div>
         </div>`).join('');
     }
@@ -1875,7 +1875,7 @@
       if (success) success.style.display = 'block';
       showToast(out.result.mode === 'paid'
         ? `Campaign ${camp.id} paid and submitted — we email you when the ads go live.`
-        : `Campaign ${camp.id} submitted. ${out.result.message || 'Our marketing team will confirm payment.'}`);
+        : `Campaign ${camp.id} submitted. ${hz(out.result.message || 'Our marketing team will confirm payment.')}`);
       window.HotelzzMarketingStore.refresh().then(renderOwnerCampaignsList);
     }).catch((err) => {
       if (btn) { btn.disabled = false; btn.textContent = label; }
@@ -1907,7 +1907,7 @@
         <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
           <div>
             <span class="badge ${statusBadge[c.campaignStatus] || 'badge-warning'}">${c.campaignStatus === 'Pending' ? 'Pending review' : c.campaignStatus}</span>
-            <h3 style="font-size:17px; font-weight:800; margin-top:4px;">${c.packageName} (${c.duration})</h3>
+            <h3 style="font-size:17px; font-weight:800; margin-top:4px;">${hz(c.packageName)} (${c.duration})</h3>
             <div style="font-size:12px; color:var(--owner-text-muted);">ID: ${c.id} • Target Locations: ${(c.targetLocations || []).join(', ') || '—'}</div>
             <div style="font-size:12px; color:var(--owner-text-muted);">${c.campaignStatus === 'Pending' ? 'Requested ' + fmt(c.createdAt) : `Runs ${fmt(c.startDate)} → ${fmt(c.endDate)}`}</div>
           </div>
@@ -1934,7 +1934,7 @@
           ${(c.timeline || []).map(t => `
             <div style="font-size:12px; display:flex; gap:8px;">
               <span style="color:#10B981; font-weight:700;">✓</span>
-              <span><strong>${t.title}:</strong> ${t.desc} <small style="color:#94A3B8;">(${t.time})</small></span>
+              <span><strong>${hz(t.title)}:</strong> ${t.desc} <small style="color:#94A3B8;">(${t.time})</small></span>
             </div>
           `).join('')}
         </div>
@@ -1971,10 +1971,10 @@
       const phone = String(l.phone || '').replace(/[^0-9]/g, '');
       return `
       <tr>
-        <td style="font-weight:700;">${l.name}</td>
-        <td>${l.phone || '—'}<br/><small style="color:var(--owner-text-muted);">${l.email || ''}</small></td>
-        <td><span class="badge badge-info">${l.source || 'website'}</span></td>
-        <td>${l.propertyName || '—'}</td>
+        <td style="font-weight:700;">${hz(l.name)}</td>
+        <td>${hz(l.phone || '—')}<br/><small style="color:var(--owner-text-muted);">${hz(l.email || '')}</small></td>
+        <td><span class="badge badge-info">${hz(l.source || 'website')}</span></td>
+        <td>${hz(l.propertyName || '—')}</td>
         <td>${fmt(l.date)}</td>
         <td>
           <select class="form-control" style="padding:4px 8px; font-size:12px; width:130px;" onchange="updateMktLeadStatus('${l.id}', this.value)">

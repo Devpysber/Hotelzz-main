@@ -123,7 +123,9 @@ router.post('/:id/grab',
         .run(uid('grb'), row.id, row.property_id, req.user ? req.user.id : null, b.name, email, b.phone);
       db.prepare('UPDATE offers SET grabs = grabs + 1 WHERE id = ?').run(row.id);
 
-      const owner = row.hotel_owner_id ? db.prepare('SELECT * FROM users WHERE id = ?').get(row.hotel_owner_id) : null;
+      const prop = db.prepare('SELECT * FROM properties WHERE id = ?').get(row.property_id);
+      const owner = row.hotel_owner_id && require('../lib/ownership').canManage(prop)
+        ? db.prepare('SELECT * FROM users WHERE id = ?').get(row.hotel_owner_id) : null;
       if (owner) {
         sendMailAsync(owner.email, 'dealGrabbedOwner', {
           name: owner.name, hotelName: row.hotel_name, title: row.title,
@@ -265,7 +267,7 @@ admin.get('/grabs/export', (req, res) => {
     `SELECT g.created_at, o.title, p.name AS hotel, g.name, g.email, g.phone FROM deal_grabs g
        JOIN offers o ON o.id = g.offer_id LEFT JOIN properties p ON p.id = g.property_id ORDER BY g.created_at DESC`
   ).all();
-  const cell = (v) => { const t = v == null ? '' : String(v); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const cell = (v) => { let t = v == null ? '' : String(v); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
   const csv = ['Date,Deal,Hotel,Name,Email,Phone']
     .concat(rows.map((r) => [r.created_at, r.title, r.hotel, r.name, r.email, r.phone].map(cell).join(','))).join('\r\n');
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');

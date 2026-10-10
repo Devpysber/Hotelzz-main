@@ -144,7 +144,7 @@
         const headerEmail = document.getElementById('adminProfileEmail');
         if (headerEmail) headerEmail.textContent = r.user.email;
         document.getElementById('acctEmailForm').reset();
-        showToast(`Sign-in email changed to ${r.user.email}. A confirmation was sent to both addresses.`);
+        showToast(`Sign-in email changed to ${hz(r.user.email)}. A confirmation was sent to both addresses.`);
       })
       .catch((error) => { err.textContent = error.message || 'Could not update the email.'; })
       .then(() => { btn.disabled = false; btn.textContent = 'Update Email'; });
@@ -315,8 +315,8 @@
         propMatches.slice(0, 3).forEach(p => {
           html += `<div class="search-result-item" onclick="openPropertyModal('${p.id}'); document.getElementById('globalSearchDropdown').classList.remove('show');">
             <div>
-              <div class="search-result-title">${p.name}</div>
-              <div class="search-result-subtitle">${p.city}${p.state ? ', ' + p.state : ''} • ${p.phoneMasked}</div>
+              <div class="search-result-title">${hz(p.name)}</div>
+              <div class="search-result-subtitle">${hz(p.city)}${p.state ? ', ' + p.state : ''} • ${p.phoneMasked}</div>
             </div>
             <span class="badge badge-info">${p.id}</span>
           </div>`;
@@ -330,8 +330,8 @@
         claimMatches.slice(0, 3).forEach(c => {
           html += `<div class="search-result-item" onclick="openReviewClaimModal('${c.id}'); document.getElementById('globalSearchDropdown').classList.remove('show');">
             <div>
-              <div class="search-result-title">${c.propertyName}</div>
-              <div class="search-result-subtitle">Claimant: ${c.claimantName} • ${c.phoneMasked}</div>
+              <div class="search-result-title">${hz(c.propertyName)}</div>
+              <div class="search-result-subtitle">Claimant: ${hz(c.claimantName)} • ${c.phoneMasked}</div>
             </div>
             <span class="badge badge-warning">${c.claimStatus}</span>
           </div>`;
@@ -345,10 +345,10 @@
         ownerMatches.slice(0, 3).forEach(o => {
           html += `<div class="search-result-item" onclick="switchView('owners'); openOwnerModal('${o.id}'); document.getElementById('globalSearchDropdown').classList.remove('show');">
             <div>
-              <div class="search-result-title">${o.name}</div>
-              <div class="search-result-subtitle">${o.company} • ${o.email}</div>
+              <div class="search-result-title">${hz(o.name)}</div>
+              <div class="search-result-subtitle">${hz(o.company)} • ${hz(o.email)}</div>
             </div>
-            <span class="badge ${o.status === 'Active' ? 'badge-success' : 'badge-warning'}">${o.status}</span>
+            <span class="badge ${o.status === 'Active' ? 'badge-success' : 'badge-warning'}">${hz(o.status)}</span>
           </div>`;
         });
       }
@@ -375,10 +375,10 @@
         importMatches.slice(0, 3).forEach(i => {
           html += `<div class="search-result-item" onclick="switchView('import-history'); document.getElementById('globalSearchDropdown').classList.remove('show');">
             <div>
-              <div class="search-result-title">${i.importId} — ${i.filename}</div>
+              <div class="search-result-title">${i.importId} — ${hz(i.filename)}</div>
               <div class="search-result-subtitle">${typeof i.imported === 'number' ? i.imported.toLocaleString('en-IN') : '—'} Imported • ${fmt(i.date)}</div>
             </div>
-            <span class="badge badge-success">${i.status}</span>
+            <span class="badge badge-success">${hz(i.status)}</span>
           </div>`;
         });
       }
@@ -427,8 +427,8 @@
       <div class="notification-item ${n.read ? '' : 'unread'}" style="cursor:pointer;" onclick="openNotification('${n.id}')">
         <div class="notification-icon">🔔</div>
         <div class="notification-content">
-          <div class="notification-title">${n.title}</div>
-          <div class="notification-text">${n.message}</div>
+          <div class="notification-title">${hz(n.title)}</div>
+          <div class="notification-text">${hz(n.message)}</div>
           <div class="notification-time">${fmt(n.time)}</div>
         </div>
       </div>
@@ -545,6 +545,7 @@
   };
 
   window.resetUserPassword = function (id, email) {
+    email = email || ((data.adminUsers || []).find((u) => u.id === id) || {}).email || 'this user';
     if (!window.confirm('Email a password reset link to ' + email + '?')) return;
     data.resetUserPassword(id)
       .then((r) => showToast(r.message || 'Reset link sent.'))
@@ -710,13 +711,13 @@
     tbody.innerHTML = shown.map(p => `
       <tr>
         <td>
-          <div style="font-weight: 700;">${p.name}</div>
-          <div style="font-size: 11.5px; color: var(--admin-text-muted);">${p.category}</div>
+          <div style="font-weight: 700;">${hz(p.name)}</div>
+          <div style="font-size: 11.5px; color: var(--admin-text-muted);">${hz(p.category)}</div>
         </td>
         <td><code style="font-weight:700;">${p.id}</code></td>
-        <td>${p.city}</td>
+        <td>${hz(p.city)}</td>
         <td><span class="phone-masked">${p.phoneMasked}</span></td>
-        <td>${p.owner}</td>
+        <td>${hz(p.owner)}</td>
         <td>
           <span class="badge ${p.claimStatus === 'Claimed' ? 'badge-success' : (p.claimStatus === 'Phone Verified' ? 'badge-info' : 'badge-gray')}">
             <span class="badge-dot"></span>${p.claimStatus}
@@ -807,8 +808,8 @@
       <div style="display: flex; gap: 16px; margin-bottom: 20px; align-items: center;">
         <div style="width: 54px; height: 54px; border-radius: 12px; background: var(--admin-primary-light); color: var(--admin-primary); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800;">🏨</div>
         <div>
-          <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 2px;">${p.name}</h2>
-          <p style="color: var(--admin-text-muted); font-size: 13px;">${p.address} • ${p.category}</p>
+          <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 2px;">${hz(p.name)}</h2>
+          <p style="color: var(--admin-text-muted); font-size: 13px;">${hz(p.address)} • ${hz(p.category)}</p>
         </div>
       </div>
 
@@ -846,9 +847,9 @@
     tbody.innerHTML = filteredClaims.map(c => `
       <tr>
         <td><code style="font-weight:700;">${c.id}</code></td>
-        <td style="font-weight: 700;">${c.propertyName}</td>
-        <td>${c.city}</td>
-        <td>${c.claimantName}<br/><small style="color:var(--admin-text-muted);">${c.email}</small></td>
+        <td style="font-weight: 700;">${hz(c.propertyName)}</td>
+        <td>${hz(c.city)}</td>
+        <td>${hz(c.claimantName)}<br/><small style="color:var(--admin-text-muted);">${hz(c.email)}</small></td>
         <td><span class="phone-masked">${c.phoneMasked}</span></td>
         <td><span class="badge ${c.phoneMatchStatus === 'Verified' ? 'badge-success' : 'badge-danger'}">${c.phoneMatchStatus}</span></td>
         <td><span class="badge ${c.claimStatus === 'Claimed' ? 'badge-success' : (c.claimStatus === 'Failed' ? 'badge-danger' : 'badge-warning')}">${c.claimStatus}</span></td>
@@ -870,12 +871,12 @@
     body.innerHTML = `
       <div style="margin-bottom: 20px;">
         <span class="badge ${c.claimStatus === 'Claimed' ? 'badge-success' : 'badge-warning'}">${c.claimStatus}</span>
-        <h3 style="font-size: 18px; font-weight: 800; margin-top: 6px;">${c.propertyName} (${c.city})</h3>
+        <h3 style="font-size: 18px; font-weight: 800; margin-top: 6px;">${hz(c.propertyName)} (${hz(c.city)})</h3>
         <p style="font-size: 12.5px; color: var(--admin-text-muted);">Claim ID: ${c.id} • Started: ${c.startedDate}</p>
       </div>
 
       <div style="background: var(--admin-bg); padding: 14px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;">
-        <div><strong>Claimant:</strong> ${c.claimantName} (${c.email})</div>
+        <div><strong>Claimant:</strong> ${hz(c.claimantName)} (${hz(c.email)})</div>
         <div><strong>Masked Phone Number:</strong> <span class="phone-masked">${c.phoneMasked}</span></div>
         <div><strong>Phone Verification Match:</strong> <span class="badge ${c.phoneMatchStatus === 'Verified' ? 'badge-success' : 'badge-warning'}">${c.phoneMatchStatus}</span></div>
       </div>
@@ -886,13 +887,13 @@
           <div class="timeline-dot"></div>
           <div class="timeline-time">${fmt(c.startedDate)}</div>
           <div class="timeline-title">Claim initiated</div>
-          <div class="timeline-desc">${c.claimantName} selected ${c.propertyName}.</div>
+          <div class="timeline-desc">${hz(c.claimantName)} selected ${hz(c.propertyName)}.</div>
         </div>
         <div class="timeline-item">
           <div class="timeline-dot"></div>
           <div class="timeline-time">${fmt(c.startedDate)}</div>
           <div class="timeline-title">Email verified</div>
-          <div class="timeline-desc">One-time code confirmed for ${c.email}.</div>
+          <div class="timeline-desc">One-time code confirmed for ${hz(c.email)}.</div>
         </div>
         ${c.completedDate ? `
           <div class="timeline-item">
@@ -963,7 +964,7 @@
         renderImportDuplicatesTable();
         renderColumnMapperTable();
         goToImportStep(2);
-        showToast(`${file.name}: ${data.importSession.totalRows.toLocaleString('en-IN')} rows read, ` +
+        showToast(`${hz(file.name)}: ${data.importSession.totalRows.toLocaleString('en-IN')} rows read, ` +
                   `${data.importSession.newListings.toLocaleString('en-IN')} new.`);
       }).catch(fail);
     };
@@ -1080,7 +1081,7 @@
         ${items.slice(0, 5).map((item, i) => `
           <g transform="translate(0, ${i * 34})">
             <rect x="0" y="0" width="12" height="12" rx="3" fill="${item.color}" />
-            <text x="20" y="10" font-size="12" font-weight="700" fill="#0F172A">${item.label}</text>
+            <text x="20" y="10" font-size="12" font-weight="700" fill="#0F172A">${hz(item.label)}</text>
             <text x="20" y="24" font-size="11" fill="#64748B">${item.count.toLocaleString('en-IN')} (${item.percentage})</text>
           </g>
         `).join('')}
@@ -1104,7 +1105,7 @@
         const y = 20 + i * 40;
         const barW = Math.floor((c.records / maxRecords) * (width - 120));
         return `
-          <text x="0" y="${y + 14}" font-size="12" font-weight="700" fill="#0F172A">${c.city}</text>
+          <text x="0" y="${y + 14}" font-size="12" font-weight="700" fill="#0F172A">${hz(c.city)}</text>
           <rect x="80" y="${y}" width="${barW}" height="20" rx="4" fill="#2563EB" />
           <text x="${85 + barW}" y="${y + 14}" font-size="11" font-weight="700" fill="#64748B">${c.records.toLocaleString('en-IN')}</text>
         `;
@@ -1191,7 +1192,7 @@
       <tr>
         <td style="font-weight: 700;">${d.importedName}</td>
         <td>${d.existingName}</td>
-        <td>${d.city}</td>
+        <td>${hz(d.city)}</td>
         <td><span class="phone-masked">${d.importedPhone}</span></td>
         <td><span class="phone-masked">${d.existingPhone}</span></td>
         <td><span class="badge ${d.matchType === 'Exact' ? 'badge-danger' : 'badge-warning'}">${d.matchType}</span></td>
@@ -1218,7 +1219,7 @@
     container.innerHTML = list.length ? list.map(city => `
       <div class="chip">
         <span>${city}</span>
-        <span class="chip-remove" onclick="removeExcludedCity('${city.replace(/'/g, "\\'")}')">×</span>
+        <span class="chip-remove" onclick="removeExcludedCity(${hzArg(city)})">×</span>
       </div>
     `).join('') : '<span style="font-size:12.5px;color:var(--admin-text-muted);">No cities excluded — every city is importable.</span>';
   }
@@ -1300,7 +1301,7 @@
         const line = document.getElementById('importCompleteLine');
         if (line) {
           line.textContent = `${res.summary.imported.toLocaleString('en-IN')} listings imported from ` +
-            `${data.importSession.filename} — ` + (res.summary.updated
+            `${hz(data.importSession.filename)} — ` + (res.summary.updated
               ? `${res.summary.updated.toLocaleString('en-IN')} existing listings updated.`
               : `${res.summary.duplicates.toLocaleString('en-IN')} duplicates skipped.`);
         }
@@ -1324,14 +1325,14 @@
     tbody.innerHTML = data.importHistory.map(h => `
       <tr>
         <td><code style="font-weight:700;">${h.importId}</code></td>
-        <td style="font-weight:700;">${h.filename}</td>
+        <td style="font-weight:700;">${hz(h.filename)}</td>
         <td>${fmt(h.date)}</td>
         <td>${n(h.rows)}</td>
         <td style="font-weight:700; color: #10B981;">${n(h.imported)}</td>
         <td>${n(h.skipped)}</td>
         <td>${n(h.duplicates)}</td>
-        <td><span class="badge badge-success">${h.status}</span></td>
-        <td>${h.admin}</td>
+        <td><span class="badge badge-success">${hz(h.status)}</span></td>
+        <td>${hz(h.admin)}</td>
         <td><button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="showImportReport('${h.importId}')">Report</button></td>
       </tr>
     `).join('');
@@ -1354,14 +1355,14 @@
     if (!tbody) return;
     tbody.innerHTML = data.owners.map(o => `
       <tr>
-        <td style="font-weight: 700;">${o.name}</td>
-        <td>${o.company}</td>
+        <td style="font-weight: 700;">${hz(o.name)}</td>
+        <td>${hz(o.company)}</td>
         <td>${o.propertiesCount} Properties</td>
         <td><span class="badge ${o.verified ? 'badge-success' : 'badge-warning'}">${o.verified ? 'Verified' : 'Pending'}</span></td>
         <td><span class="plan-tag ${String(o.subscription || 'free').toLowerCase()}">${o.subscription}</span></td>
-        <td style="font-weight: 600;">${o.email}</td>
+        <td style="font-weight: 600;">${hz(o.email)}</td>
         <td>${fmt(o.joinedDate)}</td>
-        <td><span class="badge ${o.status === 'Active' ? 'badge-success' : 'badge-warning'}">${o.status}</span></td>
+        <td><span class="badge ${o.status === 'Active' ? 'badge-success' : 'badge-warning'}">${hz(o.status)}</span></td>
         <td><button class="btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="openOwnerModal('${o.id}')">Profile</button></td>
       </tr>
     `).join('');
@@ -1373,8 +1374,8 @@
     const body = document.getElementById('ownerModalBody');
     if (!modal || !body) return;
     body.innerHTML = `
-      <h2 style="font-size:18px; font-weight:800;">${o.name}</h2>
-      <p style="color:var(--admin-text-muted); font-size:13px;">${o.company} • ${o.email} • <span class="phone-masked">${o.phoneMasked}</span></p>
+      <h2 style="font-size:18px; font-weight:800;">${hz(o.name)}</h2>
+      <p style="color:var(--admin-text-muted); font-size:13px;">${hz(o.company)} • ${hz(o.email)} • <span class="phone-masked">${o.phoneMasked}</span></p>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:18px 0;">
         <div style="background:var(--admin-bg); padding:12px; border-radius:8px;">
           <div style="font-size:12px; color:var(--admin-text-muted); font-weight:700;">PROPERTIES</div>
@@ -1398,14 +1399,14 @@
     if (!tbody) return;
     tbody.innerHTML = data.subscriptions.map(s => `
       <tr>
-        <td style="font-weight: 700;">${s.hotel}</td>
-        <td>${s.owner || 'Unclaimed'}</td>
-        <td><span class="plan-tag ${String(s.plan || 'free').toLowerCase()}">${s.plan}</span></td>
+        <td style="font-weight: 700;">${hz(s.hotel)}</td>
+        <td>${hz(s.owner || 'Unclaimed')}</td>
+        <td><span class="plan-tag ${String(s.plan || 'free').toLowerCase()}">${hz(s.plan)}</span></td>
         <td style="font-weight: 600;">${s.amount}</td>
         <td>${s.billingCycle}</td>
         <td>${fmt(s.lastChanged) || '—'}</td>
         <td>${s.renewalDate || '—'}</td>
-        <td><span class="badge badge-success">${s.status}</span></td>
+        <td><span class="badge badge-success">${hz(s.status)}</span></td>
         <td><span class="badge badge-success">${s.paymentStatus}</span></td>
       </tr>
     `).join('');
@@ -1416,7 +1417,7 @@
     if (!grid) return;
     grid.innerHTML = data.plans.map(p => `
       <div class="plan-card ${p.id === 'professional' ? 'featured' : ''}">
-        <div class="plan-title">${p.name}</div>
+        <div class="plan-title">${hz(p.name)}</div>
         <div class="plan-price">₹${p.price.toLocaleString('en-IN')} <span>/${p.period}</span></div>
         <ul class="plan-features-list">${p.features.map(f => `<li>✓ ${f}</li>`).join('')}</ul>
         <button class="btn-secondary" style="width:100%; margin-top:12px;" onclick="openPlanEditModal('${p.id}')">Edit plan</button>
@@ -1479,7 +1480,7 @@
       return `
         <div style="margin-bottom:14px;">
           <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px;">
-            <span style="font-weight:700;">${p.name}</span>
+            <span style="font-weight:700;">${hz(p.name)}</span>
             <span style="color:var(--admin-text-muted);">${p.subscribers || 0} × ₹${p.price.toLocaleString('en-IN')} = ${p.mrr}</span>
           </div>
           <div style="background:#E2E8F0; border-radius:6px; height:10px; overflow:hidden;">
@@ -1525,18 +1526,18 @@
     if (!tbody) return;
     tbody.innerHTML = data.leads.map(l => `
       <tr data-row-id="${l.id}">
-        <td style="font-weight:700;">${l.leadName}<br/><span class="phone-masked">${l.phoneMasked}</span></td>
-        <td>${l.hotel}</td>
-        <td>${l.owner}</td>
-        <td>${l.source}</td>
+        <td style="font-weight:700;">${hz(l.leadName)}<br/><span class="phone-masked">${l.phoneMasked}</span></td>
+        <td>${hz(l.hotel)}</td>
+        <td>${hz(l.owner)}</td>
+        <td>${hz(l.source)}</td>
         <td>${fmt(l.date)}</td>
-        <td><span class="badge badge-info">${l.status}</span></td>
+        <td><span class="badge badge-info">${hz(l.status)}</span></td>
       </tr>`).join('') + data.marketingLeads.map(l => `
       <tr data-row-id="${l.id}">
-        <td style="font-weight:700;">${l.name}<br/><span class="phone-masked">${l.phone || '—'}</span></td>
-        <td>${l.hotel || '—'}${l.city ? ' <span style="color:var(--admin-text-muted);font-size:11.5px;">(' + l.city + ')</span>' : ''} ${l.plan ? '<span class="badge badge-info">' + l.plan + '</span>' : ''}</td>
+        <td style="font-weight:700;">${hz(l.name)}<br/><span class="phone-masked">${hz(l.phone || '—')}</span></td>
+        <td>${hz(l.hotel || '—')}${l.city ? ' <span style="color:var(--admin-text-muted);font-size:11.5px;">(' + l.city + ')</span>' : ''} ${l.plan ? '<span class="badge badge-info">' + l.plan + '</span>' : ''}</td>
         <td>—</td>
-        <td>${l.source || 'marketing'}</td>
+        <td>${hz(l.source || 'marketing')}</td>
         <td>${fmt(l.date)}</td>
         <td>
           <select onchange="updateMarketingLead('${l.id}', this.value)" style="padding:4px 6px; border-radius:6px; border:1px solid var(--admin-border); font-size:12px;">
@@ -1584,7 +1585,7 @@
         <td>${p.purpose}</td>
         <td style="font-weight:700;">₹${Number(p.amount).toLocaleString('en-IN')}</td>
         <td>${p.provider}</td>
-        <td><span class="badge ${p.status === 'paid' ? 'badge-success' : p.status === 'failed' ? 'badge-danger' : 'badge-warning'}">${p.status}</span></td>
+        <td><span class="badge ${p.status === 'paid' ? 'badge-success' : p.status === 'failed' ? 'badge-danger' : 'badge-warning'}">${hz(p.status)}</span></td>
         <td>${fmt(p.createdAt)}</td>
         <td>${p.status === 'paid' ? '' : `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="markPaymentPaid('${p.id}')">Mark paid</button>`}</td>
       </tr>`).join('') || '<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--admin-text-muted);">No payments yet.</td></tr>';
@@ -1617,12 +1618,12 @@
     if (!tbody) return;
     tbody.innerHTML = data.reviews.map(r => `
       <tr>
-        <td style="font-weight:700;">${r.hotel}</td>
-        <td>${r.reviewer}</td>
+        <td style="font-weight:700;">${hz(r.hotel)}</td>
+        <td>${hz(r.reviewer)}</td>
         <td>⭐ ${r.rating}</td>
-        <td style="max-width:320px;">${r.comment || '—'}</td>
+        <td style="max-width:320px;">${hz(r.comment || '—')}</td>
         <td>${fmt(r.date)}</td>
-        <td><span class="badge ${r.status === 'Published' ? 'badge-success' : r.status === 'Rejected' ? 'badge-danger' : 'badge-warning'}">${r.status}</span></td>
+        <td><span class="badge ${r.status === 'Published' ? 'badge-success' : r.status === 'Rejected' ? 'badge-danger' : 'badge-warning'}">${hz(r.status)}</span></td>
         <td>
           ${r.status !== 'Published' ? `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="moderateReview('${r.id}', 'Published')">Publish</button>` : ''}
           ${r.status !== 'Rejected' ? `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="moderateReview('${r.id}', 'Rejected')">Reject</button>` : ''}
@@ -1633,15 +1634,15 @@
   function renderActivityLogsTable() {
     const tbody = document.getElementById('activityTableBody');
     if (!tbody) return;
-    tbody.innerHTML = data.activityLogs.map(a => `<tr><td>${fmt(a.timestamp)}</td><td style="font-weight:700;">${a.admin}</td><td><span class="badge badge-info">${a.action}</span></td><td>${a.target}</td><td><code>${a.ip}</code></td><td><span class="badge badge-success">${a.result}</span></td></tr>`).join('');
+    tbody.innerHTML = data.activityLogs.map(a => `<tr><td>${fmt(a.timestamp)}</td><td style="font-weight:700;">${hz(a.admin)}</td><td><span class="badge badge-info">${a.action}</span></td><td>${a.target}</td><td><code>${a.ip}</code></td><td><span class="badge badge-success">${a.result}</span></td></tr>`).join('');
   }
 
   function renderAdminUsersTable() {
     const tbody = document.getElementById('adminUsersTableBody');
     if (!tbody) return;
-    tbody.innerHTML = data.adminUsers.map(u => `<tr><td style="font-weight:700;">${u.name}</td><td>${u.email}</td><td><span class="badge badge-info">${u.role}</span></td><td>${fmt(u.lastActive)}</td><td><span class="badge ${u.status === 'Active' ? 'badge-success' : 'badge-warning'}">${u.status}</span></td>
+    tbody.innerHTML = data.adminUsers.map(u => `<tr><td style="font-weight:700;">${hz(u.name)}</td><td>${hz(u.email)}</td><td><span class="badge badge-info">${u.role}</span></td><td>${fmt(u.lastActive)}</td><td><span class="badge ${u.status === 'Active' ? 'badge-success' : 'badge-warning'}">${hz(u.status)}</span></td>
       <td>
-        <button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="resetUserPassword('${u.id}', '${u.email}')">Send reset link</button>
+        <button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="resetUserPassword(${hzArg(u.id)})">Send reset link</button>
         ${u.id === (data.admin || {}).id ? '' : `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="setOwnerStatus('${u.id}', '${u.status === 'Active' ? 'suspended' : 'active'}')">${u.status === 'Active' ? 'Suspend' : 'Reactivate'}</button>`}
       </td></tr>`).join('');
   }
@@ -1734,9 +1735,9 @@
       return `
       <tr>
         <td style="font-weight:700;">${c.id}<div style="font-size:11.5px; color:var(--admin-text-muted); font-weight:400;">${fmt(c.createdAt)}</div></td>
-        <td><strong>${c.propertyName || '—'}</strong><div style="font-size:11.5px; color:var(--admin-text-muted);">${c.propertyCity || ''}</div></td>
-        <td>${c.ownerName || '—'}<div style="font-size:11.5px; color:var(--admin-text-muted);">${c.ownerEmail || ''}${c.ownerPhone ? ' • ' + c.ownerPhone : ''}</div></td>
-        <td>${c.packageName}<div style="font-size:11.5px; color:var(--admin-text-muted);">${c.duration}</div></td>
+        <td><strong>${hz(c.propertyName || '—')}</strong><div style="font-size:11.5px; color:var(--admin-text-muted);">${hz(c.propertyCity || '')}</div></td>
+        <td>${hz(c.ownerName || '—')}<div style="font-size:11.5px; color:var(--admin-text-muted);">${c.ownerEmail || ''}${c.ownerPhone ? ' • ' + c.ownerPhone : ''}</div></td>
+        <td>${hz(c.packageName)}<div style="font-size:11.5px; color:var(--admin-text-muted);">${c.duration}</div></td>
         <td style="font-weight:700; color:var(--admin-primary);">${inr(c.total)}<div style="font-size:11.5px; color:var(--admin-text-muted); font-weight:400;">${inr(c.amount)} + ${inr(c.gst)} GST</div></td>
         <td><span class="badge ${payBadge}"><span class="badge-dot"></span>${payLabel}</span>${c.payment ? `<div style="font-size:11px; color:var(--admin-text-muted); margin-top:3px;">${c.payment.provider} • ${c.payment.id}</div>` : ''}</td>
         <td><span class="badge ${statusBadge[c.campaignStatus] || 'badge-warning'}"><span class="badge-dot"></span>${c.campaignStatus}</span>${c.campaignStatus !== 'Pending' && c.startDate ? `<div style="font-size:11px; color:var(--admin-text-muted); margin-top:3px;">${fmt(c.startDate)} → ${fmt(c.endDate)}</div>` : ''}</td>
@@ -1824,8 +1825,8 @@
         <div>
           ${p.recommended ? '<span class="badge badge-warning" style="float:right;">RECOMMENDED</span>' : ''}
           ${p.active === false ? '<span class="badge badge-gray" style="float:right; margin-right:6px;">HIDDEN</span>' : ''}
-          <h3 style="font-size:18px; font-weight:800; margin-bottom:6px;">${p.name}</h3>
-          <p style="font-size:12.5px; color:var(--admin-text-muted); margin-bottom:14px;">${p.description}</p>
+          <h3 style="font-size:18px; font-weight:800; margin-bottom:6px;">${hz(p.name)}</h3>
+          <p style="font-size:12.5px; color:var(--admin-text-muted); margin-bottom:14px;">${hz(p.description)}</p>
           <div style="font-size:22px; font-weight:800; color:var(--admin-primary); margin-bottom:14px;">Starting ₹${p.startingPrice.toLocaleString('en-IN')}</div>
           
           <div style="font-size:12px; color:var(--admin-text-muted); background:var(--admin-bg); padding:10px; border-radius:6px; margin-bottom:16px;">
@@ -1854,7 +1855,7 @@
     document.getElementById('admPkgFormActive').checked = p.active !== false;
     const durations = (p.durations && p.durations.length) ? p.durations : [{ label: '30 Days', price: p.startingPrice }];
     document.getElementById('admPkgFormDurations').innerHTML = durations.map((d, i) => `
-      <div><small>${d.label}${d.custom ? ' (on request)' : ''}</small>
+      <div><small>${hz(d.label)}${d.custom ? ' (on request)' : ''}</small>
         <input type="number" min="1" data-dur="${i}" value="${Number(d.price) || ''}" class="filter-input" style="width:100%;" /></div>`).join('');
 
     document.getElementById('adminEditPkgModal').classList.add('show');
@@ -1911,13 +1912,13 @@
       return `
       <tr>
         <td style="font-weight:700;">${l.id}</td>
-        <td>${l.name}</td>
-        <td>${l.phone || '—'}<br/><small style="color:var(--admin-text-muted);">${l.email || ''}</small></td>
+        <td>${hz(l.name)}</td>
+        <td>${hz(l.phone || '—')}<br/><small style="color:var(--admin-text-muted);">${hz(l.email || '')}</small></td>
         <td>${l.propertyName || l.propertyId}</td>
         <td>${fmt(l.date)}</td>
         <td>${c ? `<span class="badge badge-success">${c.id}</span>` : '<span style="color:var(--admin-text-muted);">—</span>'}</td>
-        <td><span class="badge badge-info">${l.source || 'website'}</span></td>
-        <td><span class="badge ${l.status === 'Converted' ? 'badge-success' : l.status === 'Spam' ? 'badge-danger' : 'badge-gray'}">${l.status}</span></td>
+        <td><span class="badge badge-info">${hz(l.source || 'website')}</span></td>
+        <td><span class="badge ${l.status === 'Converted' ? 'badge-success' : l.status === 'Spam' ? 'badge-danger' : 'badge-gray'}">${hz(l.status)}</span></td>
       </tr>`;
     }).join('');
   }

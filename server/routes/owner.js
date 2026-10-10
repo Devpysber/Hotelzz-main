@@ -8,6 +8,7 @@ const { DEFAULT_POLICIES } = require('../lib/listing');
 const { sendMailAsync } = require('../lib/mailer');
 const { invalidateCatalog } = require('./properties');
 
+const own = require('../lib/ownership');
 const router = express.Router();
 router.use(A.requireAuth('owner', 'admin'));
 
@@ -25,6 +26,10 @@ function guard(req, res, next) {
   const { row, error } = ownedProperty(req, req.params.id);
   if (error === 404) return res.status(404).json({ ok: false, error: 'Property not found.' });
   if (error === 403) return res.status(403).json({ ok: false, error: 'Not your property.' });
+  // Reading is fine while a claim is pending; changing the listing is not.
+  if (req.method !== 'GET' && req.user.role !== 'admin' && !own.canManage(row)) {
+    return res.status(403).json({ ok: false, error: own.PENDING_MESSAGE });
+  }
   req.property = row;
   next();
 }
@@ -452,28 +457,44 @@ router.post('/properties/:id/subscription',
     features: z.array(z.string()).optional()
   })),
   wrap(async (req, res) => {
-    const b = req.body;
+    // Price and features always come from the plan list the admin manages —
+    // never from the browser.
+    const plan = db.prepare('SELECT * FROM plans WHERE lower(name) = lower(?) OR id = ?').get(req.body.planName, req.body.planName);
+    if (!plan) return res.status(400).json({ ok: false, field: 'planName', error: 'That plan is not available.' });
+    const amount = Number(plan.price) || 0;
+    const b = {
+      planName: plan.name,
+      price: '₹' + amount.toLocaleString('en-IN'),
+      billingCycle: plan.period === 'forever' ? 'Forever' : 'Monthly',
+      features: json(plan.features, [])
+    };
+    // Free plans switch on now; paid plans once the payment lands (payments.js activate()).
+    const status = amount > 0 ? 'Pending' : 'Active';
     const renewal = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
     db.prepare(
       `INSERT INTO subscriptions (property_id, plan_name, price, billing_cycle, status, renewal_date, features)
-       VALUES (?,?,?,?, 'Active', ?, ?)
+       VALUES (?,?,?,?,?,?,?)
        ON CONFLICT(property_id) DO UPDATE SET plan_name=excluded.plan_name, price=excluded.price,
-         billing_cycle=excluded.billing_cycle, status='Active', renewal_date=excluded.renewal_date,
+         billing_cycle=excluded.billing_cycle, status=excluded.status, renewal_date=excluded.renewal_date,
          features=excluded.features, updated_at=datetime('now')`
-    ).run(req.property.id, b.planName, b.price || '₹0', b.billingCycle || 'Monthly', renewal,
-          JSON.stringify(b.features || []));
+    ).run(req.property.id, b.planName, b.price, b.billingCycle, status, renewal, JSON.stringify(b.features));
 
-    // Upgrades are fulfilled manually today, so the invoice starts unpaid.
-    const invoiceNumber = 'HZ-' + Date.now().toString().slice(-8);
-    db.prepare('INSERT INTO invoices (id, property_id, number, amount, plan, status) VALUES (?,?,?,?,?,?)')
-      .run(uid('inv'), req.property.id, invoiceNumber, b.price || '₹0', b.planName, 'Pending');
-    db.prepare(`UPDATE properties SET plan = ?, updated_at = datetime('now') WHERE id = ?`).run(b.planName, req.property.id);
-    audit(req.user.id, 'owner.subscription.change', 'property', req.property.id, { plan: b.planName }, req.ip);
+    let invoiceNumber = null;
+    if (amount > 0) {
+      // Replace any older unpaid plan invoice so only the chosen plan is due.
+      db.prepare("DELETE FROM invoices WHERE property_id = ? AND status = 'Pending'").run(req.property.id);
+      invoiceNumber = 'HZ-' + Date.now().toString().slice(-8);
+      db.prepare('INSERT INTO invoices (id, property_id, number, amount, plan, status) VALUES (?,?,?,?,?,?)')
+        .run(uid('inv'), req.property.id, invoiceNumber, b.price, b.planName, 'Pending');
+    } else {
+      db.prepare(`UPDATE properties SET plan = ?, updated_at = datetime('now') WHERE id = ?`).run(b.planName, req.property.id);
+    }
+    audit(req.user.id, 'owner.subscription.change', 'property', req.property.id, { plan: b.planName, amount }, req.ip);
 
     const ownerUser = req.property.owner_id ? db.prepare('SELECT * FROM users WHERE id = ?').get(req.property.owner_id) : null;
     if (ownerUser) {
       sendMailAsync(ownerUser.email, 'subscriptionChanged', { name: ownerUser.name, hotelName: req.property.name, planName: b.planName, price: b.price });
-      sendMailAsync(ownerUser.email, 'invoiceIssued', { name: ownerUser.name, hotelName: req.property.name, invoiceNumber, amount: b.price || '₹0', planName: b.planName });
+      if (invoiceNumber) sendMailAsync(ownerUser.email, 'invoiceIssued', { name: ownerUser.name, hotelName: req.property.name, invoiceNumber, amount: b.price, planName: b.planName });
     }
 
     res.json({ ok: true, property: shapeProperty(db.prepare('SELECT * FROM properties WHERE id = ?').get(req.property.id)) });

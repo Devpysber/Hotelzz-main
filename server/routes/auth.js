@@ -129,6 +129,12 @@ router.post('/login',
     if (user.status === 'suspended') {
       return res.status(403).json({ ok: false, error: 'This account is suspended. Contact support.' });
     }
+    // A live admin account on a default password is an open door: refuse it
+    // and send them through Email OTP / Forgot password to set a real one.
+    if (env.isProd && role === 'admin' && env.WEAK_ADMIN_PASSWORDS.includes(password)) {
+      audit(user.id, 'auth.login.weak_admin_password', 'user', user.id, null, req.ip);
+      return res.status(403).json({ ok: false, error: 'This admin password is a default and has been disabled. Use "Email OTP" or "Forgot password" to sign in, then set a strong password in Settings.' });
+    }
     db.prepare(`UPDATE users SET last_login_at = datetime('now') WHERE id = ?`).run(user.id);
     A.setSessionCookie(res, user);
     audit(user.id, 'auth.login', 'user', user.id, { role }, req.ip);
@@ -267,7 +273,11 @@ router.get('/google/callback', wrap(async (req, res) => {
     sendMailAsync(user.email, role === 'owner' ? 'welcomeOwner' : 'welcomeTraveler',
       role === 'owner' ? { name: user.name, hotelName: 'your property' } : { name: user.name });
   } else if (!user.email_verified) {
-    db.prepare('UPDATE users SET email_verified = 1 WHERE id = ?').run(user.id);
+    // Someone may have registered this address without owning it. Google has
+    // now proved who really owns it, so that earlier password stops working.
+    db.prepare('UPDATE users SET email_verified = 1, password_hash = NULL WHERE id = ?').run(user.id);
+    user = A.revokeSessions(user.id);
+    audit(user.id, 'auth.google.claimed_unverified', 'user', user.id, null, req.ip);
   }
   if (user.status === 'suspended') return fail(role);
 
@@ -309,8 +319,14 @@ router.post('/password/reset',
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.row.user_id);
     if (!user) return res.status(404).json({ ok: false, error: 'Account not found.' });
 
+    if (user.role === 'admin' && env.WEAK_ADMIN_PASSWORDS.includes(password)) {
+      return res.status(400).json({ ok: false, field: 'password', error: 'Choose a stronger password.' });
+    }
     db.prepare(`UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?`)
       .run(await A.hashPassword(password), user.id);
+    // Older reset links and every signed-in device stop working.
+    db.prepare("UPDATE tokens SET consumed_at = datetime('now') WHERE user_id = ? AND purpose = 'password-reset' AND consumed_at IS NULL").run(user.id);
+    A.revokeSessions(user.id);
     audit(user.id, 'auth.password.reset', 'user', user.id, null, req.ip);
     sendMailAsync(user.email, 'passwordChanged', { name: user.name });
     res.json({ ok: true, message: 'Password updated. You can sign in now.',
@@ -323,8 +339,13 @@ router.post('/password/change',
   async (req, res) => {
     const ok = await A.verifyPassword(req.body.currentPassword, req.user.password_hash);
     if (!ok) return res.status(400).json({ ok: false, field: 'currentPassword', error: 'Current password is incorrect.' });
+    if (req.user.role === 'admin' && env.WEAK_ADMIN_PASSWORDS.includes(req.body.password)) {
+      return res.status(400).json({ ok: false, field: 'password', error: 'Choose a stronger password.' });
+    }
     db.prepare(`UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?`)
       .run(await A.hashPassword(req.body.password), req.user.id);
+    // Sign out every other device; keep this one signed in.
+    A.setSessionCookie(res, A.revokeSessions(req.user.id));
     audit(req.user.id, 'auth.password.change', 'user', req.user.id, null, req.ip);
     sendMailAsync(req.user.email, 'passwordChanged', { name: req.user.name });
     res.json({ ok: true, message: 'Password updated.' });

@@ -194,7 +194,7 @@
     if (!holder) return;
     window.HotelzzAPI.get('/properties/cities').then((r) => {
       holder.innerHTML = (r.cities || []).slice(0, 6).map((c) =>
-        `<button class="btn-secondary portal-city-pill" onclick="selectPortalCityPill('${c.slug}', this)">${c.name} (${c.count})</button>`
+        `<button class="btn-secondary portal-city-pill" onclick="selectPortalCityPill('${c.slug}', this)">${hz(c.name)} (${c.count})</button>`
       ).join('');
     }).catch(() => { holder.innerHTML = ''; });
   }
@@ -222,10 +222,10 @@
 
     tbody.innerHTML = enquiries.slice(0, 5).map(e => `
       <tr onclick="openEnquiryDrawer('${e.id}')" style="cursor:pointer;">
-        <td style="font-weight:700;">${e.propertyName}<br/><small style="color:var(--user-text-muted);">${e.propertyCity}</small></td>
+        <td style="font-weight:700;">${hz(e.propertyName)}<br/><small style="color:var(--user-text-muted);">${hz(e.propertyCity)}</small></td>
         <td>${fmtDay(e.checkIn)} → ${fmtDay(e.checkOut)}</td>
         <td>${fmt(e.sentAt)}</td>
-        <td><span class="badge ${getStatusBadgeClass(e.status)}">${e.status}</span></td>
+        <td><span class="badge ${getStatusBadgeClass(e.status)}">${hz(e.status)}</span></td>
         <td><button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;">View Status</button></td>
       </tr>
     `).join('');
@@ -268,20 +268,20 @@
       <div class="enquiry-card">
         <div class="enquiry-card-header">
           <div>
-            <span class="badge ${getStatusBadgeClass(e.status)}" style="margin-bottom:4px;">${e.status}</span>
-            <div class="enquiry-hotel-title">${e.propertyName}</div>
-            <div class="enquiry-stay-dates">📍 ${e.propertyCity} • Dates: ${fmtDay(e.checkIn)} → ${fmtDay(e.checkOut)} • ${e.guests} Guests</div>
+            <span class="badge ${getStatusBadgeClass(e.status)}" style="margin-bottom:4px;">${hz(e.status)}</span>
+            <div class="enquiry-hotel-title">${hz(e.propertyName)}</div>
+            <div class="enquiry-stay-dates">📍 ${hz(e.propertyCity)} • Dates: ${fmtDay(e.checkIn)} → ${fmtDay(e.checkOut)} • ${hz(e.guests)} Guests</div>
           </div>
           <button class="btn-secondary" onclick="openEnquiryDrawer('${e.id}')">Track Status →</button>
         </div>
 
-        <p style="font-size:13px; color:var(--user-text-muted); margin-bottom:10px;">"${e.message}"</p>
+        <p style="font-size:13px; color:var(--user-text-muted); margin-bottom:10px;">"${hz(e.message)}"</p>
 
         <div class="status-timeline">
           ${(e.timeline || []).map(t => `
             <div class="timeline-step completed">
               <div class="timeline-dot"></div>
-              <span><strong>${t.title}:</strong> ${t.desc} <small style="color:var(--user-text-muted);">(${fmt(t.time)})</small></span>
+              <span><strong>${hz(t.title)}:</strong> ${t.desc} <small style="color:var(--user-text-muted);">(${fmt(t.time)})</small></span>
             </div>
           `).join('')}
         </div>
@@ -304,28 +304,28 @@
 
     body.innerHTML = `
       <div style="margin-bottom:16px;">
-        <span class="badge ${getStatusBadgeClass(e.status)}">${e.status}</span>
-        <h3 style="font-size:18px; font-weight:800; margin-top:6px;">${e.propertyName}</h3>
+        <span class="badge ${getStatusBadgeClass(e.status)}">${hz(e.status)}</span>
+        <h3 style="font-size:18px; font-weight:800; margin-top:6px;">${hz(e.propertyName)}</h3>
         <p style="font-size:12.5px; color:var(--user-text-muted);">Enquiry ID: ${e.id} • Sent: ${fmt(e.sentAt)}</p>
       </div>
 
       <div style="background:var(--user-bg); padding:14px; border-radius:8px; margin-bottom:16px; font-size:13px;">
         <div><strong>Requested Stay:</strong> ${fmtDay(e.checkIn)} → ${fmtDay(e.checkOut)}</div>
-        <div><strong>Guests:</strong> ${e.guests} Guest(s)</div>
-        <div><strong>Contact Details Sent:</strong> ${e.guestName} (${e.guestPhone})</div>
+        <div><strong>Guests:</strong> ${hz(e.guests)} Guest(s)</div>
+        <div><strong>Contact Details Sent:</strong> ${hz(e.guestName)} (${hz(e.guestPhone)})</div>
       </div>
 
       <div style="margin-bottom:16px;">
         <h4 style="font-size:13px; font-weight:700; text-transform:uppercase; margin-bottom:6px; color:var(--user-text-muted);">Your Message</h4>
         <div style="padding:12px; background:#FFF; border:1px solid var(--user-border); border-radius:8px; font-size:13px;">
-          "${e.message}"
+          "${hz(e.message)}"
         </div>
       </div>
 
       ${e.hotelResponse ? `
         <div style="background:#F0FDF4; border-left:4px solid #10B981; padding:14px; border-radius:8px; margin-bottom:20px;">
           <div style="font-weight:700; color:#166534; margin-bottom:4px;">Hotel Response:</div>
-          <div style="font-size:13px; color:#0F172A;">"${e.hotelResponse}"</div>
+          <div style="font-size:13px; color:#0F172A;">"${hz(e.hotelResponse)}"</div>
           <div style="font-size:11px; color:#64748B; margin-top:6px;">Received: ${fmt(e.respondedAt)}</div>
         </div>
       ` : ''}
@@ -335,7 +335,7 @@
         ${(e.timeline || []).map(t => `
           <div style="font-size:12.5px; display:flex; gap:8px;">
             <span style="color:#10B981; font-weight:700;">✓</span>
-            <span><strong>${t.title}:</strong> ${t.desc} <small style="color:#94A3B8;">(${fmt(t.time)})</small></span>
+            <span><strong>${hz(t.title)}:</strong> ${t.desc} <small style="color:#94A3B8;">(${fmt(t.time)})</small></span>
           </div>
         `).join('')}
       </div>
@@ -350,7 +350,7 @@
 
       ${e.propertyPhone ? `
         <div style="display:flex; gap:10px;">
-          <a href="tel:${e.propertyPhone}" class="btn-secondary" style="flex:1; justify-content:center; text-decoration:none;">Call ${e.propertyName}</a>
+          <a href="tel:${hz(e.propertyPhone)}" class="btn-secondary" style="flex:1; justify-content:center; text-decoration:none;">Call ${hz(e.propertyName)}</a>
           <a href="https://wa.me/${String(e.propertyPhone).replace(/[^0-9]/g, '').replace(/^0/, '91')}" target="_blank" rel="noopener" class="btn-primary" style="flex:1; justify-content:center; text-decoration:none;">WhatsApp Hotel</a>
         </div>
       ` : `
@@ -387,10 +387,10 @@
     container.innerHTML = list.map(r => `
       <div class="enquiry-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <strong style="font-size:16px;">${r.propertyName}</strong>
+          <strong style="font-size:16px;">${hz(r.propertyName)}</strong>
           <span style="font-weight:700; color:#D97706;">⭐ ${r.rating} / 5</span>
         </div>
-        <p style="font-size:13.5px; color:var(--user-text-main); margin-bottom:10px;">"${r.comment}"</p>
+        <p style="font-size:13.5px; color:var(--user-text-main); margin-bottom:10px;">"${hz(r.comment)}"</p>
         <div style="font-size:12px; color:var(--user-text-muted);">Published: ${fmt(r.date)} • <span class="badge badge-green">Verified Review</span></div>
       </div>
     `).join('');
@@ -445,7 +445,7 @@
         <img src="${h.image_url || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500&h=300&fit=crop&q=80'}" style="width:120px; height:80px; object-fit:cover; border-radius:8px;" />
         <div style="flex:1;">
           <h4 style="font-size:16px; font-weight:800;">${h.name || h.id}</h4>
-          <div style="font-size:12.5px; color:var(--user-text-muted);">📍 ${h.location || '—'} • ★ ${h.rating || '—'}</div>
+          <div style="font-size:12.5px; color:var(--user-text-muted);">📍 ${hz(h.location || '—')} • ★ ${h.rating || '—'}</div>
         </div>
         <div style="display:flex; gap:8px;">
           <a href="property.html?id=${encodeURIComponent(h.id)}" class="btn-primary" style="text-decoration:none; font-size:12.5px;">View &amp; Enquire</a>
@@ -620,7 +620,7 @@
       portalResults = res.properties || [];
       paintPortalResults(container, res.total);
     }).catch((err) => {
-      container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:36px;color:#B91C1C;">${err.message}</div>`;
+      container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:36px;color:#B91C1C;">${hz(err.message)}</div>`;
     });
   }
 
@@ -754,7 +754,7 @@
     if (checkIn && checkOut && checkOut <= checkIn) return flag('enqCheckOut', 'Check-out must be after check-in.');
 
     const dates = checkIn && checkOut ? ` from ${checkIn} to ${checkOut}` : checkIn ? ` from ${checkIn}` : '';
-    const message = note || `Hi! I am interested in booking ${enquiryTarget.name} for ${guests} guest${guests === 1 ? '' : 's'}${dates}. Please share availability and your best rate.`;
+    const message = note || `Hi! I am interested in booking ${hz(enquiryTarget.name)} for ${guests} guest${guests === 1 ? '' : 's'}${dates}. Please share availability and your best rate.`;
 
     const btn = document.getElementById('enqSubmitBtn');
     btn.disabled = true; btn.textContent = 'Sending\u2026';
@@ -775,7 +775,7 @@
       closeModal('enquiryModal');
       // Stay on Search — just confirm, and mark the card so it's clear which
       // hotels already have an enquiry.
-      showToast(`Enquiry sent to ${target.name}. The hotel will contact you on ${phone}.`);
+      showToast(`Enquiry sent to ${hz(target.name)}. The hotel will contact you on ${phone}.`);
       document.querySelectorAll(`[data-enq-id="${CSS.escape(target.id)}"]`).forEach((b) => {
         b.textContent = '\u2713 Enquiry sent';
         b.classList.add('is-sent');

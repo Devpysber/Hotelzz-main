@@ -20,15 +20,26 @@ app.use('/api/admin/import', express.json({ limit: '32mb' }));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(require('./lib/sanitize').sanitizeBody);
 app.use(A.attachUser);
 
 app.use((req, res, next) => {
   res.set('X-Content-Type-Options', 'nosniff');
   res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // No other site may frame Hotelzz (clickjacking on the admin/owner panels).
+  res.set('X-Frame-Options', 'SAMEORIGIN');
+  res.set('Content-Security-Policy', "frame-ancestors 'self'; base-uri 'self'; object-src 'none'");
+  res.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
+  if (env.isProd) res.set('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
   next();
 });
 
-app.get('/api/health', (_req, res) => {
+app.get('/api/health', (req, res) => {
+  // Public callers only learn that the service is up; the details are for admins.
+  if (env.isProd && !(req.user && req.user.role === 'admin')) {
+    return res.json({ ok: true, smtp: env.smtpConfigured ? 'configured' : 'dev-log-only',
+                      payments: env.paymentsConfigured ? 'razorpay' : 'manual-invoicing', time: new Date().toISOString() });
+  }
   res.json({
     ok: true,
     env: env.NODE_ENV,

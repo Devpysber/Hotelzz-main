@@ -170,4 +170,18 @@
   };
 
   window.HotelzzAPI = API;
+
+  /**
+   * hz(v)    — text safe to put inside HTML (element content or a quoted attribute).
+   * hzArg(v) — a JS string literal safe inside onclick="…", e.g. onclick="f(${hzArg(x)})".
+   * Every value a user typed (names, messages, reviews…) goes through one of these.
+   */
+  window.hz = function (v) {
+    return String(v == null ? '' : v).replace(/[&<>"'`]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' }[c];
+    });
+  };
+  window.hzArg = function (v) {
+    return JSON.stringify(String(v == null ? '' : v)).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  };
 })();

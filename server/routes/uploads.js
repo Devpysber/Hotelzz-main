@@ -12,15 +12,16 @@ function ownsProperty(user, propertyId) {
   const row = db.prepare('SELECT * FROM properties WHERE id = ?').get(propertyId);
   if (!row) return { error: 404 };
   if (user.role !== 'admin' && row.owner_id !== user.id) return { error: 403 };
+  if (user.role !== 'admin' && !require('../lib/ownership').canManage(row)) return { error: 403, pending: true };
   return { row };
 }
 
 router.post('/properties/:id/photos',
   A.requireAuth('owner', 'admin'),
   (req, res, next) => {
-    const { error } = ownsProperty(req.user, req.params.id);
+    const { error, pending } = ownsProperty(req.user, req.params.id);
     if (error === 404) return res.status(404).json({ ok: false, error: 'Property not found.' });
-    if (error === 403) return res.status(403).json({ ok: false, error: 'Not your property.' });
+    if (error === 403) return res.status(403).json({ ok: false, error: pending ? require('../lib/ownership').PENDING_MESSAGE : 'Not your property.' });
     next();
   },
   upload.array('photos', 10),
@@ -50,23 +51,31 @@ router.post('/properties/:id/photos',
       invalidateCatalog();
     }
 
-    audit(req.user.id, 'photo.upload', 'property', req.params.id, { count: saved.length }, req.ip);
+    audit(req.user.id, 'photo.upload', 'property', req.params.id, { count: saved.length, urls: saved.map((x) => x.url) }, req.ip);
     res.status(201).json({ ok: true, photos: saved });
   });
 
 router.delete('/properties/:id/photos/:photoId',
   A.requireAuth('owner', 'admin'),
   (req, res) => {
-    const { error } = ownsProperty(req.user, req.params.id);
+    const { error, pending } = ownsProperty(req.user, req.params.id);
     if (error === 404) return res.status(404).json({ ok: false, error: 'Property not found.' });
-    if (error === 403) return res.status(403).json({ ok: false, error: 'Not your property.' });
+    if (error === 403) return res.status(403).json({ ok: false, error: pending ? require('../lib/ownership').PENDING_MESSAGE : 'Not your property.' });
 
     const photo = db.prepare('SELECT * FROM photos WHERE id = ? AND property_id = ?')
       .get(req.params.photoId, req.params.id);
     if (!photo) return res.status(404).json({ ok: false, error: 'Photo not found.' });
 
     db.prepare('DELETE FROM photos WHERE id = ?').run(photo.id);
-    remove(photo.url);
+    // Only delete the file when nothing else points at it — a photo row can
+    // reference any /uploads/ path, including another hotel's picture.
+    const stillUsed = db.prepare('SELECT 1 FROM photos WHERE url = ? LIMIT 1').get(photo.url) ||
+      db.prepare('SELECT 1 FROM properties WHERE image_url = ? LIMIT 1').get(photo.url) ||
+      db.prepare('SELECT 1 FROM offers WHERE image_url = ? LIMIT 1').get(photo.url);
+    const ownUpload = db.prepare(
+      "SELECT 1 FROM audit_log WHERE action = 'photo.upload' AND entity_id = ? AND meta LIKE ? LIMIT 1"
+    ).get(req.params.id, '%' + photo.url.replace(/[%_]/g, '') + '%');
+    if (!stillUsed && ownUpload) remove(photo.url);
     if (photo.is_cover) {
       const next = db.prepare('SELECT url FROM photos WHERE property_id = ? ORDER BY created_at LIMIT 1')
         .get(req.params.id);

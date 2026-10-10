@@ -409,8 +409,9 @@ define('paymentReceipt',
        ${button(env.PUBLIC_URL + '/owner.html#billing', 'View invoices')}`)
   }));
 
-const esc = (v) => String(v == null ? '' : v)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+// Template data arrives already HTML-escaped (see buildSafe), so this only
+// normalises empty values.
+const esc = (v) => String(v == null ? '' : v);
 const money = (currency, amount) => `${currency || 'INR'} ${Number(amount || 0).toLocaleString('en-IN')}`;
 
 define('purchaseConfirmation',
@@ -673,11 +674,28 @@ function listTemplates() {
 }
 
 /** Pure render — merges sample data with overrides, no send, no DB write. */
+/**
+ * Builds a template safely: the plain-text parts (subject, text) from the raw
+ * values, the HTML part from HTML-escaped values — so a guest's name, message
+ * or hotel name can never turn into markup in an email or the admin's log.
+ */
+function escapeData(v) {
+  if (typeof v === 'string') return v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  if (Array.isArray(v)) return v.map(escapeData);
+  if (v && typeof v === 'object') { const o = {}; Object.keys(v).forEach((k) => { o[k] = escapeData(v[k]); }); return o; }
+  return v;
+}
+function buildSafe(t, data) {
+  const merged = Object.assign({}, t.sample, data || {});
+  const plain = t.build(merged);
+  const safe = t.build(escapeData(merged));
+  return { subject: String(plain.subject || '').replace(/[\r\n]+/g, ' '), text: plain.text, html: safe.html };
+}
+
 function renderTemplate(name, data) {
   const t = T[name];
   if (!t) throw new Error('Unknown email template: ' + name);
-  const merged = Object.assign({}, t.sample, data || {});
-  const msg = t.build(merged);
+  const msg = buildSafe(t, data);
   return Object.assign({ account: t.account, from: (env.SMTP_ACCOUNTS[t.account] || env.SMTP_ACCOUNTS.info).from }, msg);
 }
 
@@ -708,7 +726,7 @@ async function sendMail(to, templateName, data, opts) {
   const account = opts.account || t.account;
   const acctCfg = env.SMTP_ACCOUNTS[account] || env.SMTP_ACCOUNTS.info;
   const from = opts.from || acctCfg.from;
-  const msg = t.build(Object.assign({}, t.sample, data || {}));
+  const msg = buildSafe(t, data);
 
   try {
     await getTransport(account).sendMail({ from, to, replyTo: opts.replyTo, ...msg });

@@ -12,7 +12,7 @@ const verifyPassword = (pw, hash) => (hash ? bcrypt.compare(pw, hash) : Promise.
 const sha256 = (v) => crypto.createHash('sha256').update(String(v)).digest('hex');
 
 function signToken(user) {
-  return jwt.sign({ sub: user.id, role: user.role, email: user.email }, env.JWT_SECRET, {
+  return jwt.sign({ sub: user.id, role: user.role, email: user.email, ep: user.session_epoch || 0 }, env.JWT_SECRET, {
     expiresIn: env.JWT_EXPIRES_IN
   });
 }
@@ -25,6 +25,12 @@ function setSessionCookie(res, user) {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/'
   });
+}
+
+/** Ends every existing session for this user (after a password change). */
+function revokeSessions(userId) {
+  db.prepare('UPDATE users SET session_epoch = session_epoch + 1 WHERE id = ?').run(userId);
+  return db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
 }
 
 function clearSessionCookie(res) {
@@ -62,7 +68,7 @@ function attachUser(req, _res, next) {
   try {
     const payload = jwt.verify(token, env.JWT_SECRET);
     const row = db.prepare('SELECT * FROM users WHERE id = ?').get(payload.sub);
-    if (row && row.status !== 'suspended') req.user = row;
+    if (row && row.status !== 'suspended' && (payload.ep || 0) === (row.session_epoch || 0)) req.user = row;
   } catch (_) { /* expired or tampered token = anonymous */ }
   next();
 }
@@ -126,6 +132,6 @@ function purgeExpiredTokens() {
 }
 
 module.exports = {
-  ROLES, hashPassword, verifyPassword, sha256, signToken, setSessionCookie, clearSessionCookie,
+  ROLES, hashPassword, verifyPassword, sha256, signToken, setSessionCookie, clearSessionCookie, revokeSessions,
   publicUser, attachUser, requireAuth, issueCode, issueLinkToken, consumeToken, purgeExpiredTokens
 };

@@ -2,7 +2,9 @@
 require('dotenv').config();
 
 const env = {
-  NODE_ENV: process.env.NODE_ENV || 'development',
+  // Unset means production: dev conveniences (echoed login codes, seeded demo
+  // accounts, relaxed rate limits) only switch on when asked for explicitly.
+  NODE_ENV: process.env.NODE_ENV || 'production',
   PORT: parseInt(process.env.PORT || '3000', 10),
   DB_PATH: process.env.DB_PATH || './data/hotelzz.db',
   JWT_SECRET: process.env.JWT_SECRET || 'dev-insecure-secret-change-me',
@@ -63,7 +65,8 @@ const env = {
   GOOGLE_ADS_DEVELOPER_TOKEN: process.env.GOOGLE_ADS_DEVELOPER_TOKEN || '',
   GOOGLE_ADS_CUSTOMER_ID: process.env.GOOGLE_ADS_CUSTOMER_ID || '',
   GOOGLE_ADS_ACCESS_TOKEN: process.env.GOOGLE_ADS_ACCESS_TOKEN || '',
-  OTP_DEV_ECHO: String(process.env.OTP_DEV_ECHO || 'true') === 'true',
+  OTP_DEV_ECHO: String(process.env.OTP_DEV_ECHO || 'true') === 'true' &&
+    ['development', 'test'].includes(process.env.NODE_ENV || ''),
 
   // Google Sheet mirror. When set, every admin write (claim decisions, listing
   // edits, moderation, imports, campaign/package changes, settings...) is also
@@ -88,7 +91,9 @@ const env = {
 };
 
 env.googleAuthConfigured = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
-env.isProd = env.NODE_ENV === 'production';
+env.isProd = !['development', 'test'].includes(env.NODE_ENV);
+// Passwords that must never guard a live admin account.
+env.WEAK_ADMIN_PASSWORDS = ['admin123', 'password', 'password123', 'admin', '12345678'];
 env.smtpConfigured = Boolean(env.SMTP_HOST &&
   Object.values(env.SMTP_ACCOUNTS).some((a) => a.user && a.pass));
 // Any account missing its own creds sends through the info mailbox instead of

@@ -258,6 +258,11 @@
 
   var id = qs('id');
   var hotel = (window.HOTELS || []).find(function(h){ return h.id === id; });
+  // Values that end up inside links/attributes: digits only.
+  if (hotel) {
+    hotel.google_cid = String(hotel.google_cid || '').replace(/\D/g, '');
+    hotel.google_review_count = parseInt(hotel.google_review_count, 10) || 0;
+  }
   var wasInactive = false;
   // Treat inactive listings as removed (bundled snapshot may still contain them).
   if (hotel) {

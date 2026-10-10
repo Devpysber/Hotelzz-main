@@ -6,6 +6,7 @@ const A = require('../lib/auth');
 const env = require('../lib/env');
 const { limiter, validate, validateQuery, wrap, slugify } = require('../lib/http');
 const { sendMailAsync } = require('../lib/mailer');
+const own = require('../lib/ownership');
 
 const router = express.Router();
 
@@ -186,6 +187,9 @@ router.patch('/:id',
     if (req.user.role === 'owner' && row.owner_id !== req.user.id) {
       return res.status(403).json({ ok: false, error: 'Not your property.' });
     }
+    if (req.user.role === 'owner' && !own.canManage(row)) {
+      return res.status(403).json({ ok: false, error: own.PENDING_MESSAGE });
+    }
     const b = req.body;
     // claim_status and plan are commercial fields — only an admin may move them.
     if (req.user.role !== 'admin') { delete b.claim_status; delete b.plan; }
@@ -219,8 +223,8 @@ router.post('/:id/claim',
   (req, res) => {
     const row = db.prepare('SELECT * FROM properties WHERE id = ?').get(req.params.id);
     if (!row) return res.status(404).json({ ok: false, error: 'Property not found.' });
-    if (row.claim_status === 'verified' && row.owner_id && row.owner_id !== req.user.id) {
-      return res.status(409).json({ ok: false, error: 'This listing is already claimed by another partner.' });
+    if (own.heldByAnother(row, req.user.id)) {
+      return res.status(409).json({ ok: false, error: 'This listing is already managed or claimed by another partner. Contact support@hotelzz.in if it is yours.' });
     }
     db.prepare(`UPDATE properties SET owner_id = ?, claim_status = 'pending', updated_at = datetime('now') WHERE id = ?`)
       .run(req.user.id, row.id);
@@ -275,8 +279,8 @@ router.post('/:id/claim/start',
   (req, res) => {
     const row = db.prepare('SELECT * FROM properties WHERE id = ?').get(req.params.id);
     if (!row) return res.status(404).json({ ok: false, error: 'Property not found.' });
-    if (row.claim_status === 'verified' && row.owner_id) {
-      return res.status(409).json({ ok: false, error: 'This listing is already claimed. Contact support if it is yours.' });
+    if (row.owner_id && row.claim_status !== 'rejected') {
+      return res.status(409).json({ ok: false, error: 'This listing is already managed or claimed by a partner. Contact support@hotelzz.in if it is yours.' });
     }
 
     const email = req.body.email.toLowerCase();
@@ -320,6 +324,9 @@ router.post('/:id/claim/confirm',
 
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.row.user_id);
     if (!user) return res.status(404).json({ ok: false, error: 'Account not found.' });
+    if (own.heldByAnother(row, user.id)) {
+      return res.status(409).json({ ok: false, error: 'This listing was claimed by another partner in the meantime. Contact support@hotelzz.in.' });
+    }
 
     if (req.body.password) {
       db.prepare(`UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?`)

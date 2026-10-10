@@ -514,7 +514,9 @@ router.patch('/users/:id',
 /* ------------------------------------------------------------- csv export */
 
 const csvCell = (v) => {
-  const s = v === null || v === undefined ? '' : String(v);
+  let s = v === null || v === undefined ? '' : String(v);
+  // Spreadsheet apps run cells starting with = + - @ as formulas.
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
   return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 };
 const toCsv = (columns, rows) => {
@@ -1001,6 +1003,7 @@ router.post('/users/:id/credentials',
       db.prepare(`UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?`)
         .run(await A2.hashPassword(password), user.id);
       sendMailAsync(email || user.email, 'passwordChanged', { name: user.name });
+      A2.revokeSessions(user.id);
     }
     audit(req.user.id, 'admin.user.credentials', 'user', user.id,
           { emailChanged: !!emailChanged, from: emailChanged ? user.email : undefined, to: emailChanged ? email : undefined,
