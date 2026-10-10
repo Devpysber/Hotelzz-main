@@ -6,6 +6,8 @@
 (function () {
   const store = window.HotelzzEnquiryStore;
   let currentUser = store.getUser();
+  // A value as a JS literal that is safe inside a double-quoted onclick="…".
+  const attrJson = (v) => JSON.stringify(String(v == null ? '' : v)).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
   let currentView = 'overview';
 
   window.showToast = function (message, type = 'success') {
@@ -342,7 +344,7 @@
         <div style="background:#FAF5FF; border:1px solid #E9D5FF; padding:14px; border-radius:8px; margin-bottom:20px;">
           <h4 style="font-size:14px; font-weight:700; color:#6B21A8; margin-bottom:4px;">Stayed at this hotel?</h4>
           <p style="font-size:12px; color:#64748B; margin-bottom:10px;">Share your stay experience to help other travelers.</p>
-          <button class="btn-primary" onclick="openReviewModal('${e.propertyId}', '${e.propertyName.replace(/'/g, "\'")}', '${e.id}')">Write a Review ⭐</button>
+          <button class="btn-primary" onclick="openReviewModal(${attrJson(e.propertyId)}, ${attrJson(e.propertyName)}, ${attrJson(e.id)})">Write a Review ⭐</button>
         </div>
       ` : ''}
 
@@ -638,9 +640,9 @@
 
     if (isMobile()) setTsearchCollapsed(true);
 
+    const e = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     container.innerHTML = portalResults.map(h => {
-      const name = (h.name || '').replace(/'/g, "\'");
-      const city = (h.location || '').replace(/'/g, "\'");
+      const idArg = e(JSON.stringify(String(h.id)));
       const rating = h.rating ? Number(h.rating).toFixed(1) : null;
       const reviews = h.google_review_count
         ? `<small>${h.google_review_count} reviews</small>` : '';
@@ -648,21 +650,21 @@
       return `
       <article class="thotel-card">
         <div class="thotel-media">
-          <img src="${h.image_url || stockPhotoFor(h.id)}" alt="${h.name}" loading="lazy" />
+          <img src="${e(h.image_url || stockPhotoFor(h.id))}" alt="${e(h.name)}" loading="lazy" />
           ${h.claimStatus === 'verified' ? '<span class="thotel-verified">Verified</span>' : ''}
-          <button class="thotel-fav" onclick="toggleSaved('${h.id}')"
+          <button class="thotel-fav" onclick="toggleSaved(${idArg})"
                   aria-pressed="${isSaved}"
                   aria-label="${isSaved ? 'Remove from saved' : 'Save this hotel'}">${isSaved ? '\u2764\uFE0F' : '\u{1F90D}'}</button>
           ${rating ? `<span class="thotel-rating">\u2605 ${rating} ${reviews}</span>` : ''}
         </div>
         <div class="thotel-body">
-          <h3 class="thotel-name">${h.name}</h3>
-          <div class="thotel-loc">${h.address || h.location || ''}</div>
-          ${h.google_summary ? `<p class="thotel-summary">${h.google_summary}</p>` : ''}
+          <h3 class="thotel-name">${e(h.name)}</h3>
+          <div class="thotel-loc">${e(h.address || h.location || '')}</div>
+          ${h.google_summary ? `<p class="thotel-summary">${e(h.google_summary)}</p>` : ''}
         </div>
         <div class="thotel-actions">
           <a href="property.html?id=${encodeURIComponent(h.id)}" class="btn-secondary">Details</a>
-          <button class="btn-primary" data-enq-id="${h.id}" onclick="sendPortalEnquiryDirect('${h.id}', '${name}', '${city}')">Send Enquiry \u2192</button>
+          <button class="btn-primary" data-enq-id="${e(h.id)}" onclick="sendPortalEnquiryDirect(${idArg})">Send Enquiry \u2192</button>
         </div>
       </article>`;
     }).join('') + (total > portalResults.length
@@ -691,6 +693,11 @@
 
   /** Opens the enquiry form for a hotel, pre-filled from the profile and search. */
   window.sendPortalEnquiryDirect = function (propId, propName, propCity) {
+    // Cards pass only the id; the name and city come from the loaded results.
+    const hit = (portalResults || []).find((x) => String(x.id) === String(propId)) ||
+                (window.HOTELS || []).find((x) => String(x.id) === String(propId)) || {};
+    propName = propName || hit.name || '';
+    propCity = propCity || hit.location || '';
     enquiryTarget = { id: propId, name: propName, city: propCity };
     const user = store.getUser() || {};
     const val = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };

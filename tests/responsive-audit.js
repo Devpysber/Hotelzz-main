@@ -2,8 +2,8 @@
 const { chromium } = require('playwright-core');
 const fs = require('fs');
 
-const BASE = 'http://127.0.0.1:3000';
-const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const { BASE, findChrome } = require('./_browser');
+const CHROME_PATH = findChrome();
 
 const viewports = [
   // Mobile

@@ -5,17 +5,8 @@ const { chromium } = require('playwright-core');
 const fs = require('fs');
 const path = require('path');
 
-const BASE = 'http://127.0.0.1:3000';
+const { BASE, findChrome } = require('./_browser');
 
-function findChrome() {
-  const root = path.join(process.env.LOCALAPPDATA || '', 'ms-playwright');
-  const dir = fs.readdirSync(root).find((d) => d.startsWith('chromium-'));
-  for (const sub of ['chrome-win64', 'chrome-win']) {
-    const exe = path.join(root, dir, sub, 'chrome.exe');
-    if (fs.existsSync(exe)) return exe;
-  }
-  throw new Error('Chromium not found under ' + root);
-}
 
 async function signIn(page, role, identifier, password, landing) {
   // login.html bounces an already-signed-in visitor to their portal.

@@ -884,16 +884,43 @@
     window.addEventListener('load', fillChips);
   })();
 
+  // Exit-intent "free audit" popup. Only a genuine leave (pointer exits
+  // through the top of the window) after the visitor has spent a while on
+  // the page; never for signed-in users; at most once a week per browser.
   (function(){
     if (window.innerWidth < 1024) return;
-    if (sessionStorage.getItem('exitShown')) return;
+    var KEY = 'hzExitAuditAt';
+    var WEEK = 7 * 864e5;
+    try { if (Date.now() - Number(localStorage.getItem(KEY) || 0) < WEEK) return; } catch (_) {}
     var modal = document.getElementById('exitModal');
     var closeBtn = document.getElementById('closeModal');
-    function show(){ modal.classList.add('show'); sessionStorage.setItem('exitShown','1'); }
+    var armedAt = Date.now() + 15000;
+    var shown = false;
+    function remember(){ try { localStorage.setItem(KEY, String(Date.now())); } catch (_) {} }
+    function show(){
+      if (shown || Date.now() < armedAt || window.HZ_USER) return;
+      if (document.querySelector('.modal-overlay.show, #hzSearchOverlay.open, .hz-search-overlay.open')) return;
+      shown = true;
+      modal.classList.add('show');
+      remember();
+      document.removeEventListener('mouseout', onOut);
+    }
     function close(){ modal.classList.remove('show'); }
-    document.addEventListener('mouseout', function(e){ if (!e.toElement && !e.relatedTarget && e.clientY < 10) show(); });
+    function onOut(e){
+      // Leaving the document through the top edge only — not native date
+      // pickers, autocomplete lists or the search suggestions.
+      if (e.relatedTarget || e.toElement || e.clientY > 10) return;
+      show();
+    }
+    document.addEventListener('mouseout', onOut);
+    // Signed-in visitors never see it.
+    if (window.fetch) {
+      fetch('/api/auth/me', { credentials: 'same-origin' }).then(function (r) { return r.json(); })
+        .then(function (d) { if (d && d.user) document.removeEventListener('mouseout', onOut); }).catch(function () {});
+    }
     closeBtn.addEventListener('click', close);
     modal.addEventListener('click', function(e){ if (e.target === modal) close(); });
+    modal.querySelector('[data-cta="exit_intent"]').addEventListener('click', function(){ setTimeout(close, 300); });
     document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
   })();
 </script>
