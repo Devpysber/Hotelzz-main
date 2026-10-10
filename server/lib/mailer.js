@@ -729,7 +729,7 @@ async function sendMail(to, templateName, data, opts) {
   const msg = buildSafe(t, data);
 
   try {
-    await getTransport(account).sendMail({ from, to, replyTo: opts.replyTo, ...msg });
+    await getTransport(account).sendMail({ from, to, replyTo: opts.replyTo || acctCfg.replyTo || undefined, ...msg });
     const id = logEmail({
       to, subject: msg.subject, template: templateName, account, from,
       status: accountConfigured(account) ? 'sent' : 'dev-logged',
@@ -761,7 +761,7 @@ async function sendCustomMail(to, { subject, text, html }, opts) {
   const msg = { subject, text: text || '', html: html || `<p>${String(text || '').replace(/\n/g, '<br/>')}</p>` };
 
   try {
-    await getTransport(account).sendMail({ from, to, replyTo: opts.replyTo, ...msg });
+    await getTransport(account).sendMail({ from, to, replyTo: opts.replyTo || acctCfg.replyTo || undefined, ...msg });
     const id = logEmail({
       to, subject, template: null, account, from,
       status: accountConfigured(account) ? 'sent' : 'dev-logged',

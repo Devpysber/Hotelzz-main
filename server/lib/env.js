@@ -101,7 +101,17 @@ env.smtpConfigured = Boolean(env.SMTP_HOST &&
 if (env.SMTP_ACCOUNTS.info.user && env.SMTP_ACCOUNTS.info.pass) {
   for (const key of ['support', 'admin']) {
     if (!env.SMTP_ACCOUNTS[key].user || !env.SMTP_ACCOUNTS[key].pass) {
-      env.SMTP_ACCOUNTS[key] = Object.assign({}, env.SMTP_ACCOUNTS.info, { from: env.SMTP_ACCOUNTS[key].from });
+      // Sending as support@/admin@ through the info@ login is rejected by
+      // Hostinger ("sender address not owned"), so keep the friendly name but
+      // send from info@, and point replies at the intended mailbox.
+      const wanted = env.SMTP_ACCOUNTS[key].from;
+      const name = (wanted.match(/^\s*"?([^"<]+?)"?\s*</) || [])[1] || 'Hotelzz';
+      const replyTo = (wanted.match(/<([^>]+)>/) || [])[1] || '';
+      env.SMTP_ACCOUNTS[key] = Object.assign({}, env.SMTP_ACCOUNTS.info, {
+        from: `${name} <${env.SMTP_ACCOUNTS.info.user}>`,
+        replyTo: replyTo && replyTo.toLowerCase() !== env.SMTP_ACCOUNTS.info.user.toLowerCase() ? replyTo : '',
+        sharedLogin: true
+      });
     }
   }
 }
