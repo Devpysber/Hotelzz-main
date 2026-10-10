@@ -236,10 +236,11 @@
           <div style="background: #F0FDF4; border: 1px solid #BBF7D0; padding: 20px; border-radius: 12px; margin-bottom: 28px; text-align: left;">
             <div style="font-weight: 800; font-size: 16px; color: #166534;" id="finalPropName">Taj Palace Hotel</div>
             <div style="font-size: 13px; color: #15803D;" id="finalPropCity">Mumbai, Maharashtra</div>
-            <div style="font-size: 12.5px; color: #166534; margin-top: 6px;">Status: <strong style="text-transform: uppercase;">Claimed & Verified</strong></div>
+            <div style="font-size: 12.5px; color: #166534; margin-top: 6px;">Status: <strong style="text-transform: uppercase;">Claim submitted — pending verification</strong></div>
+            <div style="font-size: 12.5px; color: #15803D; margin-top: 4px;">Our team verifies ownership within 24 hours. You can already sign in and edit your listing.</div>
           </div>
 
-          <a href="admin.html#properties" class="btn-submit" style="display: block; text-decoration: none;">Go to Owner Dashboard →</a>
+          <a href="owner.html" class="btn-submit" style="display: block; text-decoration: none;">Go to Owner Dashboard →</a>
         </div>
       </div>
 
@@ -457,6 +458,28 @@
         goToStep('step6');
       }).catch(function (err) { show(err.message); });
     }
+
+    /* ------------------------------------- deep link: claim.html?id=<id> */
+    // "Claim this listing" on a property page lands here with the listing
+    // already chosen, skipping the search.
+    (function () {
+      var id = new URLSearchParams(window.location.search).get('id');
+      if (!id) return;
+      API.get('/properties/' + encodeURIComponent(id)).then(function (r) {
+        var p = r.property;
+        if (!p) return;
+        document.getElementById('searchName').value = p.name;
+        if (p.claimStatus === 'verified') {
+          document.getElementById('resultsList').innerHTML =
+            '<div style="padding:18px;text-align:center;color:var(--text-muted);"><strong>' + esc(p.name) +
+            '</strong> has already been claimed and verified. If this is your property, contact ' +
+            '<a href="mailto:support@hotelzz.in">support@hotelzz.in</a>.</div>';
+          return goToStep('step2');
+        }
+        results = [p];
+        selectProperty(0);
+      }).catch(function () { /* fall back to the normal search */ });
+    })();
 
     /* ------------------------------------------------ register new property */
 

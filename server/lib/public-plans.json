@@ -1,0 +1,8 @@
+[
+  { "id": "ota-starter", "name": "OTA Starter — 1 OTA", "price": 999, "page": "ota-listing",
+    "summary": "Your first OTA listing (Booking.com or Agoda)" },
+  { "id": "ota-bundle", "name": "OTA Bundle — 4 OTAs", "price": 2999, "page": "ota-listing",
+    "summary": "Four OTA listings at 20% off" },
+  { "id": "ota-growth", "name": "OTA Growth — 5+ OTAs", "price": 4499, "page": "ota-listing",
+    "summary": "Five or more OTA listings at 30% off" }
+]

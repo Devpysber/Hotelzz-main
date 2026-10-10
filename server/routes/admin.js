@@ -602,6 +602,7 @@ router.post('/import',
   validate(z.object({
     rows: z.array(z.record(z.any())).min(1, 'No rows to import').max(50000, 'Split files larger than 50,000 rows'),
     dryRun: z.coerce.boolean().optional(),
+    updateExisting: z.coerce.boolean().optional(),
     filename: z.string().trim().max(200).optional()
   })),
   (req, res) => {
@@ -657,16 +658,44 @@ router.post('/import',
       }));
     });
     run(valid);
+
+    // Optional: refresh listings that already exist instead of skipping them.
+    // Only non-empty CSV cells are written, and listings a verified owner
+    // manages are left alone so an import never overwrites their edits.
+    let updated = 0;
+    let protectedRows = 0;
+    if (req.body.updateExisting && duplicates.length) {
+      const FIELDS = ['name', 'location', 'address', 'phone', 'website', 'rating', 'pincode', 'image_url',
+                      'property_type', 'google_cid', 'google_review_count', 'google_summary', 'gmb_link'];
+      const claimOf = db.prepare('SELECT claim_status FROM properties WHERE id = ?');
+      db.transaction(() => {
+        duplicates.forEach((h) => {
+          if ((claimOf.get(h.id) || {}).claim_status === 'verified') { protectedRows++; return; }
+          const sets = [];
+          const params = [];
+          FIELDS.forEach((f) => {
+            const v = h[f] === undefined || h[f] === null ? '' : String(h[f]).trim();
+            if (!v) return;
+            sets.push(`${f} = ?`);
+            params.push(f === 'rating' ? (parseFloat(v) || 4.5) : f === 'google_review_count' ? (parseInt(v, 10) || 0) : v);
+          });
+          if (h.location || h.city_slug) { sets.push('city_slug = ?'); params.push(h.city_slug ? slugify(h.city_slug) : slugify(h.location)); }
+          if (!sets.length) return;
+          db.prepare(`UPDATE properties SET ${sets.join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...params, h.id);
+          updated++;
+        });
+      })();
+    }
     invalidateCatalog();
 
     audit(req.user.id, 'admin.import', 'properties', null,
           { total: rows.length, imported: valid.length, duplicates: duplicates.length, invalid: invalid.length,
-            excludedCities: skippedCities.length, filename: req.body.filename || null }, req.ip);
+            excludedCities: skippedCities.length, updated, filename: req.body.filename || null }, req.ip);
     res.json({
       ok: true,
       summary: {
         total: rows.length, imported: valid.length, duplicates: duplicates.length,
-        invalid: invalid.length, excludedCities: skippedCities.length
+        invalid: invalid.length, excludedCities: skippedCities.length, updated, protectedOwnerListings: protectedRows
       },
       totalProperties: one('SELECT COUNT(*) c FROM properties').c
     });
@@ -937,6 +966,49 @@ router.post('/users',
 
     audit(req.user.id, 'admin.user.invite', 'user', id, { email }, req.ip);
     res.status(201).json({ ok: true, id, message: 'Invite sent — the link sets their password.' });
+  }));
+
+/**
+ * Set any account's sign-in email and/or password directly (support cases:
+ * an owner lost access to their mailbox, a traveller typo'd their email).
+ * Both addresses are told about an email change; the user is told about a
+ * password change.
+ */
+router.post('/users/:id/credentials',
+  validate(z.object({
+    email: z.string().trim().email('Enter a valid email address').optional(),
+    password: z.string().min(8, 'Password must be at least 8 characters').max(200).optional()
+  })),
+  wrap(async (req, res) => {
+    const user = one('SELECT * FROM users WHERE id = ?', req.params.id);
+    if (!user) return res.status(404).json({ ok: false, error: 'User not found.' });
+    const { password } = req.body;
+    const email = req.body.email ? req.body.email.toLowerCase() : null;
+    if (!email && !password) return res.status(400).json({ ok: false, error: 'Enter a new email or password.' });
+
+    const emailChanged = email && email !== String(user.email).toLowerCase();
+    if (emailChanged && one('SELECT 1 AS c FROM users WHERE lower(email) = ? AND role = ? AND id <> ?', email, user.role, user.id)) {
+      return res.status(409).json({ ok: false, field: 'email', error: 'Another ' + user.role + ' account already uses that email.' });
+    }
+
+    const A2 = require('../lib/auth');
+    if (emailChanged) {
+      db.prepare(`UPDATE users SET email = ?, updated_at = datetime('now') WHERE id = ?`).run(email, user.id);
+      sendMailAsync(user.email, 'emailChanged', { name: user.name, oldEmail: user.email, newEmail: email });
+      sendMailAsync(email, 'emailChanged', { name: user.name, oldEmail: user.email, newEmail: email });
+    }
+    if (password) {
+      db.prepare(`UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?`)
+        .run(await A2.hashPassword(password), user.id);
+      sendMailAsync(email || user.email, 'passwordChanged', { name: user.name });
+    }
+    audit(req.user.id, 'admin.user.credentials', 'user', user.id,
+          { emailChanged: !!emailChanged, from: emailChanged ? user.email : undefined, to: emailChanged ? email : undefined,
+            passwordChanged: !!password }, req.ip);
+
+    // Changing your own login keeps you signed in with the new details.
+    if (user.id === req.user.id) A2.setSessionCookie(res, one('SELECT * FROM users WHERE id = ?', user.id));
+    res.json({ ok: true, message: 'Login details updated.' });
   }));
 
 router.post('/users/:id/reset', wrap(async (req, res) => {

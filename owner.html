@@ -84,6 +84,10 @@
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 14l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <span>Billing & Invoices</span>
         </a>
+        <a class="owner-nav-item" data-view="account">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <span>Account &amp; Security</span>
+        </a>
       </nav>
 
       <div class="sidebar-user-footer">
@@ -477,7 +481,7 @@
             <div class="owner-card-header">
               <div>
                 <div class="card-title">Your offers</div>
-                <div class="card-subtitle">Views and clicks count traffic on your listing page.</div>
+                <div class="card-subtitle">Live offers appear on the public <a href="deals.html" target="_blank" rel="noopener">Deals page</a> and your listing. "Grabs" are travellers who unlocked the deal — their details are below.</div>
               </div>
             </div>
             <div class="table-responsive">
@@ -488,12 +492,27 @@
                     <th>Discount</th>
                     <th>Validity</th>
                     <th>Views</th>
-                    <th>Clicks</th>
+                    <th>Grabs</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="offersTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="owner-card" style="margin-top:20px;">
+            <div class="owner-card-header">
+              <div>
+                <div class="card-title">Deal leads</div>
+                <div class="card-subtitle">Travellers who unlocked one of your deals. Contact them quickly — they're ready to book.</div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="owner-table">
+                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Deal</th><th>Date</th></tr></thead>
+                <tbody id="dealLeadsTableBody"></tbody>
               </table>
             </div>
           </div>
@@ -685,6 +704,35 @@
         </section>
 
         <!-- GROW BUSINESS / MARKETING VIEW -->
+        <section class="owner-page-view" id="view-account">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Account &amp; Security</h1>
+              <p>Signed in as <strong id="acctOwnerEmail">—</strong>. Change the email and password you use to sign in.</p>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;">
+            <form class="owner-card" novalidate onsubmit="ownerChangeEmail(event)">
+              <div class="card-title" style="margin-bottom:4px;">Sign-in email</div>
+              <div class="card-subtitle" style="margin-bottom:16px;">Enquiries, invoices and reset links go to this address.</div>
+              <div class="form-group"><label for="ownerNewEmail">New email</label><input type="email" id="ownerNewEmail" class="form-control" autocomplete="email" /></div>
+              <div class="form-group"><label for="ownerEmailPw">Current password</label><input type="password" id="ownerEmailPw" class="form-control" autocomplete="current-password" /></div>
+              <button type="submit" class="btn-primary">Update Email</button>
+            </form>
+            <form class="owner-card" novalidate onsubmit="ownerChangePassword(event)">
+              <div class="card-title" style="margin-bottom:4px;">Password</div>
+              <div class="card-subtitle" style="margin-bottom:16px;">At least 8 characters. We email you whenever it changes.</div>
+              <div class="form-group"><label for="ownerPwCurrent">Current password</label><input type="password" id="ownerPwCurrent" class="form-control" autocomplete="current-password" /></div>
+              <div class="form-group"><label for="ownerPwNew">New password</label><input type="password" id="ownerPwNew" class="form-control" autocomplete="new-password" /></div>
+              <div class="form-group"><label for="ownerPwConfirm">Confirm new password</label><input type="password" id="ownerPwConfirm" class="form-control" autocomplete="new-password" /></div>
+              <button type="submit" class="btn-primary">Update Password</button>
+              <div style="margin-top:12px; font-size:12.5px; color:var(--owner-text-muted);">
+                Forgot your current password, or signed up with a login code? <a href="#" onclick="ownerForgotPassword(); return false;" style="font-weight:700;">Email me a reset link</a>
+              </div>
+            </form>
+          </div>
+        </section>
+
         <section class="owner-page-view" id="view-grow-business">
           <!-- HERO BANNER -->
           <div class="grow-hero-card">
@@ -827,13 +875,24 @@
   <div class="owner-modal-overlay" id="offerModal">
     <div class="owner-modal">
       <div class="modal-header">
-        <h3>Create Promotional Offer</h3>
+        <h3 id="offerModalTitle">Create Deal / Offer</h3>
         <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeModal('offerModal')">×</button>
       </div>
       <div style="padding:24px;">
-        <div class="form-group"><label>Offer Title</label><input type="text" id="offerTitleInput" class="form-control" placeholder="e.g. Monsoon Staycation 20% OFF" /></div>
-        <div class="form-group"><label>Discount Amount / %</label><input type="text" id="offerDiscInput" class="form-control" placeholder="20% OFF" /></div>
-        <button class="btn-primary" style="width:100%;" onclick="saveOfferForm()">Publish Offer</button>
+        <div class="form-group"><label for="offerTitleInput">Deal title *</label><input type="text" id="offerTitleInput" class="form-control" maxlength="160" placeholder="e.g. Monsoon Staycation 20% OFF" /></div>
+        <div class="form-row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label for="offerDiscInput">Discount</label><input type="text" id="offerDiscInput" class="form-control" maxlength="60" placeholder="20% OFF" /></div>
+          <div class="form-group"><label for="offerCodeInput">Coupon code</label><input type="text" id="offerCodeInput" class="form-control" maxlength="40" placeholder="MONSOON20 (optional)" /></div>
+          <div class="form-group"><label for="offerOrigInput">Regular price (₹/night)</label><input type="number" min="0" id="offerOrigInput" class="form-control" placeholder="4000" /></div>
+          <div class="form-group"><label for="offerDealInput">Deal price (₹/night)</label><input type="number" min="0" id="offerDealInput" class="form-control" placeholder="3200" /></div>
+          <div class="form-group"><label for="offerFromInput">Valid from</label><input type="date" id="offerFromInput" class="form-control" /></div>
+          <div class="form-group"><label for="offerToInput">Valid until</label><input type="date" id="offerToInput" class="form-control" /></div>
+          <div class="form-group"><label for="offerCatInput">Category</label><select id="offerCatInput" class="form-control"><option>Stay</option><option>Weekend</option><option>Honeymoon</option><option>Family</option><option>Long Stay</option><option>Dining</option><option>Spa</option><option>Last Minute</option><option>Festive</option></select></div>
+          <div class="form-group"><label for="offerStatusInput">Status</label><select id="offerStatusInput" class="form-control"><option>Active</option><option>Paused</option><option>Expired</option></select></div>
+        </div>
+        <div class="form-group"><label for="offerDescInput">Description</label><textarea id="offerDescInput" class="form-control" rows="2" maxlength="2000" placeholder="What's included — breakfast, late checkout, etc."></textarea></div>
+        <div class="form-group"><label for="offerTermsInput">Terms</label><textarea id="offerTermsInput" class="form-control" rows="2" maxlength="2000" placeholder="e.g. Min 2 nights. Not valid on public holidays."></textarea></div>
+        <button class="btn-primary" style="width:100%;" onclick="saveOfferForm()">Publish Deal</button>
       </div>
     </div>
   </div>
@@ -1036,6 +1095,7 @@
   <script src="marketing-store.js"></script>
   <script src="owner-data.js"></script>
   <script src="owner-app.js"></script>
+  <script src="password-toggle.js" defer></script>
   <input type="file" id="ownerPhotoInput" accept="image/jpeg,image/png,image/webp,image/avif" multiple style="display:none" onchange="uploadSelectedPhotos(this.files)" />
 </body>
 </html>

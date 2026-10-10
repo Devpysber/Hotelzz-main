@@ -205,6 +205,7 @@
       </span>
     </a>
     <div class="header-right">
+      <a href="deals.html" class="call-link">🔥 Deals</a>
       <a href="user-portal.html" class="call-link">📩 My Enquiries</a>
       <a href="tel:+919930090487" class="call-link">📞 +91 99300 90487</a>
       <a href="https://wa.me/919930090487?text=Hi%20Hotelzz!%20I%20have%20an%20inquiry&utm_source=website&utm_medium=header&utm_campaign=direct" class="header-cta" target="_blank" rel="noopener" data-cta="header-wa">
@@ -690,6 +691,49 @@
 </script>
 
 
+<script>
+  // Live deals for this hotel + a "Claim this listing" prompt for unclaimed
+  // listings. Both read the server (not the bundled snapshot) so they are current.
+  (function () {
+    if (!window.HotelzzAPI || typeof hotel === 'undefined' || !hotel) return;
+    var API = window.HotelzzAPI;
+    var gallery = document.getElementById('pdGallery');
+    if (!gallery) return;
+    var slot = document.createElement('div');
+    slot.id = 'pdExtras';
+    gallery.parentNode.insertBefore(slot, gallery.nextSibling);
+    function e(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+    var dealsBox = document.createElement('div');
+    var claimBox = document.createElement('div');
+    slot.appendChild(dealsBox);
+    slot.appendChild(claimBox);
+
+    API.deals.list('property=' + encodeURIComponent(hotel.id)).then(function (r) {
+      var deals = r.deals || [];
+      if (!deals.length) return;
+      dealsBox.innerHTML = '<div style="margin:18px 0; background:linear-gradient(135deg,#FEF2F2,#FFFBEB); border:1px solid #FECACA; border-radius:14px; padding:16px;">' +
+        '<div style="font-weight:800; font-size:16px; margin-bottom:10px;">🔥 ' + deals.length + ' exclusive deal' + (deals.length > 1 ? 's' : '') + ' at this hotel</div>' +
+        '<div style="display:grid; gap:10px; grid-template-columns:repeat(auto-fill,minmax(240px,1fr));">' +
+        deals.map(function (d) {
+          return '<a href="deals.html?property=' + encodeURIComponent(hotel.id) + '" style="display:block; background:#fff; border:1px solid #FDE68A; border-radius:10px; padding:12px; color:inherit; text-decoration:none;">' +
+            (d.discount ? '<span style="background:#DC2626; color:#fff; font-weight:800; font-size:12px; padding:3px 8px; border-radius:6px;">' + e(d.discount) + '</span> ' : '') +
+            '<div style="font-weight:700; margin-top:6px;">' + e(d.title) + '</div>' +
+            (d.validTo ? '<div style="font-size:12px; color:#6B7280; margin-top:2px;">Valid till ' + e(d.validTo) + '</div>' : '') +
+            '<div style="font-size:12.5px; color:#2563EB; font-weight:700; margin-top:6px;">' + (d.hasCode ? 'Get coupon code →' : 'Grab this deal →') + '</div></a>';
+        }).join('') + '</div></div>';
+    }).catch(function () {});
+
+    API.get('/properties/' + encodeURIComponent(hotel.id)).then(function (r) {
+      var st = r.property && r.property.claimStatus;
+      if (st === 'verified' || st === 'pending') return;
+      claimBox.innerHTML = '<div style="margin:18px 0; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:#EFF6FF; border:1px solid #BFDBFE; border-radius:14px; padding:14px 16px;">' +
+        '<div><div style="font-weight:800;">🏨 Is this your property?</div>' +
+        '<div style="font-size:13.5px; color:#475569;">Claim it free to update photos, prices and offers, and receive guest enquiries directly.</div></div>' +
+        '<a href="claim.html?id=' + encodeURIComponent(hotel.id) + '" style="background:#2563EB; color:#fff; font-weight:700; padding:10px 16px; border-radius:10px; text-decoration:none; white-space:nowrap;">Claim this listing →</a></div>';
+    }).catch(function () {});
+  })();
+</script>
   <script src="cookie-consent.js"></script>
 <script src="mobile-nav.js" defer></script>
 </body>

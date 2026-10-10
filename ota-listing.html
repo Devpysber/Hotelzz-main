@@ -165,6 +165,8 @@
   .plan-features li { padding: 7px 0; font-size: 14px; color: var(--text); display: flex; align-items: flex-start; gap: 10px; }
   .plan-features .ico { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; background: #ECFDF5; color: var(--success); margin-top: 1px; }
   .plan .btn { width: 100%; padding: 13px; }
+  .plan-quote-link { margin-top: 10px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: underline; background: none; border: 0; cursor: pointer; }
+  .plan-quote-link:hover { color: var(--primary); }
 
   /* CTA strip */
   .cta-strip { background: linear-gradient(135deg, var(--primary) 0%, #1E3A8A 100%); color: #fff; text-align: center; }
@@ -263,6 +265,7 @@
     </a>
     <nav class="header-nav">
       <a href="marketing.html" class="nav-link">Marketing</a>
+      <a href="deals.html" class="nav-link">Deals</a>
       <a href="ota-listing.html" class="nav-link active essential">List on OTAs</a>
       <a href="city.html?city=calangute" class="nav-link">Browse Hotels</a>
       <button data-search-trigger aria-label="Search hotels" title="Search hotels (press /)" style="background:var(--bg-alt);border:1px solid var(--border);color:var(--text);width:38px;height:38px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='var(--primary-light)';this.style.color='var(--primary)'" onmouseout="this.style.background='var(--bg-alt)';this.style.color='var(--text)'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
@@ -382,7 +385,8 @@
           <li><span class="ico">✓</span> Progress dashboard</li>
           <li><span class="ico">✓</span> Go live in 7–14 days</li>
         </ul>
-        <button class="btn btn-outline" data-form-trigger data-service="OTA Starter — ₹999 (1 OTA)" data-source="plan_starter">Get Started →</button>
+        <button class="btn btn-outline" data-buy-plan="ota-starter">Buy Now — ₹999 →</button>
+        <button class="plan-quote-link" data-form-trigger data-service="OTA Starter — ₹999 (1 OTA)" data-source="plan_starter">or ask us on WhatsApp</button>
       </div>
 
       <div class="plan featured">
@@ -397,7 +401,8 @@
           <li><span class="ico">✓</span> 20% off all OTAs</li>
           <li><span class="ico">✓</span> Priority processing</li>
         </ul>
-        <button class="btn btn-primary" data-form-trigger data-service="OTA Bundle — ₹2,999 (4 OTAs)" data-source="plan_bundle">Get Started →</button>
+        <button class="btn btn-primary" data-buy-plan="ota-bundle">Buy Now — ₹2,999 →</button>
+        <button class="plan-quote-link" data-form-trigger data-service="OTA Bundle — ₹2,999 (4 OTAs)" data-source="plan_bundle">or ask us on WhatsApp</button>
       </div>
 
       <div class="plan">
@@ -411,7 +416,8 @@
           <li><span class="ico">✓</span> 30% off all OTAs</li>
           <li><span class="ico">✓</span> Dedicated account manager</li>
         </ul>
-        <button class="btn btn-outline" data-form-trigger data-service="OTA Growth — ₹4,499 (5+ OTAs)" data-source="plan_growth">Get Started →</button>
+        <button class="btn btn-outline" data-buy-plan="ota-growth">Buy Now — ₹4,499 →</button>
+        <button class="plan-quote-link" data-form-trigger data-service="OTA Growth — ₹4,499 (5+ OTAs)" data-source="plan_growth">or ask us on WhatsApp</button>
       </div>
 
       <div class="plan">
@@ -428,7 +434,7 @@
         <button class="btn btn-outline" data-form-trigger data-service="OTA Enterprise — Custom Quote" data-source="plan_enterprise">Contact Sales →</button>
       </div>
     </div>
-    <p style="text-align:center;color:var(--text-muted);font-size:13px;margin-top:32px;">All prices one-time per OTA. OTAs charge their own commission (12-20%) on confirmed bookings, paid directly to them.</p>
+    <p style="text-align:center;color:var(--text-muted);font-size:13px;margin-top:32px;">Pay securely online with UPI, cards or net banking — confirmation is emailed instantly. All prices one-time per OTA. OTAs charge their own commission (12-20%) on confirmed bookings, paid directly to them.</p>
   </div>
 </section>
 
@@ -708,6 +714,7 @@
 <script src="hotels-loader.js" defer></script>
 <script src="search.js" defer></script>
 <script src="api-client.js" defer></script>
+<script src="plan-checkout.js" defer></script>
 <script src="session-nav.js" defer></script>
   <script src="cookie-consent.js"></script>
 <script src="mobile-nav.js" defer></script>

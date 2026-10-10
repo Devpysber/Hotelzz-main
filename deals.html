@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#2563EB" />
+<title>Hotel Deals &amp; Offers in India | Hotelzz.in</title>
+<meta name="description" content="Exclusive hotel deals, coupon codes and weekend offers direct from verified hotels across India. Unlock a deal and book direct — no commission, no middlemen." />
+<link rel="canonical" href="https://hotelzz.in/deals.html" />
+<meta property="og:title" content="Hotel Deals &amp; Offers | Hotelzz.in" />
+<meta property="og:description" content="Exclusive hotel deals and coupon codes direct from verified Indian hotels." />
+<meta property="og:image" content="https://hotelzz.in/og-image.jpg" />
+<link rel="icon" type="image/png" href="jpg.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<!-- Google tag (gtag.js) - GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-S3XDVMFR2D"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-S3XDVMFR2D');
+</script>
+<style>
+  :root {
+    --primary: #2563EB; --primary-dark: #1D4ED8; --primary-light: #EFF6FF;
+    --bg: #FFFFFF; --bg-alt: #F9FAFB;
+    --text: #1F2937; --text-muted: #6B7280; --text-light: #9CA3AF;
+    --success: #10B981; --whatsapp: #25D366; --warning: #F59E0B; --danger: #DC2626; --border: #E5E7EB;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow: 0 4px 12px rgba(0,0,0,0.06); --shadow-lg: 0 12px 32px rgba(0,0,0,0.10);
+    --radius: 10px; --radius-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--text); background: var(--bg-alt); line-height: 1.5; font-size: 15px; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; display: block; }
+  a { color: var(--primary); text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+  .container { max-width: 1240px; margin: 0 auto; padding: 0 20px; }
+
+  .header { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+  .header-inner { display: flex; align-items: center; gap: 16px; height: 70px; }
+  .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; line-height: 1; margin-right: auto; }
+  .brand-mark { display: flex; flex-direction: column; }
+  .brand-name { font-weight: 800; font-size: 22px; color: var(--primary); letter-spacing: -0.5px; line-height: 1; }
+  .brand-name .tld { color: var(--text); }
+  .brand-tag { font-size: 9px; font-weight: 600; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
+  .nav-link { color: var(--text); font-weight: 500; font-size: 14px; padding: 8px 12px; border-radius: 8px; flex-shrink: 0; }
+  .nav-link.active { color: var(--primary); background: var(--primary-light); font-weight: 700; }
+  .header-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--primary); color: #fff !important; padding: 10px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+
+  .deals-hero { background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 55%, #F59E0B 160%); color: #fff; padding: 44px 0 70px; }
+  .deals-hero .crumb { font-size: 13px; opacity: .85; margin-bottom: 10px; }
+  .deals-hero .crumb a { color: #fff; }
+  .deals-hero h1 { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.15; }
+  .deals-hero p { opacity: .92; margin-top: 8px; max-width: 640px; }
+
+  .toolbar { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 14px; margin-top: -40px; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; position: relative; }
+  .toolbar input, .toolbar select { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; font-family: inherit; background: #fff; color: var(--text); }
+  .toolbar input:focus, .toolbar select:focus { outline: 2px solid #BFDBFE; border-color: var(--primary); }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0 6px; }
+  .chip { padding: 8px 14px; border-radius: 999px; background: #fff; border: 1px solid var(--border); font-size: 13px; font-weight: 600; color: var(--text); }
+  .chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .result-line { color: var(--text-muted); font-size: 13.5px; margin: 10px 0 16px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding-bottom: 50px; }
+  .deal { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; transition: transform .2s, box-shadow .2s; }
+  .deal:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .deal-img { position: relative; aspect-ratio: 16/10; background: linear-gradient(135deg, #DBEAFE, #FEF3C7); }
+  .deal-img img { width: 100%; height: 100%; object-fit: cover; }
+  .deal-img .ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 44px; }
+  .deal-off { position: absolute; top: 12px; left: 12px; background: var(--danger); color: #fff; font-weight: 800; font-size: 13px; padding: 6px 10px; border-radius: 8px; box-shadow: 0 4px 10px rgba(220,38,38,.3); }
+  .deal-feat { position: absolute; top: 12px; right: 12px; background: #FBBF24; color: #1F2937; font-weight: 800; font-size: 11px; padding: 5px 9px; border-radius: 999px; }
+  .deal-body { padding: 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .deal-cat { font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+  .deal-title { font-size: 16.5px; font-weight: 800; line-height: 1.3; }
+  .deal-hotel { font-size: 13.5px; color: var(--text-muted); }
+  .deal-hotel a { color: var(--text); font-weight: 600; }
+  .deal-price { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
+  .deal-price .now { font-size: 20px; font-weight: 800; color: var(--success); }
+  .deal-price .was { font-size: 13px; color: var(--text-light); text-decoration: line-through; }
+  .deal-price .per { font-size: 12px; color: var(--text-muted); }
+  .deal-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--border); }
+  .deal-meta .ending { color: var(--danger); font-weight: 700; }
+  .deal-btn { margin-top: 12px; width: 100%; padding: 12px; border-radius: 10px; background: var(--primary); color: #fff; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 2px dashed transparent; }
+  .deal-btn:hover { background: var(--primary-dark); }
+  .deal-btn.code { background: #fff; color: var(--primary); border-color: var(--primary); }
+
+  .empty { grid-column: 1/-1; text-align: center; background: #fff; border: 1px dashed var(--border); border-radius: var(--radius-lg); padding: 50px 20px; color: var(--text-muted); }
+  .empty h3 { color: var(--text); margin-bottom: 6px; }
+  .skeleton { height: 340px; border-radius: var(--radius-lg); background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 37%, #F3F4F6 63%); background-size: 400% 100%; animation: sh 1.4s ease infinite; }
+  @keyframes sh { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+  .partner-cta { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 50px; }
+  .partner-cta h3 { font-size: 18px; font-weight: 800; }
+  .partner-cta p { color: var(--text-muted); font-size: 14px; }
+  .btn-solid { background: var(--primary); color: #fff; padding: 12px 18px; border-radius: 10px; font-weight: 700; display: inline-block; }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(15,23,42,.55); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+  .modal-bg.open { display: flex; }
+  .modal { background: #fff; border-radius: 16px; max-width: 440px; width: 100%; padding: 24px; position: relative; max-height: 92vh; overflow: auto; }
+  .modal h3 { font-size: 19px; font-weight: 800; padding-right: 24px; }
+  .modal .sub { color: var(--text-muted); font-size: 13.5px; margin: 4px 0 14px; }
+  .modal label { display: block; font-size: 12.5px; font-weight: 700; margin: 10px 0 4px; }
+  .modal input { width: 100%; padding: 11px 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 15px; font-family: inherit; }
+  .modal .x { position: absolute; top: 10px; right: 12px; font-size: 26px; color: var(--text-muted); }
+  .modal .err { color: #B91C1C; font-size: 13px; font-weight: 600; min-height: 18px; margin-top: 8px; }
+  .modal .go { width: 100%; margin-top: 8px; background: var(--primary); color: #fff; border-radius: 10px; padding: 13px; font-size: 15px; font-weight: 800; }
+  .modal .go[disabled] { opacity: .6; }
+  .codebox { display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 2px dashed var(--primary); background: var(--primary-light); border-radius: 12px; padding: 14px 16px; margin: 14px 0; }
+  .codebox code { font-size: 24px; font-weight: 800; letter-spacing: 3px; color: var(--primary-dark); }
+  .codebox button { background: var(--primary); color: #fff; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 13px; }
+  .terms { font-size: 12.5px; color: var(--text-muted); background: var(--bg-alt); border-radius: 8px; padding: 10px 12px; margin-top: 8px; white-space: pre-line; }
+
+  footer { background: #fff; border-top: 1px solid var(--border); padding: 24px 0; font-size: 13px; color: var(--text-muted); }
+  .footer-inner { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+  @media (max-width: 860px) {
+    .nav-link.hide-sm { display: none; }
+    .toolbar { grid-template-columns: 1fr 1fr; }
+    .toolbar .q { grid-column: 1/-1; }
+  }
+  @media (max-width: 560px) {
+    .deals-hero h1 { font-size: 27px; }
+    .header-cta { display: none; }
+    .toolbar { grid-template-columns: 1fr; }
+  }
+</style>
+<link rel="stylesheet" href="responsive.css" />
+</head>
+<body>
+
+<header class="header">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">
+        <span class="brand-name">Hotelzz<span class="tld">.in</span></span>
+        <span class="brand-tag">Hotel Marketplace</span>
+      </span>
+    </a>
+    <a href="city.html?city=all" class="nav-link hide-sm">Hotels</a>
+    <a href="deals.html" class="nav-link active">Deals</a>
+    <a href="marketing.html" class="nav-link hide-sm">Marketing</a>
+    <a href="ota-listing.html" class="nav-link hide-sm">List on OTAs</a>
+    <a href="login.html" class="header-cta">Sign in</a>
+  </div>
+</header>
+
+<section class="deals-hero">
+  <div class="container">
+    <div class="crumb"><a href="index.html">Home</a> &nbsp;›&nbsp; Deals</div>
+    <h1>🔥 Hotel Deals &amp; Offers</h1>
+    <p>Exclusive discounts and coupon codes straight from verified hotels. Unlock a deal, contact the hotel, and book direct — no commission, no middlemen.</p>
+  </div>
+</section>
+
+<main class="container">
+  <div class="toolbar">
+    <input class="q" id="fQ" type="search" placeholder="Search deals, hotels or cities…" aria-label="Search deals" />
+    <select id="fCity" aria-label="City"><option value="">All cities</option></select>
+    <select id="fSort" aria-label="Sort">
+      <option value="">Recommended</option>
+      <option value="popular">Most popular</option>
+      <option value="ending">Ending soon</option>
+      <option value="newest">Newest</option>
+    </select>
+  </div>
+
+  <div class="chips" id="chips"></div>
+  <div class="result-line" id="resultLine">Loading deals…</div>
+
+  <div class="grid" id="grid">
+    <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+  </div>
+
+  <div class="partner-cta">
+    <div>
+      <h3>Own a hotel? Post your deals for free.</h3>
+      <p>Claim your listing, publish an offer from your dashboard, and get traveller leads straight to your inbox.</p>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a class="btn-solid" href="claim.html">Claim your listing</a>
+      <a class="btn-solid" style="background:#fff; color:var(--primary); border:1px solid var(--primary);" href="owner.html#offers">Post a deal</a>
+    </div>
+  </div>
+</main>
+
+<div class="modal-bg" id="grabModal" role="dialog" aria-modal="true" aria-labelledby="grabTitle">
+  <div class="modal">
+    <button class="x" type="button" aria-label="Close" onclick="closeGrab()">×</button>
+    <div id="grabFormWrap">
+      <h3 id="grabTitle">Unlock this deal</h3>
+      <p class="sub" id="grabSub"></p>
+      <form id="grabForm" novalidate>
+        <label for="gName">Your name *</label><input id="gName" autocomplete="name" required />
+        <label for="gEmail">Email *</label><input id="gEmail" type="email" autocomplete="email" required />
+        <label for="gPhone">Phone / WhatsApp *</label><input id="gPhone" type="tel" autocomplete="tel" required />
+        <div class="err" id="gErr"></div>
+        <button class="go" id="gGo" type="submit">Get deal</button>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:10px; text-align:center;">We'll email you the deal and share your details with this hotel so they can help you book.</p>
+      </form>
+    </div>
+    <div id="grabDone" hidden>
+      <h3>🎉 Deal unlocked!</h3>
+      <p class="sub" id="doneSub"></p>
+      <div class="codebox" id="doneCodeBox"><code id="doneCode"></code><button type="button" id="copyBtn">Copy</button></div>
+      <p id="doneNoCode" style="font-weight:600; margin:14px 0;" hidden>No code needed — just mention <b>Hotelzz</b> when you contact the hotel.</p>
+      <div class="terms" id="doneTerms" hidden></div>
+      <a class="go" id="doneHotel" style="display:block; text-align:center; margin-top:14px;" href="#">View hotel &amp; enquire →</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container footer-inner">
+    <span>© 2026 Hotelzz.in — Direct Bookings. Happy Hoteliers.</span>
+    <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="https://wa.me/919930090487">WhatsApp</a> · <a href="mailto:support@hotelzz.in">support@hotelzz.in</a></span>
+  </div>
+</footer>
+
+<script src="api-client.js"></script>
+<script>
+(function () {
+  var API = window.HotelzzAPI;
+  var state = { category: '', deals: [], active: null };
+  var params = new URLSearchParams(location.search);
+
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function rupees(n) { return '₹' + Number(n).toLocaleString('en-IN'); }
+  function daysLeft(d) {
+    if (!d) return null;
+    var end = new Date(d + 'T23:59:59');
+    return Math.ceil((end - new Date()) / 864e5);
+  }
+  function fmtDate(d) {
+    try { return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); }
+    catch (_) { return d; }
+  }
+
+  var CAT_ICON = { Stay: '🏨', Weekend: '🌴', Honeymoon: '💑', Family: '👨‍👩‍👧', 'Long Stay': '🗓️', Dining: '🍽️', Spa: '💆', 'Last Minute': '⏰', Festive: '🎉' };
+
+  function card(d) {
+    var left = daysLeft(d.validTo);
+    var img = d.image
+      ? '<img src="' + esc(d.image) + '" alt="' + esc(d.property.name) + '" loading="lazy" onerror="this.remove()">'
+      : '';
+    var price = d.dealPrice
+      ? '<div class="deal-price"><span class="now">' + rupees(d.dealPrice) + '</span>' +
+        (d.originalPrice ? '<span class="was">' + rupees(d.originalPrice) + '</span>' : '') + '<span class="per">/ night</span></div>'
+      : '';
+    return '<article class="deal">' +
+      '<div class="deal-img"><span class="ph">' + (CAT_ICON[d.category] || '🏨') + '</span>' + img +
+        (d.discount ? '<span class="deal-off">' + esc(d.discount) + '</span>' : '') +
+        (d.featured ? '<span class="deal-feat">★ Featured</span>' : '') + '</div>' +
+      '<div class="deal-body">' +
+        '<div class="deal-cat">' + esc(d.category) + '</div>' +
+        '<div class="deal-title">' + esc(d.title) + '</div>' +
+        '<div class="deal-hotel"><a href="property.html?id=' + encodeURIComponent(d.property.id) + '">' + esc(d.property.name) + '</a>' +
+          (d.property.verified ? ' ✅' : '') + (d.property.location ? ' · ' + esc(d.property.location) : '') + '</div>' +
+        price +
+        (d.description ? '<div style="font-size:13px; color:var(--text-muted);">' + esc(d.description.slice(0, 120)) + (d.description.length > 120 ? '…' : '') + '</div>' : '') +
+        '<div class="deal-meta"><span class="' + (left !== null && left <= 3 ? 'ending' : '') + '">' +
+          (left === null ? 'No expiry' : left <= 0 ? 'Ends today' : left <= 3 ? 'Ends in ' + left + ' day' + (left > 1 ? 's' : '') : 'Valid till ' + fmtDate(d.validTo)) +
+          '</span><span>' + (d.grabs ? d.grabs + ' grabbed' : 'New') + '</span></div>' +
+        '<button class="deal-btn' + (d.hasCode ? ' code' : '') + '" type="button" data-grab="' + esc(d.id) + '">' +
+          (d.hasCode ? '🎟️ Get coupon code' : '🎁 Grab this deal') + '</button>' +
+      '</div></article>';
+  }
+
+  function render() {
+    var grid = document.getElementById('grid');
+    var n = state.deals.length;
+    document.getElementById('resultLine').textContent = n ? n + ' live deal' + (n > 1 ? 's' : '') : '';
+    grid.innerHTML = n ? state.deals.map(card).join('')
+      : '<div class="empty"><h3>No deals match right now</h3><p>Try another city or category — new offers are added every week.</p></div>';
+  }
+
+  function renderChips(categories) {
+    var el = document.getElementById('chips');
+    el.innerHTML = ['<button class="chip' + (state.category ? '' : ' active') + '" data-cat="">All deals</button>']
+      .concat(categories.map(function (c) {
+        return '<button class="chip' + (state.category === c ? ' active' : '') + '" data-cat="' + esc(c) + '">' + (CAT_ICON[c] || '') + ' ' + esc(c) + '</button>';
+      })).join('');
+  }
+
+  var citiesLoaded = false;
+  function load() {
+    var q = new URLSearchParams();
+    var term = document.getElementById('fQ').value.trim();
+    var city = document.getElementById('fCity').value;
+    var sort = document.getElementById('fSort').value;
+    if (term) q.set('q', term);
+    if (city) q.set('city', city);
+    if (sort) q.set('sort', sort);
+    if (state.category) q.set('category', state.category);
+    if (params.get('property')) q.set('property', params.get('property'));
+    API.deals.list(q.toString()).then(function (r) {
+      state.deals = r.deals || [];
+      renderChips(r.categories || []);
+      if (!citiesLoaded) {
+        citiesLoaded = true;
+        var sel = document.getElementById('fCity');
+        (r.cities || []).forEach(function (c) {
+          var o = document.createElement('option');
+          o.value = c.slug; o.textContent = c.name + ' (' + c.c + ')';
+          sel.appendChild(o);
+        });
+        if (params.get('city')) { sel.value = params.get('city'); if (sel.value) return load(); }
+      }
+      render();
+    }).catch(function () {
+      document.getElementById('resultLine').textContent = '';
+      document.getElementById('grid').innerHTML = '<div class="empty"><h3>Could not load deals</h3><p>Please refresh the page.</p></div>';
+    });
+  }
+
+  var t;
+  document.getElementById('fQ').addEventListener('input', function () { clearTimeout(t); t = setTimeout(load, 250); });
+  document.getElementById('fCity').addEventListener('change', load);
+  document.getElementById('fSort').addEventListener('change', load);
+  document.getElementById('chips').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-cat]');
+    if (!b) return;
+    state.category = b.getAttribute('data-cat');
+    load();
+  });
+
+  /* ------------------------------------------------------------ grab */
+  document.getElementById('grid').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-grab]');
+    if (b) openGrab(b.getAttribute('data-grab'));
+  });
+
+  function openGrab(id) {
+    var d = state.deals.filter(function (x) { return x.id === id; })[0];
+    if (!d) return;
+    state.active = d;
+    document.getElementById('grabFormWrap').hidden = false;
+    document.getElementById('grabDone').hidden = true;
+    document.getElementById('grabTitle').textContent = d.title;
+    document.getElementById('grabSub').textContent = d.property.name + (d.discount ? ' · ' + d.discount : '');
+    document.getElementById('gErr').textContent = '';
+    var u = window.HZ_USER;
+    if (u) {
+      if (!document.getElementById('gName').value) document.getElementById('gName').value = u.name || '';
+      if (!document.getElementById('gEmail').value) document.getElementById('gEmail').value = u.email || '';
+      if (!document.getElementById('gPhone').value) document.getElementById('gPhone').value = u.phone || '';
+    }
+    document.getElementById('grabModal').classList.add('open');
+    document.getElementById('gName').focus();
+    API.get('/deals/' + encodeURIComponent(id)).catch(function () {});
+  }
+  window.closeGrab = function () { document.getElementById('grabModal').classList.remove('open'); };
+  document.getElementById('grabModal').addEventListener('click', function (e) { if (e.target.id === 'grabModal') closeGrab(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeGrab(); });
+
+  document.getElementById('grabForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var err = document.getElementById('gErr');
+    var payload = {
+      name: document.getElementById('gName').value.trim(),
+      email: document.getElementById('gEmail').value.trim(),
+      phone: document.getElementById('gPhone').value.trim()
+    };
+    if (payload.name.length < 2) return void (err.textContent = 'Enter your name.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) return void (err.textContent = 'Enter a valid email address.');
+    if (payload.phone.replace(/\D/g, '').length < 10) return void (err.textContent = 'Enter a 10-digit phone number.');
+    var btn = document.getElementById('gGo');
+    btn.disabled = true; btn.textContent = 'Unlocking…';
+    API.deals.grab(state.active.id, payload).then(function (r) {
+      var d = r.deal || state.active;
+      document.getElementById('grabFormWrap').hidden = true;
+      document.getElementById('grabDone').hidden = false;
+      document.getElementById('doneSub').textContent = r.message;
+      document.getElementById('doneCodeBox').hidden = !r.code;
+      document.getElementById('doneNoCode').hidden = !!r.code;
+      document.getElementById('doneCode').textContent = r.code || '';
+      var terms = document.getElementById('doneTerms');
+      terms.hidden = !d.terms;
+      terms.textContent = d.terms ? 'Terms: ' + d.terms : '';
+      document.getElementById('doneHotel').href = 'property.html?id=' + encodeURIComponent(d.property.id);
+      if (typeof window.gtag === 'function') window.gtag('event', 'generate_lead', { deal_id: d.id, hotel: d.property.name });
+    }).catch(function (e2) {
+      err.textContent = e2.message || 'Something went wrong. Please try again.';
+    }).then(function () {
+      btn.disabled = false; btn.textContent = 'Get deal';
+    });
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    var code = document.getElementById('doneCode').textContent;
+    var btn = this;
+    (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject()).then(function () {
+      btn.textContent = 'Copied!';
+      setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+    }).catch(function () { window.prompt('Copy your code:', code); });
+  });
+
+  if (params.get('category')) state.category = params.get('category');
+  if (params.get('q')) document.getElementById('fQ').value = params.get('q');
+  API.auth.me().then(function (r) { if (r.user) window.HZ_USER = r.user; }).catch(function () {});
+  load();
+})();
+</script>
+<script src="session-nav.js"></script>
+<script src="cookie-consent.js"></script>
+<script src="mobile-nav.js" defer></script>
+</body>
+</html>

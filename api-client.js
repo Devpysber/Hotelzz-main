@@ -106,7 +106,46 @@
             rzp.open();
           });
         });
+      },
+
+      /**
+       * Public plan purchase (no sign-in needed): buyer details + planId.
+       * Resolves { mode: 'paid' | 'manual', message }.
+       */
+      buyPlan: function (payload) {
+        return request('POST', '/payments/plan-orders', payload).then(function (res) {
+          var order = res.order;
+          if (order.mode === 'manual') return { mode: 'manual', message: order.message, order: order };
+
+          return new Promise(function (resolve, reject) {
+            if (!window.Razorpay) return reject(new Error('Payment library did not load. Refresh and try again.'));
+            var rzp = new window.Razorpay({
+              key: order.keyId,
+              order_id: order.orderId,
+              amount: order.amountMinor,
+              currency: order.currency,
+              name: 'Hotelzz.in',
+              description: order.planName,
+              prefill: order.prefill,
+              theme: { color: '#2563EB' },
+              handler: function (response) {
+                request('POST', '/payments/plan-verify', {
+                  orderId: response.razorpay_order_id,
+                  paymentId: response.razorpay_payment_id,
+                  signature: response.razorpay_signature
+                }).then(function (v) { resolve({ mode: 'paid', payment: v.payment, message: v.message }); }).catch(reject);
+              },
+              modal: { ondismiss: function () { reject(new Error('Payment cancelled.')); } }
+            });
+            rzp.open();
+          });
+        });
       }
+    },
+
+    deals: {
+      list: function (query) { return request('GET', '/deals' + (query ? '?' + query : '')); },
+      grab: function (id, payload) { return request('POST', '/deals/' + encodeURIComponent(id) + '/grab', payload); }
     },
 
     /**

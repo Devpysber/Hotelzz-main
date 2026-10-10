@@ -81,6 +81,10 @@
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           <span>City Analytics</span>
         </a>
+        <a class="nav-item" data-view="deals">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+          <span>Deals</span>
+        </a>
         <a class="nav-item" data-view="payments">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h4m-7 4h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
           <span>Payments</span>
@@ -415,8 +419,13 @@
             <div style="margin-top: 20px; font-size: 12px; color: var(--admin-text-muted); text-align: center;">
               Expected columns: <strong>id, name, location, city_slug, address, phone, website, rating,
               pincode, image_url, property_type, google_cid, google_review_count, google_summary, gmb_link</strong>.
-              Rows whose id already exists are skipped as duplicates.
+              Rows whose id already exists are skipped as duplicates unless you tick the option below.
+              <div style="margin-top:8px;"><a href="#" onclick="downloadListingsTemplate(); return false;" style="font-weight:700; color:var(--admin-primary);">↓ Download a sample CSV template</a></div>
             </div>
+            <label style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:14px; font-size:13px; font-weight:600;">
+              <input type="checkbox" id="importUpdateExisting" />
+              Update listings that already exist (fills in non-empty columns; owner-verified listings are never overwritten)
+            </label>
           </div>
 
           <!-- STEP 2: CSV ANALYSIS -->
@@ -791,6 +800,35 @@
           <div class="table-responsive"><table class="admin-table"><thead><tr><th>Payment</th><th>Hotel / Reference</th><th>Purpose</th><th>Amount</th><th>Provider</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody id="paymentsTableBody"></tbody></table></div>
         </section>
 
+        <section class="admin-page-view" id="view-deals">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>🔥 Deals</h1>
+              <p>Every hotel offer shown on the public <a href="deals.html" target="_blank" rel="noopener">Deals page</a>. Owners post their own; you can add, feature, pause or bulk-import them here.</p>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn-secondary" onclick="downloadDealsTemplate()">↓ CSV template</button>
+              <label class="btn-secondary" style="cursor:pointer;">⇪ Import CSV<input type="file" accept=".csv,text/csv" id="dealsCsvInput" style="display:none;" onchange="importDealsCsv(this)" /></label>
+              <button class="btn-primary" onclick="openDealModal()">+ Add Deal</button>
+            </div>
+          </div>
+          <div class="stat-strip" id="dealsStats" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:16px;"></div>
+          <div class="admin-card" style="margin-bottom:16px;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+              <input type="search" id="dealsSearch" class="filter-input" style="flex:1; min-width:200px;" placeholder="Search deal or hotel…" oninput="renderDealsTable()" />
+              <select id="dealsStatusFilter" class="filter-input" onchange="renderDealsTable()"><option value="">All statuses</option><option>Active</option><option>Paused</option><option>Scheduled</option><option>Expired</option></select>
+            </div>
+            <div class="table-responsive"><table class="admin-table"><thead><tr><th>Deal</th><th>Hotel</th><th>Discount / Code</th><th>Validity</th><th>Views</th><th>Grabs</th><th>Status</th><th>Actions</th></tr></thead><tbody id="dealsTableBody"></tbody></table></div>
+          </div>
+          <div class="admin-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+              <div><div class="card-title">Deal leads</div><div class="card-subtitle">Travellers who unlocked a deal. The hotel is emailed each one too.</div></div>
+              <a class="btn-secondary" href="/api/admin/deals/grabs/export" style="text-decoration:none;">↓ Export CSV</a>
+            </div>
+            <div class="table-responsive"><table class="admin-table"><thead><tr><th>Date</th><th>Deal</th><th>Hotel</th><th>Name</th><th>Email</th><th>Phone</th></tr></thead><tbody id="dealGrabsTableBody"></tbody></table></div>
+          </div>
+        </section>
+
         <section class="admin-page-view" id="view-reviews">
           <div class="page-header">
             <div class="page-title-group">
@@ -1018,6 +1056,59 @@
     </div>
   </div>
 
+  <!-- Edit any user's login -->
+  <div class="admin-modal-overlay" id="userCredModal">
+    <div class="admin-modal" style="max-width:440px;">
+      <div class="modal-header">
+        <h3>Edit Login Details</h3>
+        <button class="modal-close-btn" onclick="closeModal('userCredModal')">×</button>
+      </div>
+      <form style="padding:24px;" novalidate onsubmit="saveUserCredentials(event)">
+        <input type="hidden" id="credUserId" />
+        <p style="margin-bottom:14px; font-size:13.5px;">Account: <strong id="credUserLabel">—</strong></p>
+        <div class="form-group"><label for="credEmail">Sign-in email</label><input type="email" id="credEmail" class="filter-input" style="width:100%;" autocomplete="off" /></div>
+        <div class="form-group"><label for="credPassword">New password</label><input type="password" id="credPassword" class="filter-input" style="width:100%;" autocomplete="new-password" placeholder="Leave blank to keep the current one" /></div>
+        <p style="font-size:12px; color:var(--admin-text-muted); margin-bottom:12px;">The user is emailed about every change. To let them choose their own password instead, use "Send reset link".</p>
+        <div id="credError" style="color:#B91C1C; font-size:13px; font-weight:600; min-height:18px; margin-bottom:10px;"></div>
+        <button type="submit" class="btn-primary" style="width:100%; justify-content:center;">Save</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Deal create/edit -->
+  <div class="admin-modal-overlay" id="dealModal">
+    <div class="admin-modal" style="max-width:620px;">
+      <div class="modal-header">
+        <h3 id="dealModalTitle">Add Deal</h3>
+        <button class="modal-close-btn" onclick="closeModal('dealModal')">×</button>
+      </div>
+      <form style="padding:24px;" novalidate onsubmit="saveDeal(event)">
+        <div class="form-group">
+          <label for="dealPropSearch">Hotel *</label>
+          <input type="search" id="dealPropSearch" class="filter-input" style="width:100%;" placeholder="Type to search hotels…" autocomplete="off" oninput="searchDealProperty()" />
+          <select id="dealPropSelect" class="filter-input" style="width:100%; margin-top:6px;"></select>
+        </div>
+        <div class="form-group"><label for="dealTitle">Title *</label><input id="dealTitle" class="filter-input" style="width:100%;" maxlength="160" /></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label for="dealDiscount">Discount</label><input id="dealDiscount" class="filter-input" style="width:100%;" placeholder="20% OFF" /></div>
+          <div class="form-group"><label for="dealCode">Coupon code</label><input id="dealCode" class="filter-input" style="width:100%;" placeholder="Optional" /></div>
+          <div class="form-group"><label for="dealOrig">Regular price (₹)</label><input id="dealOrig" type="number" min="0" class="filter-input" style="width:100%;" /></div>
+          <div class="form-group"><label for="dealPrice">Deal price (₹)</label><input id="dealPrice" type="number" min="0" class="filter-input" style="width:100%;" /></div>
+          <div class="form-group"><label for="dealFrom">Valid from</label><input id="dealFrom" type="date" class="filter-input" style="width:100%;" /></div>
+          <div class="form-group"><label for="dealTo">Valid until</label><input id="dealTo" type="date" class="filter-input" style="width:100%;" /></div>
+          <div class="form-group"><label for="dealCategory">Category</label><select id="dealCategory" class="filter-input" style="width:100%;"></select></div>
+          <div class="form-group"><label for="dealStatus">Status</label><select id="dealStatus" class="filter-input" style="width:100%;"><option>Active</option><option>Paused</option><option>Scheduled</option><option>Expired</option></select></div>
+        </div>
+        <div class="form-group"><label for="dealImage">Image URL</label><input id="dealImage" class="filter-input" style="width:100%;" placeholder="Optional — defaults to the hotel's photo" /></div>
+        <div class="form-group"><label for="dealDesc">Description</label><textarea id="dealDesc" class="filter-input" style="width:100%; min-height:60px;"></textarea></div>
+        <div class="form-group"><label for="dealTerms">Terms</label><textarea id="dealTerms" class="filter-input" style="width:100%; min-height:50px;"></textarea></div>
+        <label style="display:flex; align-items:center; gap:8px; font-weight:600; margin-bottom:14px;"><input type="checkbox" id="dealFeatured" /> Feature on top of the Deals page</label>
+        <div id="dealError" style="color:#B91C1C; font-size:13px; font-weight:600; min-height:18px; margin-bottom:10px;"></div>
+        <button type="submit" class="btn-primary" style="width:100%; justify-content:center;">Save Deal</button>
+      </form>
+    </div>
+  </div>
+
   <!-- Import Confirmation Modal -->
   <div class="admin-modal-overlay" id="importConfirmModal">
     <div class="admin-modal" style="max-width: 520px;">
@@ -1213,6 +1304,7 @@
   <script src="admin-data.js"></script>
   <script src="admin-emails.js"></script>
   <script src="admin-users.js"></script>
+  <script src="admin-deals.js"></script>
   <script src="admin-app.js"></script>
   <script src="password-toggle.js" defer></script>
 </body>

@@ -470,6 +470,14 @@
     if (cityEl) cityEl.value = currentUser.city || '';
   }
 
+  window.portalForgotPassword = function () {
+    const email = (window.HZ_USER && window.HZ_USER.email) || (currentUser && currentUser.email) || '';
+    if (!email) return showToast('Sign out and use "Forgot password?" on the login page.', 'warning');
+    window.HotelzzAPI.auth.forgotPassword(email, 'traveler').then(() => {
+      showToast('Reset link sent to ' + email + '.');
+    }).catch((err) => showToast(err.message, 'warning'));
+  };
+
   window.changePasswordForm = function () {
     const current = document.getElementById('pwCurrentInput').value;
     const next = document.getElementById('pwNewInput').value;

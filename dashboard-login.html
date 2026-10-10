@@ -73,7 +73,8 @@
   .msg.info { background: var(--primary-light); color: #1E40AF; border: 1px solid #BFDBFE; }
   .msg.dev { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
 
-  .help-row { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); }
+  .help-row { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; font-size: 13px; color: var(--text-muted); }
+  .help-row + .help-row { margin-top: 10px; padding-top: 0; border-top: 0; }
   .help-row a { color: var(--primary); font-weight: 600; }
 
   .step { display: none; }
@@ -121,6 +122,12 @@
         <button type="submit" class="btn btn-primary" id="btnSend">Send login code →</button>
         <div class="msg" id="msgEmail"></div>
       </form>
+      <div class="help-row">
+        <span>Prefer a password?</span>
+        <a href="login.html?type=owner">Sign in with password</a>
+        <span>·</span>
+        <a href="login.html?type=owner&amp;forgot=owner">Forgot password?</a>
+      </div>
       <div class="help-row">
         <span>New partner?</span>
         <a href="https://wa.me/919930090487?text=Hi%20Hotelzz!%20I%20want%20dashboard%20access%20for%20my%20hotel..." target="_blank" rel="noopener">Get access on WhatsApp →</a>

@@ -17,6 +17,9 @@ const env = {
   SMTP_PASS: process.env.SMTP_PASS || '',
   MAIL_FROM: process.env.MAIL_FROM || 'Hotelzz <no-reply@hotelzz.in>',
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || 'admin@hotelzz.in',
+  // Everyone who gets a copy of every plan purchase confirmation (comma separated).
+  PURCHASE_NOTIFY_EMAILS: String(process.env.PURCHASE_NOTIFY_EMAILS || 'antriksh@psyber.co')
+    .split(',').map((e) => e.trim()).filter(Boolean),
 
   // "Sign in with Google" for travelers/owners.
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',

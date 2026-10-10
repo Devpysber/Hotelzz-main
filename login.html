@@ -462,6 +462,9 @@
     (function init() {
       var type = new URLSearchParams(window.location.search).get('type') || 'traveler';
       switchAuthTab(type);
+      // login.html?forgot=owner|traveler opens the reset form directly.
+      var forgot = new URLSearchParams(window.location.search).get('forgot');
+      if (forgot === 'owner' || forgot === 'traveler') openForgot(forgot);
 
       // Already signed in? Go straight to the right portal.
       API.auth.me().then(function (r) {

@@ -94,6 +94,52 @@
     }).join('') || '<div style="padding:12px; font-size:12.5px;">No properties yet</div>';
   }
 
+  /* ------------------------------------------------ account & security */
+
+  function ownerEmail() {
+    return (window.HZ_USER && window.HZ_USER.email) || (data.ownerProfile && data.ownerProfile.email) || '';
+  }
+
+  window.ownerChangeEmail = function (e) {
+    e.preventDefault();
+    const email = document.getElementById('ownerNewEmail').value.trim();
+    const pw = document.getElementById('ownerEmailPw').value;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showToast('Enter a valid email address.', 'warning');
+    if (!pw) return showToast('Enter your current password.', 'warning');
+    window.HotelzzAPI.auth.changeEmail(pw, email).then((r) => {
+      window.HZ_USER = r.user;
+      if (data.ownerProfile) data.ownerProfile.email = r.user.email;
+      document.getElementById('acctOwnerEmail').textContent = r.user.email;
+      const footer = document.getElementById('ownerProfileEmail');
+      if (footer) footer.textContent = r.user.email;
+      document.getElementById('ownerNewEmail').value = '';
+      document.getElementById('ownerEmailPw').value = '';
+      showToast('Sign-in email updated.');
+    }).catch(fail);
+  };
+
+  window.ownerChangePassword = function (e) {
+    e.preventDefault();
+    const cur = document.getElementById('ownerPwCurrent').value;
+    const next = document.getElementById('ownerPwNew').value;
+    const confirm = document.getElementById('ownerPwConfirm').value;
+    if (!cur) return showToast('Enter your current password.', 'warning');
+    if (next.length < 8) return showToast('New password must be at least 8 characters.', 'warning');
+    if (next !== confirm) return showToast('The two new passwords do not match.', 'warning');
+    window.HotelzzAPI.auth.changePassword(cur, next).then(() => {
+      ['ownerPwCurrent', 'ownerPwNew', 'ownerPwConfirm'].forEach((id) => { document.getElementById(id).value = ''; });
+      showToast('Password updated.');
+    }).catch(fail);
+  };
+
+  window.ownerForgotPassword = function () {
+    const email = ownerEmail();
+    if (!email) return showToast('Could not find your email — sign out and use "Forgot password?" on the login page.', 'warning');
+    window.HotelzzAPI.auth.forgotPassword(email, 'owner').then(() => {
+      showToast('Reset link sent to ' + email + '.');
+    }).catch(fail);
+  };
+
   window.hzLogout = function () {
     window.HotelzzAPI.auth.logout().then(() => { window.location.href = 'login.html?type=owner'; });
   };
@@ -101,7 +147,7 @@
   // URL Hash Handler
   const OWNER_VIEWS = [
     'dashboard', 'property-details', 'leads', 'reviews', 'offers',
-    'grow-business', 'performance', 'visibility', 'subscription', 'billing'
+    'grow-business', 'performance', 'visibility', 'subscription', 'billing', 'account'
   ];
 
   function handleUrlHash() {
@@ -154,6 +200,9 @@
     }
     if (viewName === 'grow-business') {
       renderGrowBusinessView();
+    }
+    if (viewName === 'account') {
+      document.getElementById('acctOwnerEmail').textContent = ownerEmail() || '—';
     }
   };
 
@@ -1098,8 +1147,23 @@
       { label: 'Live offers', value: active.length, tone: active.length ? 'good' : null },
       { label: 'Total offers', value: all.length },
       { label: 'Views', value: views },
-      { label: 'Click rate', value: views ? Math.round((clicks / views) * 100) + '%' : '\u2014', sub: clicks + ' clicks' }
+      { label: 'Grab rate', value: views ? Math.round((clicks / views) * 100) + '%' : '\u2014', sub: clicks + ' grabs' }
     ]);
+
+    const leadsBody = document.getElementById('dealLeadsTableBody');
+    if (leadsBody) {
+      const leads = currentProp.dealLeads || [];
+      const e = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      leadsBody.innerHTML = leads.length ? leads.map((g) => `
+        <tr>
+          <td data-label="Name" style="font-weight:700;">${e(g.name)}</td>
+          <td data-label="Email"><a href="mailto:${e(g.email)}">${e(g.email)}</a></td>
+          <td data-label="Phone"><a href="tel:${e(g.phone)}">${e(g.phone)}</a></td>
+          <td data-label="Deal">${e(g.deal)}</td>
+          <td data-label="Date">${e(String(g.date || '').slice(0, 10))}</td>
+        </tr>`).join('')
+        : '<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748B;">No deal leads yet.</td></tr>';
+    }
 
     if (!all.length) {
       tbody.innerHTML = emptyRow(7, {
@@ -1117,7 +1181,7 @@
         <td data-label="Discount"><span class="badge badge-info">${o.discount}</span></td>
         <td data-label="Validity">${o.validFrom} \u2013 ${o.validUntil}</td>
         <td data-label="Views">${o.views}</td>
-        <td data-label="Clicks">${o.clicks}</td>
+        <td data-label="Grabs">${o.clicks}</td>
         <td data-label="Status"><span class="badge ${o.status === 'Active' ? 'badge-success' : 'badge-warning'}">${o.status}</span></td>
         <td data-label="Actions">
           <button class="btn-secondary btn-tiny" onclick="openEditOfferModal('${o.id}')">Edit</button>
@@ -1127,10 +1191,31 @@
     `).join('');
   }
 
+  const OFFER_FIELDS = {
+    title: 'offerTitleInput', discount: 'offerDiscInput', code: 'offerCodeInput',
+    originalPrice: 'offerOrigInput', dealPrice: 'offerDealInput', validFrom: 'offerFromInput',
+    validTo: 'offerToInput', category: 'offerCatInput', status: 'offerStatusInput',
+    description: 'offerDescInput', terms: 'offerTermsInput'
+  };
+
+  function fillOfferForm(o) {
+    Object.keys(OFFER_FIELDS).forEach((k) => {
+      const el = document.getElementById(OFFER_FIELDS[k]);
+      if (!el) return;
+      let v = o[k];
+      if (v === '—' || v === null || v === undefined) v = '';
+      el.value = v;
+    });
+  }
+
   window.openCreateOfferModal = function () {
     editingOfferId = null;
-    document.getElementById('offerTitleInput').value = '';
-    document.getElementById('offerDiscInput').value = '';
+    fillOfferForm({
+      category: 'Stay', status: 'Active',
+      validFrom: new Date().toISOString().slice(0, 10),
+      validTo: new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10)
+    });
+    document.getElementById('offerModalTitle').textContent = 'Create Deal / Offer';
     document.getElementById('offerModal').classList.add('show');
   };
 
@@ -1140,8 +1225,8 @@
     const offer = currentProp.offers.find(o => o.id === id);
     if (!offer) return;
     editingOfferId = id;
-    document.getElementById('offerTitleInput').value = offer.title;
-    document.getElementById('offerDiscInput').value = offer.discount === '—' ? '' : offer.discount;
+    fillOfferForm(Object.assign({}, offer, { validTo: offer.validUntil }));
+    document.getElementById('offerModalTitle').textContent = 'Edit Deal / Offer';
     document.getElementById('offerModal').classList.add('show');
   };
 
@@ -1154,17 +1239,24 @@
   };
 
   window.saveOfferForm = function () {
-    const title = (document.getElementById('offerTitleInput').value || '').trim();
-    const disc = (document.getElementById('offerDiscInput').value || '').trim();
-    if (!title) return showToast('Enter an offer title.', 'warning');
+    const v = {};
+    Object.keys(OFFER_FIELDS).forEach((k) => { v[k] = (document.getElementById(OFFER_FIELDS[k]).value || '').trim(); });
+    if (!v.title) return showToast('Enter an offer title.', 'warning');
+    if (v.validFrom && v.validTo && v.validTo < v.validFrom) return showToast('"Valid until" must be after "Valid from".', 'warning');
 
     const payload = {
-      title: title,
-      discount: disc || '15% OFF',
-      validFrom: new Date().toISOString().slice(0, 10),
-      validTo: new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10),
-      status: 'Active'
+      title: v.title,
+      discount: v.discount || (!v.dealPrice ? '15% OFF' : ''),
+      code: v.code.toUpperCase(),
+      description: v.description,
+      terms: v.terms,
+      category: v.category || 'Stay',
+      validFrom: v.validFrom,
+      validTo: v.validTo,
+      status: v.status || 'Active'
     };
+    if (v.originalPrice) payload.originalPrice = Number(v.originalPrice);
+    if (v.dealPrice) payload.dealPrice = Number(v.dealPrice);
     const call = editingOfferId
       ? data.updateOffer(activePropId, editingOfferId, payload)
       : data.addOffer(activePropId, payload);
@@ -1174,7 +1266,7 @@
       editingOfferId = null;
       loadPropertyData(activePropId);
       closeModal('offerModal');
-      showToast(wasEditing ? `Updated offer "${title}".` : `Published offer "${title}".`);
+      showToast(wasEditing ? `Updated offer "${v.title}".` : `Published offer "${v.title}".`);
     }).catch(fail);
   };
 

@@ -178,8 +178,14 @@ function shapeProperty(p) {
     offers: offers.map((o) => ({
       id: o.id, title: o.title, description: o.description, discount: o.discount || '—',
       code: o.code, validFrom: o.valid_from || '—', validUntil: o.valid_to || '—',
-      rooms: 'All Rooms', views: 0, clicks: 0, status: o.status
+      category: o.category || 'Stay', imageUrl: o.image_url || '', terms: o.terms || '',
+      originalPrice: o.original_price || null, dealPrice: o.deal_price || null, featured: !!o.featured,
+      rooms: 'All Rooms', views: o.views || 0, clicks: o.grabs || 0, status: o.status
     })),
+    dealLeads: db.prepare(
+      `SELECT g.name, g.email, g.phone, g.created_at, o.title FROM deal_grabs g JOIN offers o ON o.id = g.offer_id
+        WHERE g.property_id = ? ORDER BY g.created_at DESC LIMIT 100`
+    ).all(p.id).map((g) => ({ name: g.name, email: g.email, phone: g.phone, deal: g.title, date: g.created_at })),
     subscription: {
       planName: sub ? sub.plan_name : 'Free Listing',
       price: sub ? sub.price : '₹0',
@@ -393,16 +399,23 @@ const offerSchema = z.object({
   code: z.string().trim().optional(),
   validFrom: z.string().trim().optional(),
   validTo: z.string().trim().optional(),
+  category: z.string().trim().max(40).optional(),
+  imageUrl: z.string().trim().max(500).optional(),
+  terms: z.string().trim().max(2000).optional(),
+  originalPrice: z.coerce.number().min(0).optional(),
+  dealPrice: z.coerce.number().min(0).optional(),
   status: z.enum(['Active', 'Scheduled', 'Expired', 'Paused']).optional()
 });
 
 router.post('/properties/:id/offers', guard, validate(offerSchema), (req, res) => {
   const b = req.body;
   db.prepare(
-    `INSERT INTO offers (id, property_id, title, description, discount, code, valid_from, valid_to, status)
-     VALUES (?,?,?,?,?,?,?,?,?)`
+    `INSERT INTO offers (id, property_id, title, description, discount, code, valid_from, valid_to, status,
+                         category, image_url, terms, original_price, deal_price)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
   ).run(uid('off'), req.property.id, b.title, b.description || null, b.discount || null,
-        b.code || null, b.validFrom || null, b.validTo || null, b.status || 'Active');
+        b.code || null, b.validFrom || null, b.validTo || null, b.status || 'Active',
+        b.category || 'Stay', b.imageUrl || null, b.terms || null, b.originalPrice || null, b.dealPrice || null);
   res.status(201).json({ ok: true, property: shapeProperty(req.property) });
 });
 
@@ -413,10 +426,13 @@ router.patch('/properties/:id/offers/:offerId', guard, validate(offerSchema.part
   db.prepare(
     `UPDATE offers SET title=COALESCE(?,title), description=COALESCE(?,description),
             discount=COALESCE(?,discount), code=COALESCE(?,code), valid_from=COALESCE(?,valid_from),
-            valid_to=COALESCE(?,valid_to), status=COALESCE(?,status), updated_at=datetime('now')
+            valid_to=COALESCE(?,valid_to), status=COALESCE(?,status), category=COALESCE(?,category),
+            image_url=COALESCE(?,image_url), terms=COALESCE(?,terms), original_price=COALESCE(?,original_price),
+            deal_price=COALESCE(?,deal_price), updated_at=datetime('now')
       WHERE id = ?`
   ).run(b.title ?? null, b.description ?? null, b.discount ?? null, b.code ?? null,
-        b.validFrom ?? null, b.validTo ?? null, b.status ?? null, offer.id);
+        b.validFrom ?? null, b.validTo ?? null, b.status ?? null, b.category ?? null,
+        b.imageUrl ?? null, b.terms ?? null, b.originalPrice ?? null, b.dealPrice ?? null, offer.id);
   res.json({ ok: true, property: shapeProperty(req.property) });
 });
 

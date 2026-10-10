@@ -56,7 +56,10 @@ server/
   routes/owner.js        Owner dashboard bootstrap, rooms, photos, offers, plans
   routes/leads.js        Marketing leads + admin CRM
   routes/marketing.js    Campaign packages and campaigns
-  routes/admin.js        Admin bootstrap, moderation, CSV import, email log
+  routes/admin.js        Admin bootstrap, moderation, CSV import, email log, user login edits
+  routes/deals.js        Public deals, deal grabs (lead capture), admin deal management + CSV import
+  routes/payments.js     Razorpay orders/verify/webhook, public plan checkout, purchase emails
+  lib/public-plans.json  Fixed-price plans anyone can buy (ota-listing.html)
   scripts/import-hotels.js  CSV → properties (re-runnable)
 
 api-client.js            Browser API client (window.HotelzzAPI)
@@ -64,6 +67,8 @@ enquiry-store.js         Traveler/enquiry store, server backed
 owner-data.js            Owner dashboard data layer
 admin-data.js            Admin panel data layer
 marketing-store.js       Campaign packages/campaigns store
+plan-checkout.js         "Buy now" modal + Razorpay checkout for public plans ([data-buy-plan])
+admin-deals.js           Admin Deals view
 hotels-loader.js         Refreshes window.HOTELS from /api/properties/catalog
 
 index.html               Homepage (hero search, destinations)
@@ -75,7 +80,8 @@ reset-password.html      Password reset landing page
 user-portal.html         Traveler portal
 owner.html               Hotel owner dashboard
 admin.html               Admin panel
-claim.html               Guided listing claim
+claim.html               Guided listing claim (claim.html?id=<property> skips the search)
+deals.html               Public hotel deals & coupon codes
 marketing.html           Marketing plans + lead capture
 ota-listing.html         OTA listing service + lead capture
 tests/                   Playwright smoke and flow tests
@@ -152,3 +158,17 @@ an empty listing becomes its cover automatically.
 - `data/` holds the database and uploaded photos — back both up, keep them out of the web root.
 - Point the Razorpay webhook at `https://<host>/api/payments/webhook` and set `RAZORPAY_WEBHOOK_SECRET`.
 - The `.htaccess` file is only relevant to the legacy static-only hosting setup.
+
+## Payments, purchase emails & deals
+
+- **Razorpay**: set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` (and `RAZORPAY_WEBHOOK_SECRET`,
+  webhook URL `https://<your-domain>/api/payments/webhook`, events `payment.captured`, `order.paid`).
+  Without keys every purchase is recorded as a manual order that an admin settles under Payments → Mark paid.
+- **Public plans** (OTA Starter/Bundle/Growth) are bought from `ota-listing.html` without signing in.
+  Prices live in `server/lib/public-plans.json` — the browser never decides the amount.
+- **Purchase confirmation**: every plan, subscription or campaign purchase emails the buyer and a copy to
+  `PURCHASE_NOTIFY_EMAILS` (default `antriksh@psyber.co`; comma-separate to add more). Manual (unpaid)
+  orders send an "order received" email; payment confirmation sends "purchase confirmed".
+- **Deals**: owners publish offers from Owner → Offers; admins manage all of them (feature, pause, CSV import)
+  under Admin → Deals. Travellers unlock a deal on `deals.html` with name/email/phone — the code is emailed to
+  them and the hotel gets the lead.

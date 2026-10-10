@@ -389,6 +389,35 @@ CREATE TABLE IF NOT EXISTS property_stats (
   add('sender_user_id', 'TEXT');
 })();
 
+// Offers became public "Deals" (deals.html): they gained a category, an image,
+// price points, terms, a featured flag and view/grab counters.
+(function migrateOfferDealColumns() {
+  const cols = db.prepare("PRAGMA table_info(offers)").all().map((c) => c.name);
+  const add = (name, def) => { if (!cols.includes(name)) db.exec(`ALTER TABLE offers ADD COLUMN ${name} ${def}`); };
+  add('category', "TEXT DEFAULT 'Stay'");
+  add('image_url', 'TEXT');
+  add('original_price', 'REAL');
+  add('deal_price', 'REAL');
+  add('terms', 'TEXT');
+  add('featured', 'INTEGER NOT NULL DEFAULT 0');
+  add('views', 'INTEGER NOT NULL DEFAULT 0');
+  add('grabs', 'INTEGER NOT NULL DEFAULT 0');
+})();
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS deal_grabs (
+  id          TEXT PRIMARY KEY,
+  offer_id    TEXT NOT NULL REFERENCES offers(id) ON DELETE CASCADE,
+  property_id TEXT REFERENCES properties(id) ON DELETE SET NULL,
+  user_id     TEXT REFERENCES users(id) ON DELETE SET NULL,
+  name        TEXT NOT NULL,
+  email       TEXT NOT NULL,
+  phone       TEXT,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_deal_grabs_offer ON deal_grabs(offer_id);
+`);
+
 function uid(prefix) {
   const s = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
   return prefix ? `${prefix}_${s}` : s;

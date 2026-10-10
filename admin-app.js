@@ -255,6 +255,9 @@
     if (viewName === 'users' && window.initUsersView) {
       window.initUsersView();
     }
+    if (viewName === 'deals' && window.initDealsView) {
+      window.initDealsView();
+    }
 
     // A drawer or modal left open would overlay — and block — the new view.
     document.querySelectorAll('[id$="Drawer"].open').forEach(el => el.classList.remove('open'));
@@ -1297,10 +1300,13 @@
         const line = document.getElementById('importCompleteLine');
         if (line) {
           line.textContent = `${res.summary.imported.toLocaleString('en-IN')} listings imported from ` +
-            `${data.importSession.filename} — ${res.summary.duplicates.toLocaleString('en-IN')} duplicates skipped.`;
+            `${data.importSession.filename} — ` + (res.summary.updated
+              ? `${res.summary.updated.toLocaleString('en-IN')} existing listings updated.`
+              : `${res.summary.duplicates.toLocaleString('en-IN')} duplicates skipped.`);
         }
         showToast(`Imported ${res.summary.imported.toLocaleString('en-IN')} listings ` +
-                  `(${res.summary.duplicates.toLocaleString('en-IN')} duplicates skipped). ` +
+                  (res.summary.updated ? `(${res.summary.updated.toLocaleString('en-IN')} existing updated). `
+                                       : `(${res.summary.duplicates.toLocaleString('en-IN')} duplicates skipped). `) +
                   `Catalogue now holds ${res.totalProperties.toLocaleString('en-IN')}.`);
         reload();
       }, 400);
@@ -1555,6 +1561,8 @@
     }).catch(fail);
   };
 
+  const payEsc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
   function renderPaymentsTable() {
     const tbody = document.getElementById('paymentsTableBody');
     if (!tbody) return;
@@ -1563,14 +1571,16 @@
     if (line) {
       const manual = (data.payments || []).some(p => p.provider === 'manual');
       line.textContent = manual
-        ? 'Subscription and campaign payments. Manual entries are settled here once the transfer lands.'
-        : 'Subscription and campaign payments, settled through the payment gateway.';
+        ? 'Plan, subscription and campaign payments. Manual entries are settled here once the transfer lands.'
+        : 'Plan, subscription and campaign payments, settled through the payment gateway.';
     }
 
     tbody.innerHTML = (data.payments || []).map(p => `
       <tr>
         <td><code style="font-weight:700;">${p.id}</code></td>
-        <td>${p.hotelName || p.propertyId || '—'}${p.referenceId && p.referenceId !== p.propertyId ? `<br/><small style="color:var(--admin-text-muted);">${p.referenceId}</small>` : ''}</td>
+        <td>${p.purpose === 'plan'
+          ? `<strong>${payEsc(p.planName || p.referenceId)}</strong><br/><small style="color:var(--admin-text-muted);">${payEsc(p.buyerName || '')} · ${payEsc(p.buyerEmail || '')}${p.buyerPhone ? ' · ' + payEsc(p.buyerPhone) : ''}</small>`
+          : `${p.hotelName || p.propertyId || '—'}${p.referenceId && p.referenceId !== p.propertyId ? `<br/><small style="color:var(--admin-text-muted);">${p.referenceId}</small>` : ''}`}</td>
         <td>${p.purpose}</td>
         <td style="font-weight:700;">₹${Number(p.amount).toLocaleString('en-IN')}</td>
         <td>${p.provider}</td>
@@ -1579,6 +1589,20 @@
         <td>${p.status === 'paid' ? '' : `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="markPaymentPaid('${p.id}')">Mark paid</button>`}</td>
       </tr>`).join('') || '<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--admin-text-muted);">No payments yet.</td></tr>';
   }
+
+  window.downloadListingsTemplate = function () {
+    const cols = ['id', 'name', 'location', 'city_slug', 'address', 'phone', 'website', 'rating', 'pincode', 'image_url',
+                  'property_type', 'google_cid', 'google_review_count', 'google_summary', 'gmb_link'];
+    const sample = ['sea-breeze-goa', 'Sea Breeze Resort', 'Calangute', 'calangute', 'Beach Road, Calangute, Goa', '+919800000000',
+                    'https://seabreeze.example', '4.5', '403516', '', 'Resort', '', '120', 'Beachfront resort with pool', ''];
+    const csv = cols.join(',') + '\r\n' + sample.map((v) => (/[",]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v)).join(',') + '\r\n';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv' }));
+    a.download = 'hotelzz-listings-template.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
 
   window.markPaymentPaid = function (id) {
     if (!window.confirm('Mark this payment as received? It activates the plan or campaign immediately.')) return;

@@ -247,6 +247,9 @@
             <div style="margin-bottom:14px;"><label style="font-weight:700; font-size:13px; display:block; margin-bottom:4px;">Current Password</label><input type="password" id="pwCurrentInput" autocomplete="current-password" style="width:100%; padding:10px; border:1px solid var(--user-border); border-radius:6px;" /></div>
             <div style="margin-bottom:14px;"><label style="font-weight:700; font-size:13px; display:block; margin-bottom:4px;">New Password</label><input type="password" id="pwNewInput" autocomplete="new-password" minlength="8" style="width:100%; padding:10px; border:1px solid var(--user-border); border-radius:6px;" /></div>
             <button class="btn-primary" onclick="changePasswordForm()">Update Password</button>
+            <div style="margin-top:12px; font-size:12.5px; color:var(--user-text-muted);">
+              Forgot your current password, or signed up with Google? <a href="#" onclick="portalForgotPassword(); return false;" style="font-weight:700;">Email me a reset link</a>
+            </div>
           </div>
         </section>
 
