@@ -36,6 +36,18 @@ Seeded accounts in development (`NODE_ENV=development`):
 Change `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` before deploying; the owner and
 traveler accounts are only created outside production.
 
+The seed admin is only created when no admin exists, so changing the env vars later
+does nothing. To reset an existing admin's email and/or password (e.g. when locked
+out), run on the server with the app's `.env` / `DB_PATH`:
+
+```bash
+npm run reset:admin -- --email you@hotelzz.in --password 'new-strong-password'
+npm run reset:admin -- --email you@hotelzz.in   # generates and prints a password
+```
+
+Pass `--current <old-email>` if there is more than one admin. Pending OTP/reset
+links for that admin are revoked.
+
 ## Structure
 
 ```
