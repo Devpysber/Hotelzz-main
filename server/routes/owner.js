@@ -115,7 +115,7 @@ function shapeProperty(p) {
     status: p.status_label || 'Published',
     claimedStatus: p.claim_status === 'verified' ? 'Claimed & Verified'
                  : p.claim_status === 'pending' ? 'Claim Pending' : 'Unclaimed',
-    completeness: completeness(p, details, photos.length, rooms.length),
+    completeness: completeness(p, details, photos.length, amenityCount),
     phoneFull: p.phone || '',
     phoneMasked: mask(p.phone),
     email: p.email || '',

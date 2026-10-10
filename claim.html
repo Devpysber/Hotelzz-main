@@ -30,7 +30,7 @@
     /* Header */
     header { background: #FFF; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
     .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 20px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
-    .brand { font-size: 22px; font-weight: 800; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 6px; }
+    .brand { font-size: 22px; font-weight: 800; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0; }
     .brand span { color: var(--text); }
     .nav-links { display: flex; align-items: center; gap: 16px; }
     .nav-links a { color: var(--text); font-weight: 600; font-size: 14px; text-decoration: none; }
@@ -135,12 +135,7 @@
         <div class="form-group">
           <label>City</label>
           <select id="searchCity" class="form-control">
-            <option value="Mumbai" selected>Mumbai</option>
-            <option value="Goa">Goa</option>
-            <option value="Bengaluru">Bengaluru</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Udaipur">Udaipur</option>
-            <option value="Jaipur">Jaipur</option>
+            <option value="" selected>All cities</option>
           </select>
         </div>
 
@@ -341,7 +336,7 @@
           results = r.properties || [];
           if (!results.length) {
             container.innerHTML = '<div style="padding:18px;text-align:center;color:var(--text-muted);">' +
-              'No listing matched "' + esc(name) + '" in ' + esc(city) + '. ' +
+              'No listing matched "' + esc(name) + '"' + (city ? ' in ' + esc(document.getElementById('searchCity').selectedOptions[0].textContent.replace(/\s*\(\d+\)$/, '')) : '') + '. ' +
               'Try a shorter name, or register the property as new.</div>';
           } else {
             container.innerHTML = results.map(function (p, idx) {
@@ -458,6 +453,20 @@
         goToStep('step6');
       }).catch(function (err) { show(err.message); });
     }
+
+    // Every city that has listings, so owners anywhere can find theirs.
+    API.get('/properties/cities').then(function (r) {
+      var sel = document.getElementById('searchCity');
+      (r.cities || []).slice().sort(function (a, b) { return String(a.name).localeCompare(String(b.name)); }).forEach(function (c) {
+        var o = document.createElement('option');
+        o.value = c.slug; o.textContent = c.name + ' (' + c.count + ')';
+        sel.appendChild(o);
+      });
+    }).catch(function () {});
+    // Enter in the name box runs the search.
+    document.getElementById('searchName').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); executeSearch(); }
+    });
 
     /* ------------------------------------- deep link: claim.html?id=<id> */
     // "Claim this listing" on a property page lands here with the listing

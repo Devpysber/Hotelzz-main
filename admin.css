@@ -1490,8 +1490,16 @@ body.admin-body {
 
 @media (max-width: 480px) {
   .kpi-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
+  .kpi-grid .kpi-card { padding: 14px; }
+  .kpi-grid .kpi-value { font-size: 22px; }
+  .kpi-grid .kpi-label { font-size: 12px; }
+  .kpi-grid .kpi-icon { width: 30px; height: 30px; font-size: 14px; }
+}
+@media (max-width: 340px) {
+  .kpi-grid { grid-template-columns: 1fr; }
   .notification-dropdown {
     width: calc(100vw - 32px);
     right: -16px;

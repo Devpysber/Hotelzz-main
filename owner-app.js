@@ -242,7 +242,7 @@
     // Header & Sidebar
     document.getElementById('headerPropNameDisplay').textContent = p.name;
     document.getElementById('sidebarPropName').textContent = p.name;
-    document.getElementById('sidebarPropCity').textContent = `${p.city}, ${p.state}`;
+    document.getElementById('sidebarPropCity').textContent = [p.city, p.state].filter(Boolean).join(', ');
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
     document.getElementById('welcomeHeaderTitle').textContent = `${greeting}, ${data.ownerProfile.name} 👋`;
@@ -255,7 +255,7 @@
 
     // Status & Completeness Card
     document.getElementById('statusPropName').textContent = p.name;
-    document.getElementById('statusPropCity').textContent = `${p.city}, ${p.state}`;
+    document.getElementById('statusPropCity').textContent = [p.city, p.state].filter(Boolean).join(', ');
     document.getElementById('completenessPctText').textContent = `${p.completeness}% Complete`;
     document.getElementById('completenessProgressBar').style.width = `${p.completeness}%`;
 
