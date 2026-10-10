@@ -380,7 +380,6 @@
     </a>
     <nav class="header-nav">
       <a href="city.html" class="nav-link" style="color:var(--primary); font-weight:700;">🔍 Search Hotels</a>
-      <a href="deals.html" class="nav-link" style="font-weight:700; color:#DC2626;">🔥 Deals</a>
 
       <!-- FOR HOTEL OWNERS DROPDOWN -->
       <div class="nav-dropdown">
@@ -443,39 +442,6 @@
 </section>
 
 <!-- POPULAR DESTINATIONS -->
-<!-- HOT DEALS (filled from /api/deals; stays hidden when there are none) -->
-<section id="homeDeals" hidden style="padding:36px 0 8px;">
-  <div class="container">
-    <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
-      <div>
-        <h2 style="font-size:26px; font-weight:800;">🔥 Hot hotel deals</h2>
-        <p style="color:#6B7280;">Exclusive offers and coupon codes straight from hotels.</p>
-      </div>
-      <a href="deals.html" style="font-weight:700;">See all deals →</a>
-    </div>
-    <div id="homeDealsGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px;"></div>
-  </div>
-</section>
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    if (!window.HotelzzAPI || !window.HotelzzAPI.deals) return;
-    window.HotelzzAPI.deals.list('limit=4').then(function (r) {
-      var deals = r.deals || [];
-      if (!deals.length) return;
-      var e = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-      document.getElementById('homeDealsGrid').innerHTML = deals.map(function (d) {
-        return '<a href="deals.html?q=' + encodeURIComponent(d.title) + '" style="display:block; background:#fff; border:1px solid #E5E7EB; border-radius:14px; overflow:hidden; color:inherit; text-decoration:none;">' +
-          '<div style="position:relative; aspect-ratio:16/9; background:linear-gradient(135deg,#DBEAFE,#FEF3C7);">' +
-            (d.image ? '<img src="' + e(d.image) + '" alt="" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.remove()">' : '') +
-            (d.discount ? '<span style="position:absolute; top:10px; left:10px; background:#DC2626; color:#fff; font-weight:800; font-size:12px; padding:4px 8px; border-radius:6px;">' + e(d.discount) + '</span>' : '') +
-          '</div><div style="padding:12px;"><div style="font-weight:800;">' + e(d.title) + '</div>' +
-          '<div style="font-size:13px; color:#6B7280;">' + e(d.property.name) + (d.property.location ? ' · ' + e(d.property.location) : '') + '</div></div></a>';
-      }).join('');
-      document.getElementById('homeDeals').hidden = false;
-    }).catch(function () {});
-  });
-</script>
-
 <section class="destinations">
   <div class="container">
     <h2>Popular destinations</h2>
