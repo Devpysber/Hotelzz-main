@@ -26,14 +26,28 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "name": "Hotelzz.in",
-  "image": "https://hotelzz.in/jpg.png",
-  "url": "https://hotelzz.in",
-  "telephone": "+91-9930090487",
-  "description": "B2B hotel marketing & booking directory platform helping Indian hotels, resorts, and homestays get direct bookings.",
-  "address": { "@type": "PostalAddress", "addressCountry": "IN" },
-  "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "512" }
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://hotelzz.in/#org",
+      "name": "Hotelzz.in",
+      "url": "https://hotelzz.in/",
+      "logo": "https://hotelzz.in/jpg.png",
+      "email": "support@hotelzz.in",
+      "telephone": "+91-9930090487",
+      "description": "India's hotel marketplace and marketing platform: 3,000+ verified hotels, villas and homestays with direct booking and zero booking fees.",
+      "address": { "@type": "PostalAddress", "addressLocality": "Mumbai", "addressRegion": "Maharashtra", "addressCountry": "IN" },
+      "contactPoint": { "@type": "ContactPoint", "telephone": "+91-9930090487", "contactType": "customer support", "areaServed": "IN", "availableLanguage": ["en", "hi"] }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://hotelzz.in/#website",
+      "url": "https://hotelzz.in/",
+      "name": "Hotelzz.in",
+      "publisher": { "@id": "https://hotelzz.in/#org" },
+      "inLanguage": "en-IN"
+    }
+  ]
 }
 </script>
 

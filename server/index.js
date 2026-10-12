@@ -11,6 +11,9 @@ const automation = require('./lib/automation');
 const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
+// gzip/deflate every text response — the bundled hotel catalogue alone goes
+// from ~1.8 MB to ~200 KB, which matters for phones and for page-speed SEO.
+app.use(require('compression')());
 
 // The Razorpay webhook signature covers the exact bytes, so it needs the raw
 // body — mount it before the JSON parser.
@@ -80,6 +83,15 @@ app.get('/.well-known/assetlinks.json', (_req, res) => {
 // Uploaded partner photos, served read-only from outside the repo.
 const { UPLOAD_ROOT } = require('./lib/uploads');
 app.use('/uploads', express.static(UPLOAD_ROOT, { maxAge: '30d', index: false, dotfiles: 'ignore' }));
+
+// SEO: live sitemap/robots, per-listing <head> for hotel and city pages, and
+// noindex on private pages (server/lib/seo.js).
+const seo = require('./lib/seo');
+app.use(seo.noindexPrivate);
+app.get('/sitemap.xml', seo.sitemap);
+app.get('/robots.txt', seo.robots);
+app.get(['/property.html', '/property'], seo.propertyPage);
+app.get(['/city.html', '/city'], seo.cityPage);
 
 // Static site (same origin as the API, so cookies just work).
 const ROOT = path.resolve(__dirname, '..');
