@@ -43,9 +43,46 @@ function seedPlans() {
   });
 }
 
+/**
+ * The public catalogue lives in the database. If it is missing most of the
+ * bundled hotels.csv (a fresh or partly-imported database), add the missing
+ * listings. Insert-only: existing rows — edited, deactivated, claimed — are
+ * never touched, so admin and owner changes always win.
+ */
+function seedCatalogue() {
+  const fs = require('fs');
+  const path = require('path');
+  const file = path.resolve(__dirname, '..', '..', 'hotels.csv');
+  if (!fs.existsSync(file)) return;
+  const { parseCSV } = require('./csv');
+  const { slugify } = require('./http');
+  const rows = parseCSV(fs.readFileSync(file, 'utf8')).filter((r) => r.id && r.name);
+  const have = db.prepare('SELECT COUNT(*) c FROM properties').get().c;
+  if (!rows.length || have >= rows.length * 0.5) return;
+
+  const truthy = (v) => { const t = String(v || '').toLowerCase(); return !t || ['yes', 'true', '1', 'y'].includes(t); };
+  const insert = db.prepare(
+    `INSERT INTO properties (id, name, location, city_slug, address, phone, website, rating, pincode,
+                             image_url, property_type, google_cid, google_review_count, google_summary, gmb_link, active)
+     VALUES (@id,@name,@location,@city_slug,@address,@phone,@website,@rating,@pincode,
+             @image_url,@property_type,@google_cid,@google_review_count,@google_summary,@gmb_link,@active)
+     ON CONFLICT(id) DO NOTHING`
+  );
+  const added = db.transaction((list) => list.reduce((n, h) => n + insert.run({
+    id: h.id, name: h.name, location: h.location || null, city_slug: h.city_slug || slugify(h.location),
+    address: h.address || null, phone: h.phone || null, website: h.website || null,
+    rating: parseFloat(h.rating) || 4.5, pincode: h.pincode || null, image_url: h.image_url || null,
+    property_type: h.property_type || null, google_cid: String(h.google_cid || '').replace(/\D/g, '') || null,
+    google_review_count: parseInt(h.google_review_count, 10) || 0, google_summary: h.google_summary || null,
+    gmb_link: h.gmb_link || null, active: truthy(h.active) ? 1 : 0
+  }).changes, 0))(rows);
+  console.log(`[seed] catalogue had ${have} listings — added ${added} missing ones from hotels.csv`);
+}
+
 async function seed() {
   seedPackages();
   seedPlans();
+  seedCatalogue();
   // Only bootstrap the first admin. Once any admin exists, never re-create the
   // seed account — otherwise changing the admin email in Settings would bring
   // SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD back on the next restart.
