@@ -48,7 +48,17 @@
   .brand-tag { font-size: 9px; font-weight: 600; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
   .header-search { flex: 1; max-width: 720px; background: #fff; border: 1px solid var(--border); border-radius: 999px; box-shadow: var(--shadow-sm); display: flex; align-items: stretch; padding: 5px; gap: 4px; transition: box-shadow 0.2s; }
   .header-search:hover { box-shadow: var(--shadow); }
-  .hs-field { flex: 1; padding: 6px 14px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+  .hs-field { flex: 1; padding: 6px 14px; display: flex; flex-direction: column; justify-content: center; min-width: 108px; }
+  .hs-field label { white-space: nowrap; }
+  /* Header: the search keeps its room; secondary links fold away first. */
+  .header .header-inner { gap: 14px; }
+  .header .header-search { flex: 1 1 520px; min-width: 430px; }
+  .header-inner > a[href="marketing.html"], .header-inner > a[href="ota-listing.html"] { white-space: nowrap; }
+  @media (min-width: 1600px) { .header .container.header-inner { max-width: 1480px; } }
+  @media (max-width: 1599px) {
+    .header-inner > a[href="marketing.html"], .header-inner > a[href="ota-listing.html"] { display: none; }
+  }
+  .header-inner:has(.hz-sessnav) > a[href="ota-listing.html"] { display: none; }
   .hs-field + .hs-field { border-left: 1px solid var(--border); }
   .hs-field label { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
   .hs-field input, .hs-field select { border: none; outline: none; background: transparent; font-size: 13px; font-weight: 600; color: var(--text); width: 100%; font-family: inherit; padding: 0; }
