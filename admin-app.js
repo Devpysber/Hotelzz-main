@@ -252,6 +252,9 @@
     if (viewName === 'emails' && window.initEmailsView) {
       window.initEmailsView();
     }
+    if (viewName === 'emails' && window.initPromotionsPanel) {
+      window.initPromotionsPanel();
+    }
     if (viewName === 'users' && window.initUsersView) {
       window.initUsersView();
     }

@@ -380,7 +380,7 @@ function redirects(req, res, next) {
 /* ---------------------------------------------------- robots / llms */
 
 const PRIVATE_PATHS = ['/api/', '/admin.html', '/admin-login.html', '/owner.html', '/user-portal.html', '/login.html',
-  '/dashboard-login.html', '/reset-password.html', '/downloads/', '/tests/', '/server/', '/*.md$', '/*.gs$'];
+  '/dashboard-login.html', '/reset-password.html', '/unsubscribe', '/downloads/', '/tests/', '/server/', '/*.md$', '/*.gs$'];
 
 function robotsTxt() {
   const s = load();

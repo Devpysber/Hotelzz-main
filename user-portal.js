@@ -494,6 +494,10 @@
   };
 
   window.saveProfileForm = function () {
+    const nameVal = document.getElementById('profNameInput').value.trim();
+    const phoneVal = document.getElementById('profPhoneInput').value.trim();
+    if (nameVal.length < 2) return showToast('Enter your name.', 'warning');
+    if (phoneVal && phoneVal.replace(/\D/g, '').length < 10) return showToast('Enter a valid 10-digit phone number.', 'warning');
     currentUser.name = document.getElementById('profNameInput').value;
     currentUser.email = document.getElementById('profEmailInput').value;
     currentUser.phone = document.getElementById('profPhoneInput').value;

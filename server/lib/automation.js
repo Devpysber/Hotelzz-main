@@ -28,6 +28,17 @@ function claim(job, entityId) {
 // Schedules follow India time whatever the server's own time zone is (the
 // VPS runs UTC, which put the "08:00–10:00" digest at 13:30 IST).
 const ist = () => new Date(Date.now() + 5.5 * 3600 * 1000); // read with getUTC*()
+/** Frees a slot whose email failed, so the next tick retries instead of dropping it. */
+function release(job, entityId) {
+  db.prepare('DELETE FROM automation_log WHERE job = ? AND entity_id = ?').run(job, String(entityId));
+}
+/** Sends and keeps the slot only when the email actually went out. */
+async function deliver(job, entityId, to, template, data) {
+  const r = await sendMail(to, template, data);
+  if (!r.ok) { release(job, entityId); return false; }
+  return true;
+}
+
 const today = () => ist().toISOString().slice(0, 10);
 const isoWeek = () => {
   const d = ist();
@@ -50,11 +61,10 @@ async function remindUnansweredEnquiries() {
   for (const e of rows) {
     if (!e.owner_email || !claim('enquiry-reminder', e.id)) continue;
     const hours = Math.round((Date.now() - new Date(e.sent_at.replace(' ', 'T') + 'Z')) / 36e5);
-    await sendMail(e.owner_email, 'enquiryReminder', {
+    if (await deliver('enquiry-reminder', e.id, e.owner_email, 'enquiryReminder', {
       name: e.owner_name, hotelName: e.property_name, guestName: e.guest_name,
       hours, enquiryId: e.id
-    });
-    sent++;
+    })) sent++;
   }
   return sent;
 }
@@ -74,10 +84,9 @@ async function requestReviews() {
   let sent = 0;
   for (const e of rows) {
     if (!e.user_email || !claim('review-request', e.id)) continue;
-    await sendMail(e.user_email, 'reviewRequest', {
+    if (await deliver('review-request', e.id, e.user_email, 'reviewRequest', {
       name: e.user_name, hotelName: e.property_name, enquiryId: e.id
-    });
-    sent++;
+    })) sent++;
   }
   return sent;
 }
@@ -118,10 +127,9 @@ async function sendOwnerDigests() {
     // used to burn the whole week's slot before any activity arrived.
     if (!claim('owner-digest', p.id + ':' + isoWeek())) continue;
 
-    await sendMail(p.owner_email, 'ownerDigest', {
+    if (await deliver('owner-digest', p.id + ':' + isoWeek(), p.owner_email, 'ownerDigest', {
       name: p.owner_name, hotelName: p.name, enquiries, unanswered, reviews, views, favourites
-    });
-    sent++;
+    })) sent++;
   }
   return sent;
 }
@@ -134,7 +142,7 @@ async function sendAdminDigest() {
   if (!claim('admin-digest', today())) return 0;
 
   const c = (sql) => db.prepare(sql).get().c;
-  await sendMail(require('./mailer').opsEmail(), 'adminDigest', {
+  const r = await sendMail(require('./mailer').opsEmail(), 'adminDigest', {
     enquiries: c("SELECT COUNT(*) c FROM enquiries WHERE sent_at >= datetime('now','-1 day')"),
     unanswered: c("SELECT COUNT(*) c FROM enquiries WHERE status IN ('Sent','Opened') AND sent_at <= datetime('now','-1 day')"),
     leads: c("SELECT COUNT(*) c FROM leads WHERE created_at >= datetime('now','-1 day')"),
@@ -142,6 +150,7 @@ async function sendAdminDigest() {
     newOwners: c("SELECT COUNT(*) c FROM users WHERE role='owner' AND created_at >= datetime('now','-1 day')"),
     failedEmails: c("SELECT COUNT(*) c FROM email_log WHERE status='failed' AND created_at >= datetime('now','-1 day')")
   });
+  if (!r.ok) { release('admin-digest', today()); return 0; }
   return 1;
 }
 
@@ -158,8 +167,7 @@ async function followUpLeads() {
   let sent = 0;
   for (const l of rows) {
     if (!claim('lead-followup', l.id)) continue;
-    await sendMail(l.email, 'leadFollowUp', { name: l.name, plan: l.plan });
-    sent++;
+    if (await deliver('lead-followup', l.id, l.email, 'leadFollowUp', { name: l.name, plan: l.plan })) sent++;
   }
   return sent;
 }

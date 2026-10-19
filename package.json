@@ -10,6 +10,7 @@
     "test": "node tests/e2e.js",
     "test:seo": "node tests/seo.js",
     "test:backend": "node tests/backend.js",
+    "test:email": "node tests/email.js",
     "test:legacy": "node tests/smoke.js && node tests/public-pages.js && node tests/portal-sections.js && node tests/dashboard-sections.js && node tests/buttons.js && node tests/actions.js && node tests/owner-actions.js"
   },
   "keywords": [],

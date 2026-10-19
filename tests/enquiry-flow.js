@@ -1,5 +1,5 @@
-// End-to-end: anonymous visitor sends an enquiry from a property page,
-// then the owner sees it in the dashboard and replies.
+// End-to-end: a signed-in traveller sends an enquiry from a property page and
+// sees it confirmed. (Signed-out visitors book through WhatsApp instead.)
 const { chromium } = require('playwright-core');
 const fs = require('fs');
 const path = require('path');
@@ -14,13 +14,19 @@ const { BASE, findChrome } = require('./_browser');
   const browser = await chromium.launch({ executablePath: findChrome() });
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
+  // Only the app's own requests: fonts/analytics would otherwise time out offline.
+  await ctx.route('**/*', (r) => (r.request().url().startsWith(BASE) ? r.continue() : r.abort()));
+  await page.goto(BASE + '/login.html', { waitUntil: 'domcontentloaded' });
+  const login = await page.evaluate(async () => (await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identifier: 'rahul@example.com', password: 'password123', role: 'traveler' }) })).status);
+  if (login !== 200) throw new Error('traveler login failed: ' + login);
   const errors = [];
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  page.on('console', (m) => { if (m.type() === 'error' && !/ERR_FAILED/.test(m.text())) errors.push(m.text()); });
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
   // The form opens WhatsApp in a new tab; close it silently.
   ctx.on('page', (p) => p.close().catch(() => {}));
 
-  await page.goto(`${BASE}/property.html?id=${encodeURIComponent(propertyId)}`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${BASE}/property.html?id=${encodeURIComponent(propertyId)}`, { waitUntil: 'networkidle' });
   console.log('title:', (await page.title()).slice(0, 70));
 
   await page.fill('#fName', 'Anita Desai');

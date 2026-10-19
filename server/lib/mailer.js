@@ -617,6 +617,203 @@ Dashboard: ${env.PUBLIC_URL}/owner.html`,
   }));
 
 /* =========================================================================
+   PROMOTIONS — kind 'marketing': only sent by the promotions engine
+   (server/lib/promotions.js), never to unsubscribed addresses, always with an
+   unsubscribe link. Each one leads with a real number from the recipient's
+   own data and links to the exact page that acts on it.
+   ========================================================================= */
+
+/** Tags a link so visits from these emails show up as email traffic in GA4. */
+function track(url, tag) {
+  const u = String(url || env.PUBLIC_URL + '/');
+  return u + (u.includes('?') ? '&' : '?') + 'utm_source=email&utm_medium=' + encodeURIComponent(tag) + '&utm_campaign=promotions';
+}
+/** Same wording all week, a different variant next week — repeats don't read as a bot. */
+function weekly(variants, salt) {
+  let h = Math.floor(Date.now() / (7 * 864e5));
+  String(salt || '').split('').forEach((c) => { h = (h * 31 + c.charCodeAt(0)) >>> 0; });
+  return variants[h % variants.length];
+}
+const n = (v) => Number(v || 0).toLocaleString('en-IN');
+const listRows = (items) => `<table style="width:100%;font-size:14px;border-collapse:collapse">${items.map((it) =>
+  `<tr><td style="padding:10px 0;border-bottom:1px solid #F1F5F9"><a href="${it.url}" style="color:#0F172A;font-weight:700;text-decoration:none">${it.title}</a>` +
+  `${it.sub ? `<div style="color:#64748B;font-size:12.5px;margin-top:2px">${it.sub}</div>` : ''}</td>` +
+  `<td style="padding:10px 0;border-bottom:1px solid #F1F5F9;text-align:right;white-space:nowrap;color:#2563EB;font-weight:700">${it.tag || ''}</td></tr>`).join('')}</table>`;
+
+function promo(name, meta, build) {
+  define(name, Object.assign({ account: 'info', category: 'Promotions', marketing: true }, meta), build);
+}
+
+promo('promoListingLive',
+  { audience: 'owner', label: 'Your listing is live (owner)',
+    description: 'First promotional email to a new owner: where their listing shows and how many people looked.',
+    sample: { name: 'Vikram', hotelName: 'The Grand Palace', city: 'Mumbai', cityCount: 120, views30: 86, listingUrl: env.PUBLIC_URL + '/property.html?id=sample' } },
+  ({ name, hotelName, city, cityCount, views30, listingUrl }) => {
+    const url = track(listingUrl, 'owner_listing_live');
+    return {
+      subject: weekly([`${hotelName} is live on Hotelzz — see your page`, `Travellers can find ${hotelName} on Hotelzz`], hotelName),
+      text: `Hi ${name || 'there'}, ${hotelName} is live on Hotelzz${city ? ' in ' + city : ''}. ${n(views30)} travellers viewed it in the last 30 days. See your page: ${url}`,
+      html: layout('Your page is live',
+        `<p style="line-height:1.6">Hi ${name || 'there'}, travellers searching${city ? ' ' + city : ''} can find <b>${hotelName}</b> right now and book you directly on WhatsApp.</p>` +
+        infoTable([['Views, last 30 days', n(views30)], ['Other stays in ' + (city || 'your city'), cityCount ? n(cityCount) : '—'], ['Booking fee you pay', '₹0']]) +
+        button(url, 'View my live listing') +
+        `<p style="color:#64748B;font-size:13px;line-height:1.6">Listings with photos and room prices get opened far more often. Both take two minutes from your dashboard.</p>`)
+    };
+  });
+
+promo('promoProfileGaps',
+  { audience: 'owner', label: 'Finish your listing (owner)',
+    description: 'Names the exact fields missing from the owner\'s listing and links to the editor.',
+    sample: { name: 'Vikram', hotelName: 'The Grand Palace', missing: ['Photos', 'Room prices', 'Description'], completeness: 55, dashUrl: env.PUBLIC_URL + '/owner.html#property-details' } },
+  ({ name, hotelName, missing, completeness, dashUrl }) => {
+    const url = track(dashUrl, 'owner_profile_gaps');
+    const list = (missing || []).slice(0, 5);
+    return {
+      subject: weekly([`${hotelName} is ${completeness || 0}% complete — ${list.length} thing${list.length === 1 ? '' : 's'} left`, `Guests skip half-filled listings — finish ${hotelName}`], hotelName),
+      text: `Hi ${name || 'there'}, ${hotelName} is ${completeness || 0}% complete. Still missing: ${list.join(', ') || 'a few details'}. Finish it here: ${url}`,
+      html: layout(`${hotelName} is ${completeness || 0}% complete`,
+        `<p style="line-height:1.6">Hi ${name || 'there'}, travellers compare a few stays before they message one. These are missing from your listing:</p>` +
+        `<ul style="line-height:1.9;padding-left:18px">${list.map((m) => `<li><b>${m}</b></li>`).join('')}</ul>` +
+        button(url, 'Complete my listing'))
+    };
+  });
+
+promo('promoCollectReviews',
+  { audience: 'owner', label: 'Ask guests for reviews (owner)',
+    description: 'Encourages owners with few reviews to share their review link with past guests.',
+    sample: { name: 'Vikram', hotelName: 'The Grand Palace', reviewCount: 2, listingUrl: env.PUBLIC_URL + '/property.html?id=sample' } },
+  ({ name, hotelName, reviewCount, listingUrl }) => {
+    const url = track(listingUrl, 'owner_collect_reviews');
+    return {
+      subject: weekly([`${hotelName} has ${n(reviewCount)} review${reviewCount === 1 ? '' : 's'} on Hotelzz — ask your last guests`, `Reviews decide where travellers book — get yours on ${hotelName}`], hotelName),
+      text: `Hi ${name || 'there'}, ${hotelName} has ${n(reviewCount)} reviews on Hotelzz. Send this link to recent guests and ask for a quick review: ${url}`,
+      html: layout('Reviews win bookings',
+        `<p style="line-height:1.6">Hi ${name || 'there'}, <b>${hotelName}</b> has <b>${n(reviewCount)}</b> review${reviewCount === 1 ? '' : 's'} on Hotelzz. Stays with recent reviews get far more WhatsApp enquiries.</p>` +
+        `<p style="line-height:1.6">Send your page to your last few guests on WhatsApp and ask for a 30-second review:</p>` +
+        button(url, 'Open my page to share') +
+        quote('Tip: reply to every review from your dashboard — travellers read the replies too.'))
+    };
+  });
+
+promo('promoBoostVisibility',
+  { audience: 'owner', label: 'Get more visibility (owner)',
+    description: 'Shows the owner their views against the city and offers a paid plan for more placement.',
+    sample: { name: 'Vikram', hotelName: 'The Grand Palace', city: 'Mumbai', views30: 86, cityCount: 120, plansUrl: env.PUBLIC_URL + '/owner.html#billing' } },
+  ({ name, hotelName, city, views30, cityCount, plansUrl }) => {
+    const url = track(plansUrl, 'owner_visibility');
+    return {
+      subject: weekly([`${hotelName}: ${n(views30)} views this month — here's how to get more`, `${n(cityCount)} stays compete in ${city || 'your city'} — stand out`], hotelName),
+      text: `Hi ${name || 'there'}, ${hotelName} had ${n(views30)} views in 30 days, among ${n(cityCount)} stays in ${city || 'your city'}. Featured plans put you at the top of the city page: ${url}`,
+      html: layout('Get seen first',
+        `<p style="line-height:1.6">Hi ${name || 'there'}, here is how <b>${hotelName}</b> did on Hotelzz in the last 30 days:</p>` +
+        infoTable([['Listing views', n(views30)], ['Stays competing in ' + (city || 'your city'), n(cityCount)]]) +
+        `<p style="line-height:1.6">A featured plan pins you above the others on the ${city || 'city'} page and in search — and you still pay no commission on direct bookings.</p>` +
+        button(url, 'See plans'))
+    };
+  });
+
+promo('promoPostDeal',
+  { audience: 'owner', label: 'Post a deal (owner)',
+    description: 'Owners without a live offer are invited to post one on the Deals page.',
+    sample: { name: 'Vikram', hotelName: 'The Grand Palace', city: 'Mumbai', dealsLive: 14, dashUrl: env.PUBLIC_URL + '/owner.html#offers' } },
+  ({ name, hotelName, city, dealsLive, dashUrl }) => {
+    const url = track(dashUrl, 'owner_post_deal');
+    return {
+      subject: weekly([`Fill your rooms faster — post a deal for ${hotelName}`, `${n(dealsLive)} hotels are running deals on Hotelzz. Add yours`], hotelName),
+      text: `Hi ${name || 'there'}, ${n(dealsLive)} hotels have live deals on Hotelzz. Post a weekday or long-stay offer for ${hotelName} — travellers unlock it and you get their contact: ${url}`,
+      html: layout('Post a deal, get the lead',
+        `<p style="line-height:1.6">Hi ${name || 'there'}, the Hotelzz Deals page is where price-conscious travellers start. <b>${n(dealsLive)}</b> hotels have live offers right now${city ? ', including stays in ' + city : ''}.</p>` +
+        `<p style="line-height:1.6">When a traveller unlocks your deal, you get their name, phone and email — a warm lead, no commission.</p>` +
+        button(url, 'Create a deal'))
+    };
+  });
+
+promo('promoGrowCampaign',
+  { audience: 'owner', label: 'Run a marketing campaign (owner)',
+    description: 'Introduces paid Meta/Google campaigns that send WhatsApp enquiries to the owner.',
+    sample: { name: 'Vikram', hotelName: 'The Grand Palace', enquiries30: 3, fromPrice: 4999, growUrl: env.PUBLIC_URL + '/owner.html#grow-business' } },
+  ({ name, hotelName, enquiries30, fromPrice, growUrl }) => {
+    const url = track(growUrl, 'owner_grow_campaign');
+    return {
+      subject: weekly([`More direct bookings for ${hotelName} — campaigns from ₹${n(fromPrice)}`, `${hotelName}: ${n(enquiries30)} enquiries last month. Want more?`], hotelName),
+      text: `Hi ${name || 'there'}, ${hotelName} received ${n(enquiries30)} enquiries in the last 30 days. Our Meta & Google campaigns send travellers straight to your WhatsApp, from ₹${n(fromPrice)}: ${url}`,
+      html: layout('Turn ads into WhatsApp bookings',
+        `<p style="line-height:1.6">Hi ${name || 'there'}, <b>${hotelName}</b> received <b>${n(enquiries30)}</b> enquiries through Hotelzz in the last 30 days.</p>` +
+        `<p style="line-height:1.6">Our marketing team runs Meta and Google campaigns that send travellers straight to your WhatsApp — you see every lead and the spend in your dashboard. Plans start at <b>₹${n(fromPrice)}</b>.</p>` +
+        button(url, 'Plan a campaign'))
+    };
+  });
+
+promo('promoClaimListing',
+  { account: 'info', audience: 'listing', label: 'Claim your free listing (unclaimed hotel)',
+    description: 'Sent to the public email of a listing nobody has claimed yet: views it is getting and the free claim link.',
+    sample: { hotelName: 'Sea Breeze Homestay', city: 'Goa', views30: 41, cityCount: 95, claimUrl: env.PUBLIC_URL + '/claim.html?id=sample' } },
+  ({ hotelName, city, views30, cityCount, claimUrl }) => {
+    const url = track(claimUrl, 'listing_claim_invite');
+    return {
+      subject: weekly([`${hotelName} is getting views on Hotelzz — claim it free`, `Travellers are looking at ${hotelName}. Is the information right?`], hotelName),
+      text: `Hello, ${hotelName} is listed on Hotelzz.in${city ? ' in ' + city : ''} and was viewed ${n(views30)} times in 30 days. Claim it for free to update photos and prices and get guest enquiries directly: ${url}`,
+      html: layout(`${hotelName} is on Hotelzz`,
+        `<p style="line-height:1.6">Hello, <b>${hotelName}</b> is listed on Hotelzz.in${city ? ', India\'s direct-booking hotel marketplace, among ' + n(cityCount) + ' stays in ' + city : ''}.</p>` +
+        infoTable([['Views, last 30 days', n(views30)], ['Cost to claim', 'Free'], ['Commission on bookings', '0%']]) +
+        `<p style="line-height:1.6">Claim it to add photos and room prices, post offers, and receive guest enquiries straight to your WhatsApp and email.</p>` +
+        button(url, 'Claim my listing — free'),
+        'You received this because this address is listed publicly for this property.')
+    };
+  });
+
+promo('promoTravelerDeals',
+  { audience: 'traveler', label: 'Hotel deals for you (traveller)',
+    description: 'Live deals in the cities the traveller enquired about or saved, or the best deals overall.',
+    sample: { name: 'Rahul', city: 'Goa', deals: [{ title: 'Monsoon Staycation', hotel: 'Sea Breeze Homestay', discount: '20% OFF', url: env.PUBLIC_URL + '/deals.html' }], dealsUrl: env.PUBLIC_URL + '/deals.html' } },
+  ({ name, city, deals, dealsUrl }) => {
+    const list = (deals || []).slice(0, 4);
+    const url = track(dealsUrl, 'traveler_deals');
+    return {
+      subject: weekly([`${list.length} hotel deal${list.length === 1 ? '' : 's'}${city ? ' in ' + city : ''} this week`, `${list[0] ? list[0].discount || 'New offer' : 'New offers'}${city ? ' in ' + city : ''} — book direct, no fees`], city),
+      text: `Hi ${name || 'there'}, deals${city ? ' in ' + city : ''} this week:\n` + list.map((d) => `- ${d.title} at ${d.hotel}${d.discount ? ' (' + d.discount + ')' : ''}`).join('\n') + `\nSee all: ${url}`,
+      html: layout(`Deals${city ? ' in ' + city : ''} this week`,
+        `<p style="line-height:1.6">Hi ${name || 'there'}, hotels${city ? ' in ' + city : ''} posted these offers. Unlock one to get the code, then book directly with the hotel — no booking fee.</p>` +
+        listRows(list.map((d) => ({ title: d.title, sub: d.hotel, tag: d.discount, url: track(d.url, 'traveler_deals') }))) +
+        button(url, 'See all deals'))
+    };
+  });
+
+promo('promoSavedReminder',
+  { audience: 'traveler', label: 'Your saved stays (traveller)',
+    description: 'Reminds a traveller of the hotels they saved, with a direct link to each.',
+    sample: { name: 'Rahul', hotels: [{ name: 'The Grand Palace', city: 'Mumbai', rating: 4.6, url: env.PUBLIC_URL + '/property.html?id=sample' }], portalUrl: env.PUBLIC_URL + '/user-portal.html#saved' } },
+  ({ name, hotels, portalUrl }) => {
+    const list = (hotels || []).slice(0, 4);
+    const url = track(portalUrl, 'traveler_saved');
+    return {
+      subject: weekly([`Still thinking about ${list[0] ? list[0].name : 'your trip'}?`, `Your ${list.length} saved stay${list.length === 1 ? '' : 's'} on Hotelzz`], name),
+      text: `Hi ${name || 'there'}, your saved stays:\n` + list.map((h) => `- ${h.name}, ${h.city}`).join('\n') + `\nMessage a hotel directly on WhatsApp — no booking fee: ${url}`,
+      html: layout('Your saved stays',
+        `<p style="line-height:1.6">Hi ${name || 'there'}, these are waiting in your list. Message any of them on WhatsApp to check dates and the best rate — no booking fee.</p>` +
+        listRows(list.map((h) => ({ title: h.name, sub: h.city, tag: h.rating ? '★ ' + h.rating : 'New', url: track(h.url, 'traveler_saved') }))) +
+        button(url, 'Open my saved stays'))
+    };
+  });
+
+promo('promoTopStays',
+  { audience: 'traveler', label: 'Top-rated stays (traveller)',
+    description: 'Top-rated stays in a city the traveller showed interest in.',
+    sample: { name: 'Rahul', city: 'Goa', stays: [{ name: 'Sea Breeze Homestay', rating: 4.8, url: env.PUBLIC_URL + '/property.html?id=sample' }], cityUrl: env.PUBLIC_URL + '/city.html?city=goa' } },
+  ({ name, city, stays, cityUrl }) => {
+    const list = (stays || []).slice(0, 5);
+    const url = track(cityUrl, 'traveler_top_stays');
+    return {
+      subject: weekly([`Top-rated stays in ${city || 'India'} this week`, `Where travellers are staying in ${city || 'India'} — book direct`], city),
+      text: `Hi ${name || 'there'}, top-rated stays in ${city || 'India'}:\n` + list.map((h) => `- ${h.name}${h.rating ? ' (★ ' + h.rating + ')' : ''}`).join('\n') + `\nSee them all: ${url}`,
+      html: layout(`Top-rated in ${city || 'India'}`,
+        `<p style="line-height:1.6">Hi ${name || 'there'}, these are the best-rated stays in <b>${city || 'India'}</b> on Hotelzz right now:</p>` +
+        listRows(list.map((h) => ({ title: h.name, tag: h.rating ? '★ ' + h.rating : 'New', url: track(h.url, 'traveler_top_stays') }))) +
+        button(url, `All stays in ${city || 'India'}`))
+    };
+  });
+
+/* =========================================================================
    ADMIN OPS — admin@
    ========================================================================= */
 
@@ -689,8 +886,8 @@ define('adminDigest',
 
 /** Public listing for the admin panel's template gallery — no build fn. */
 function listTemplates() {
-  return Object.values(T).map(({ name, account, category, label, description, sample }) =>
-    ({ name, account, category, label, description, sample }));
+  return Object.values(T).map(({ name, account, category, label, description, sample, marketing, audience }) =>
+    ({ name, account, category, label, description, sample, marketing: !!marketing, audience: audience || null }));
 }
 
 /** Pure render — merges sample data with overrides, no send, no DB write. */
@@ -759,13 +956,33 @@ async function sendMail(to, templateName, data, opts) {
   const acctCfg = env.SMTP_ACCOUNTS[account] || env.SMTP_ACCOUNTS.info;
   const from = opts.from || acctCfg.from;
   const msg = buildSafe(t, data);
+  const marketing = !!t.marketing;
+  const kind = marketing ? 'marketing' : opts.kind;
+  const headers = {};
+
+  if (marketing) {
+    // Promotional mail: never to someone who opted out, and always with a
+    // one-click unsubscribe (link + List-Unsubscribe headers for Gmail/Yahoo).
+    const optout = require('./optout');
+    if (optout.isOptedOut(to)) {
+      const id = logEmail({ to, subject: msg.subject, template: templateName, account, from, status: 'suppressed',
+        error: 'Recipient unsubscribed from promotional email', text: msg.text, html: msg.html, kind });
+      return { ok: false, suppressed: true, id };
+    }
+    const unsub = optout.url(to);
+    headers['List-Unsubscribe'] = `<${unsub}>`;
+    headers['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click';
+    msg.html = String(msg.html || '').replace('</div></body></html>',
+      `<p style="color:#94A3B8;font-size:11.5px;margin-top:6px">You get occasional tips and offers from Hotelzz. <a href="${unsub}" style="color:#64748B">Unsubscribe</a></p></div></body></html>`);
+    msg.text = (msg.text || '') + '\n\n—\nDon\'t want these emails? Unsubscribe: ' + unsub;
+  }
 
   try {
-    await getTransport(account).sendMail({ from, to, replyTo: opts.replyTo || acctCfg.replyTo || undefined, ...msg });
+    await getTransport(account).sendMail({ from, to, replyTo: opts.replyTo || acctCfg.replyTo || undefined, headers, ...msg });
     const id = logEmail({
       to, subject: msg.subject, template: templateName, account, from,
       status: accountConfigured(account) ? 'sent' : 'dev-logged',
-      text: msg.text, html: msg.html, kind: opts.kind, senderUserId: opts.senderUserId
+      text: msg.text, html: msg.html, kind, senderUserId: opts.senderUserId
     });
     return { ok: true, id };
   } catch (err) {
@@ -773,7 +990,7 @@ async function sendMail(to, templateName, data, opts) {
     const id = logEmail({
       to, subject: msg.subject, template: templateName, account, from, status: 'failed',
       error: String(err.message).slice(0, 500), text: msg.text, html: msg.html,
-      kind: opts.kind, senderUserId: opts.senderUserId
+      kind, senderUserId: opts.senderUserId
     });
     return { ok: false, id, error: err.message };
   }
