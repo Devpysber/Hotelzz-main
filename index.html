@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#2563EB" />
-<title>Hotelzz.in — Book Hotels Across India | 3,000+ Stays, Direct WhatsApp Bookings</title>
-<meta name="description" content="Browse 3,000+ hand-picked hotels, villas & homestays across India — Goa beaches, Rajasthan palaces, Himalayan hill stations (Manali, Shimla, Ladakh), Kerala backwaters, North-East valleys, Andaman & Lakshadweep. Book direct on WhatsApp. Zero booking fees." />
+<title>Hotelzz.in — Book Hotels Across India Direct on WhatsApp</title>
+<meta name="description" content="3,000+ hand-picked hotels, villas &amp; homestays across India — Goa, Rajasthan, Himalayas, Kerala &amp; more. Book direct on WhatsApp. Zero booking fees." />
 <meta name="keywords" content="book hotels in India, hotels Goa Jaipur Delhi Manali Munnar Udaipur, hotel marketplace India, direct WhatsApp hotel booking, list hotel online India, hotelzz" />
 <link rel="canonical" href="https://hotelzz.in/" />
 <link rel="icon" type="image/png" href="jpg.png" />
@@ -199,8 +199,8 @@
 
   /* B2B HERO */
   .hero { padding: 56px 0 64px; background: radial-gradient(ellipse at top right, rgba(37,99,235,0.08), transparent 60%), radial-gradient(ellipse at bottom left, rgba(16,185,129,0.06), transparent 60%), #fff; position: relative; overflow: hidden; }
-  .hero h1 { font-size: clamp(28px, 5.5vw, 52px); font-weight: 800; line-height: 1.1; letter-spacing: -1px; color: var(--text); margin-bottom: 18px; max-width: 880px; }
-  .hero h1 .accent { color: var(--primary); }
+  .hero h1, .hero .hero-title { font-size: clamp(28px, 5.5vw, 52px); font-weight: 800; line-height: 1.1; letter-spacing: -1px; color: var(--text); margin-bottom: 18px; max-width: 880px; }
+  .hero h1 .accent, .hero .hero-title .accent { color: var(--primary); }
   .hero .subhead { font-size: clamp(16px, 2vw, 19px); color: var(--text-muted); max-width: 720px; margin-bottom: 32px; }
   .hero-ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 28px; }
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 28px; border-radius: var(--radius); font-weight: 600; font-size: 16px; transition: all 0.2s; white-space: nowrap; }
@@ -335,7 +335,7 @@
     .hero-search-bar .search-btn { width: auto; padding: 0 18px; min-height: 48px; border-radius: 999px; }
     .hero-search-bar input { font-size: 16px; }
     .hero { padding: 36px 0 48px; }
-    .hero h1 { font-size: 30px; }
+    .hero h1, .hero .hero-title { font-size: 30px; }
     .premium-card { grid-template-columns: 1fr; padding: 28px; }
     footer .footer-grid { grid-template-columns: 1fr 1fr; }
     .header-cta span { display: none; }
@@ -370,7 +370,7 @@
   @media (max-width: 360px) {
     .container { padding: 0 14px; }
     .traveler-hero { padding: 32px 0 48px; }
-    .hero h1 { font-size: 26px; }
+    .hero h1, .hero .hero-title { font-size: 26px; }
     .dropdown-trigger { font-size: 12px; padding: 6px 8px; }
     .header-inner { gap: 8px; }
   }
@@ -614,7 +614,7 @@
 <!-- B2B HERO -->
 <section class="hero" id="b2b">
   <div class="container">
-    <h1>Hotel Owner? Get More <span class="accent">Direct Bookings.</span> Zero Commission Until You Earn.</h1>
+    <h2 class="hero-title">Hotel Owner? Get More <span class="accent">Direct Bookings.</span> Zero Commission Until You Earn.</h2>
     <p class="subhead">List your hotel, resort, or homestay on Hotelzz.in — India's fastest-growing travel directory with AI-powered visibility & direct WhatsApp bookings. No setup fees. No long contracts.</p>
 
     <div class="hero-ctas">

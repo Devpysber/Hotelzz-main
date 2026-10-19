@@ -293,8 +293,8 @@
       content.innerHTML = '<div class="container"><div class="not-found"><h2>Pick a property to view details</h2><p>Browse our hand-picked stays to see room photos, amenities, prices and book direct on WhatsApp.</p><div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;"><a href="city.html?city=calangute" style="background:#2563EB;color:#fff;padding:12px 22px;border-radius:8px;font-weight:700;">Browse hotels in Calangute</a><a href="index.html" style="background:#fff;border:2px solid #2563EB;color:#2563EB;padding:10px 22px;border-radius:8px;font-weight:700;">Back to home</a></div></div></div>';
     }
   } else {
-    document.getElementById('pageTitle').textContent = hotel.name + ' — Hotelzz.in';
-    document.getElementById('pageDesc').setAttribute('content', 'Book ' + hotel.name + ' in ' + hotel.location + ' direct on Hotelzz.in. Verified property, real photos, zero booking fees, instant WhatsApp confirmation.');
+    if (!document.getElementById('pageTitle').hasAttribute('data-ssr')) document.getElementById('pageTitle').textContent = hotel.name + ' — Hotelzz.in';
+    if (!document.getElementById('pageDesc').hasAttribute('data-ssr')) document.getElementById('pageDesc').setAttribute('content', 'Book ' + hotel.name + ' in ' + hotel.location + ' direct on Hotelzz.in. Verified property, real photos, zero booking fees, instant WhatsApp confirmation.');
 
     var seed = hotel.id.split('').reduce(function(a,c){return a + c.charCodeAt(0);}, 0);
     var imgs = [imgFor(seed, 0, 1000, 600), imgFor(seed, 1, 600, 400), imgFor(seed, 2, 600, 400), imgFor(seed, 3, 600, 400), imgFor(seed, 4, 600, 400)];

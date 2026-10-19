@@ -8,6 +8,7 @@
     "dev": "node --watch server/index.js",
     "import:hotels": "node server/scripts/import-hotels.js",
     "test": "node tests/e2e.js",
+    "test:seo": "node tests/seo.js",
     "test:legacy": "node tests/smoke.js && node tests/public-pages.js && node tests/portal-sections.js && node tests/dashboard-sections.js && node tests/buttons.js && node tests/actions.js && node tests/owner-actions.js"
   },
   "keywords": [],

@@ -64,6 +64,7 @@ app.use('/api/saved', require('./routes/saved'));
 app.use('/api/owner', require('./routes/owner'));
 app.use('/api/leads', require('./routes/leads'));
 app.use('/api/admin/deals', require('./routes/deals').admin);
+app.use('/api/admin/sitekit', require('./routes/sitekit'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/deals', require('./routes/deals'));
 app.use('/api/marketing', require('./routes/marketing'));
@@ -86,12 +87,22 @@ app.use('/uploads', express.static(UPLOAD_ROOT, { maxAge: '30d', index: false, d
 
 // SEO: live sitemap/robots, per-listing <head> for hotel and city pages, and
 // noindex on private pages (server/lib/seo.js).
+// Site Kit (server/lib/sitekit.js, Admin → Site Kit) adds tracking and
+// verification tags, page overrides, AEO answers and redirects on top.
 const seo = require('./lib/seo');
+const sitekit = require('./lib/sitekit');
+app.use(sitekit.redirects);
 app.use(seo.noindexPrivate);
 app.get('/sitemap.xml', seo.sitemap);
 app.get('/robots.txt', seo.robots);
+app.get('/llms.txt', seo.llms);
+app.get(/^\/([a-f0-9]{32})\.txt$/, (req, res, next) => {
+  if (req.params[0] !== sitekit.load().indexNowKey) return next();
+  res.type('text/plain').send(sitekit.load().indexNowKey);
+});
 app.get(['/property.html', '/property'], seo.propertyPage);
 app.get(['/city.html', '/city'], seo.cityPage);
+app.use(sitekit.staticPages);
 
 // Static site (same origin as the API, so cookies just work).
 const ROOT = path.resolve(__dirname, '..');
@@ -112,6 +123,7 @@ seed().then(() => {
   A.purgeExpiredTokens();
   setInterval(A.purgeExpiredTokens, 6 * 60 * 60 * 1000).unref();
   automation.start();
+  sitekit.startAutoIndexNow();
   require('./lib/sheetSync').start();
 
   // Keep campaign spend/impressions fresh when an ad platform is connected.

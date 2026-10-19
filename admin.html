@@ -103,6 +103,12 @@
           <span>Email Center</span>
         </a>
 
+        <div class="nav-section-label">GROWTH</div>
+        <a class="nav-item" data-view="sitekit">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"/><path d="M8 11.5l2 2 4-4.5"/></svg>
+          <span>Site Kit · SEO</span>
+        </a>
+
         <div class="nav-section-label">MANAGEMENT</div>
         <a class="nav-item" data-view="users">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-4a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4 4 4 0 004 4z"/></svg>
@@ -944,6 +950,38 @@
           </div>
         </section>
 
+        <!-- SITE KIT (SEO + AEO) -->
+        <section class="admin-page-view" id="view-sitekit">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Site Kit · SEO &amp; AEO</h1>
+              <p>Search Console, Analytics, verification tags, AI-answer content, page titles, redirects and a live audit of hotelzz.in — in one place.</p>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn-secondary" onclick="skRefresh()">↻ Refresh caches</button>
+              <button class="btn-primary" onclick="skTab('audit'); skRunAudit()">Run site audit</button>
+            </div>
+          </div>
+          <div class="sk-tabs" role="tablist" id="skTabs">
+            <button role="tab" data-sk="overview" class="active" onclick="skTab('overview')">Overview</button>
+            <button role="tab" data-sk="search" onclick="skTab('search')">Search &amp; traffic</button>
+            <button role="tab" data-sk="audit" onclick="skTab('audit')">Site audit</button>
+            <button role="tab" data-sk="content" onclick="skTab('content')">Listing quality</button>
+            <button role="tab" data-sk="aeo" onclick="skTab('aeo')">AEO answers</button>
+            <button role="tab" data-sk="pages" onclick="skTab('pages')">Page SEO</button>
+            <button role="tab" data-sk="redirects" onclick="skTab('redirects')">Redirects</button>
+            <button role="tab" data-sk="connections" onclick="skTab('connections')">Connections</button>
+          </div>
+          <div class="sk-pane active" id="skPane-overview"><div class="sk-loading">Loading Site Kit…</div></div>
+          <div class="sk-pane" id="skPane-search"></div>
+          <div class="sk-pane" id="skPane-audit"></div>
+          <div class="sk-pane" id="skPane-content"></div>
+          <div class="sk-pane" id="skPane-aeo"></div>
+          <div class="sk-pane" id="skPane-pages"></div>
+          <div class="sk-pane" id="skPane-redirects"></div>
+          <div class="sk-pane" id="skPane-connections"></div>
+        </section>
+
         <!-- ADMIN MARKETING MANAGEMENT VIEW -->
         <section class="admin-page-view" id="view-admin-marketing">
           <div class="page-header">
@@ -1306,6 +1344,7 @@
   <script src="admin-emails.js"></script>
   <script src="admin-users.js"></script>
   <script src="admin-deals.js"></script>
+  <script src="admin-sitekit.js"></script>
   <script src="admin-app.js"></script>
   <script src="password-toggle.js" defer></script>
 </body>

@@ -35,3 +35,4 @@ data/
 
 # Local-only verification scratch scripts (hardcoded Windows paths)
 .hz-*.js
+google-service-account*.json

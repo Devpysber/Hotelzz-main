@@ -116,7 +116,11 @@ function buildCatalog() {
   return catalogCache;
 }
 
-function invalidateCatalog() { catalogCache = null; }
+function invalidateCatalog() {
+  catalogCache = null;
+  // Sitemap and llms.txt list listings too (lazy: seo.js loads after this file).
+  try { require('../lib/seo').invalidate(); } catch (_) { /* not loaded yet */ }
+}
 
 const CATALOG_TTL_MS = 5 * 60 * 1000;
 

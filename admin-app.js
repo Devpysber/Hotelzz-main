@@ -258,6 +258,9 @@
     if (viewName === 'deals' && window.initDealsView) {
       window.initDealsView();
     }
+    if (viewName === 'sitekit' && window.initSiteKitView) {
+      window.initSiteKitView();
+    }
 
     // A drawer or modal left open would overlay — and block — the new view.
     document.querySelectorAll('[id$="Drawer"].open').forEach(el => el.classList.remove('open'));

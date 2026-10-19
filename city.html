@@ -560,8 +560,8 @@
   var cityName = titleCase(citySlug.replace(/-/g, ' '));
   document.getElementById('hCity').textContent = 'Hotels in ' + cityName;
   document.getElementById('bcCity').textContent = cityName;
-  document.getElementById('pageTitle').textContent = 'Hotels in ' + cityName + ' | Book Direct on Hotelzz.in';
-  document.getElementById('pageDesc').setAttribute('content', 'Browse ' + allHotels.length + '+ hand-picked hotels, villas & homestays in ' + cityName + '. Book direct via WhatsApp. Zero booking fees.');
+  if (!document.getElementById('pageTitle').hasAttribute('data-ssr')) document.getElementById('pageTitle').textContent = 'Hotels in ' + cityName + ' | Book Direct on Hotelzz.in';
+  if (!document.getElementById('pageDesc').hasAttribute('data-ssr')) document.getElementById('pageDesc').setAttribute('content', 'Browse ' + allHotels.length + '+ hand-picked hotels, villas & homestays in ' + cityName + '. Book direct via WhatsApp. Zero booking fees.');
   document.getElementById('hCount').textContent = allHotels.length + ' properties available · Book direct via WhatsApp';
   document.getElementById('hsCity').value = cityName;
   var qGuests = qs('guests'); if (qGuests) document.getElementById('hsGuests').value = qGuests;
