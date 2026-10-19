@@ -92,7 +92,11 @@ router.post('/',
     if (!property) return res.status(404).json({ ok: false, field: 'propertyId', error: 'That property is no longer listed.' });
     const propertyName = property.name;
 
-    const id = 'HZ-ENQ-' + Math.floor(Math.random() * 89999 + 10000);
+    // 6 digits and a uniqueness check: the old 5-digit id collided (500) once
+    // a few hundred enquiries existed.
+    let id;
+    do { id = 'HZ-ENQ-' + Math.floor(Math.random() * 899999 + 100000); }
+    while (db.prepare('SELECT 1 FROM enquiries WHERE id = ?').get(id));
     db.prepare(
       `INSERT INTO enquiries (id, user_id, property_id, property_name, property_city, owner_id,
                               guest_name, guest_email, guest_phone, check_in, check_out, guests,
@@ -132,7 +136,7 @@ router.post('/',
       addEvent(id, 'Awaiting Claim', 'This property has no verified owner yet — Hotelzz ops will follow up directly.');
     }
     sendMailAsync(b.email, 'enquiryReceipt', { guestName: b.name, hotelName: propertyName, checkIn: b.checkIn, checkOut: b.checkOut, enquiryId: id });
-    sendMailAsync(env.ADMIN_EMAIL, 'adminNewEnquiry', mailData);
+    sendMailAsync(require('../lib/mailer').opsEmail(), 'adminNewEnquiry', mailData);
 
     const row = db.prepare('SELECT * FROM enquiries WHERE id = ?').get(id);
     res.status(201).json({ ok: true, enquiry: shape(row, true) });
@@ -159,8 +163,8 @@ router.get('/',
     if (status && status !== 'All') { where.push('status = ?'); params.push(status); }
     if (propertyId) { where.push('property_id = ?'); params.push(propertyId); }
     if (q) {
-      where.push('(guest_name LIKE ? OR guest_email LIKE ? OR property_name LIKE ? OR id LIKE ?)');
-      const like = '%' + q + '%';
+      where.push("(guest_name LIKE ? ESCAPE '\\' OR guest_email LIKE ? ESCAPE '\\' OR property_name LIKE ? ESCAPE '\\' OR id LIKE ? ESCAPE '\\')");
+      const like = '%' + q.replace(/[\\%_]/g, '\\$&') + '%';
       params.push(like, like, like, like);
     }
     const sql = 'SELECT * FROM enquiries' + (where.length ? ' WHERE ' + where.join(' AND ') : '') +
@@ -169,7 +173,9 @@ router.get('/',
     const total = db.prepare('SELECT COUNT(*) c FROM enquiries' + (where.length ? ' WHERE ' + where.join(' AND ') : ''))
       .get(...params).c;
 
-    res.json({ ok: true, total, enquiries: rows.map((r) => shape(r, false)) });
+    // Travelers have a handful of enquiries and the portal shows each one's
+    // timeline, so theirs come with it; owner/admin lists stay light.
+    res.json({ ok: true, total, enquiries: rows.map((r) => shape(r, req.user.role === 'traveler')) });
   });
 
 /* ------------------------------------------------------------------ detail */

@@ -72,19 +72,23 @@ router.get('/', (req, res) => {
   const params = [];
   const q = String(req.query.q || '').trim().toLowerCase();
   if (q) {
-    where.push('(lower(o.title) LIKE ? OR lower(p.name) LIKE ? OR lower(p.location) LIKE ? OR lower(COALESCE(o.description,\'\')) LIKE ?)');
-    params.push(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`);
+    where.push("(lower(o.title) LIKE ? ESCAPE '\\' OR lower(p.name) LIKE ? ESCAPE '\\' OR lower(p.location) LIKE ? ESCAPE '\\' OR lower(COALESCE(o.description,'')) LIKE ? ESCAPE '\\')");
+    const like = '%' + q.replace(/[\\%_]/g, '\\$&') + '%';
+    params.push(like, like, like, like);
   }
   if (req.query.city) { where.push('p.city_slug = ?'); params.push(slugify(String(req.query.city))); }
   if (req.query.category) { where.push('o.category = ?'); params.push(String(req.query.category)); }
   if (req.query.property) { where.push('o.property_id = ?'); params.push(String(req.query.property)); }
   if (req.query.featured === '1') where.push('o.featured = 1');
 
-  const order = {
+  const ORDERS = {
     ending: "CASE WHEN o.valid_to IS NULL OR o.valid_to = '' THEN 1 ELSE 0 END, o.valid_to ASC",
     popular: 'o.grabs DESC, o.created_at DESC',
     newest: 'o.created_at DESC'
-  }[req.query.sort] || 'o.featured DESC, o.grabs DESC, o.created_at DESC';
+  };
+  // Own keys only: ?sort=constructor used to reach Object.prototype (500).
+  const order = Object.prototype.hasOwnProperty.call(ORDERS, req.query.sort) ? ORDERS[req.query.sort]
+    : 'o.featured DESC, o.grabs DESC, o.created_at DESC';
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 60, 1), 200);
 
   const rows = db.prepare(`${BASE_SELECT} WHERE ${where.join(' AND ')} ORDER BY ${order} LIMIT ${limit}`).all(...params);
@@ -148,6 +152,19 @@ router.post('/:id/grab',
 const admin = express.Router();
 admin.use(A.requireAuth('admin'));
 
+const isoDate = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
+/** "31/12/2026", "31-12-2026" or "2026-12-31" → "2026-12-31"; anything else → null. */
+function toIsoDate(v) {
+  const t = String(v || '').trim();
+  if (!t) return '';
+  if (isoDate(t)) return t;
+  const m = t.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/);
+  if (!m) return null;
+  const iso = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+  return isoDate(iso) ? iso : null;
+}
+const datesInOrder = (from, to) => !from || !to || to >= from;
+
 const dealSchema = z.object({
   propertyId: z.string().trim().min(1, 'Choose a property'),
   title: z.string().trim().min(2, 'Enter a deal title').max(160),
@@ -156,12 +173,14 @@ const dealSchema = z.object({
   code: z.string().trim().max(40).optional(),
   category: z.string().trim().max(40).optional(),
   imageUrl: z.string().trim().max(500).optional(),
-  originalPrice: z.coerce.number().min(0).optional(),
-  dealPrice: z.coerce.number().min(0).optional(),
+  // "" or null clears a price on edit.
+  originalPrice: z.preprocess((v) => (v === '' ? null : v), z.coerce.number().min(0).nullable()).optional(),
+  dealPrice: z.preprocess((v) => (v === '' ? null : v), z.coerce.number().min(0).nullable()).optional(),
   terms: z.string().trim().max(2000).optional(),
-  validFrom: z.string().trim().optional(),
-  validTo: z.string().trim().optional(),
-  featured: z.coerce.boolean().optional(),
+  // Dates are compared as text against date('now'), so only YYYY-MM-DD works.
+  validFrom: z.string().trim().refine((v) => !v || isoDate(v), 'Use the date picker (YYYY-MM-DD)').optional(),
+  validTo: z.string().trim().refine((v) => !v || isoDate(v), 'Use the date picker (YYYY-MM-DD)').optional(),
+  featured: require('../lib/http').bool.optional(),
   status: z.enum(['Active', 'Scheduled', 'Expired', 'Paused']).optional()
 });
 
@@ -195,6 +214,7 @@ admin.get('/', (_req, res) => {
 });
 
 admin.post('/', validate(dealSchema), (req, res) => {
+  if (!datesInOrder(req.body.validFrom, req.body.validTo)) return res.status(400).json({ ok: false, field: 'validTo', error: '"Valid until" must be on or after "Valid from".' });
   const prop = db.prepare('SELECT id FROM properties WHERE id = ?').get(req.body.propertyId);
   if (!prop) return res.status(404).json({ ok: false, field: 'propertyId', error: 'Property not found.' });
   const id = insertDeal(req.body);
@@ -206,6 +226,9 @@ admin.patch('/:id', validate(dealSchema.partial()), (req, res) => {
   const row = db.prepare('SELECT * FROM offers WHERE id = ?').get(req.params.id);
   if (!row) return res.status(404).json({ ok: false, error: 'Deal not found.' });
   const b = req.body;
+  if (!datesInOrder(b.validFrom !== undefined ? b.validFrom : row.valid_from, b.validTo !== undefined ? b.validTo : row.valid_to)) {
+    return res.status(400).json({ ok: false, field: 'validTo', error: '"Valid until" must be on or after "Valid from".' });
+  }
   if (b.propertyId && !db.prepare('SELECT 1 FROM properties WHERE id = ?').get(b.propertyId)) {
     return res.status(404).json({ ok: false, field: 'propertyId', error: 'Property not found.' });
   }
@@ -248,11 +271,15 @@ admin.post('/import',
         const prop = (s(r.property_id) && byId.get(s(r.property_id))) || (s(r.property_name) && byName.get(s(r.property_name)));
         if (!prop) { errors.push({ row: i + 2, error: 'Property not found' }); return; }
         if (s(r.title).length < 2) { errors.push({ row: i + 2, error: 'Missing title' }); return; }
+        const from = toIsoDate(r.valid_from);
+        const to = toIsoDate(r.valid_to);
+        if (from === null || to === null) { errors.push({ row: i + 2, error: 'Dates must be YYYY-MM-DD or DD/MM/YYYY' }); return; }
+        if (!datesInOrder(from, to)) { errors.push({ row: i + 2, error: 'valid_to is before valid_from' }); return; }
         insertDeal({
           propertyId: prop.id, title: s(r.title), description: s(r.description), discount: s(r.discount),
           code: s(r.code), category: s(r.category) || 'Stay', imageUrl: s(r.image_url),
           originalPrice: num(r.original_price), dealPrice: num(r.deal_price), terms: s(r.terms),
-          validFrom: s(r.valid_from), validTo: s(r.valid_to),
+          validFrom: from, validTo: to,
           featured: /^(1|true|yes|y)$/i.test(s(r.featured)), status: 'Active'
         });
         imported++;
@@ -267,7 +294,7 @@ admin.get('/grabs/export', (req, res) => {
     `SELECT g.created_at, o.title, p.name AS hotel, g.name, g.email, g.phone FROM deal_grabs g
        JOIN offers o ON o.id = g.offer_id LEFT JOIN properties p ON p.id = g.property_id ORDER BY g.created_at DESC`
   ).all();
-  const cell = (v) => { let t = v == null ? '' : String(v); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const cell = (v) => { let t = v == null ? '' : String(v); if (/^[=+\-@\t\r]/.test(t) && !/^\+?\d[\d\s-]{6,}$/.test(t)) t = "'" + t; return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
   const csv = ['Date,Deal,Hotel,Name,Email,Phone']
     .concat(rows.map((r) => [r.created_at, r.title, r.hotel, r.name, r.email, r.phone].map(cell).join(','))).join('\r\n');
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');

@@ -842,7 +842,7 @@
           var initials = (h.name || 'H').split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ''; }).join('').toUpperCase();
           return '<a class="hero-sg-item" role="option" href="' + links[links.length - 1] + '"><span class="hero-sg-icon">' + esc(initials) + '</span>' +
             '<span class="hero-sg-body"><span class="hero-sg-name" style="display:block">' + esc(h.name) + '</span><span class="hero-sg-meta" style="display:block">' + esc(h.address || h.location || '') + '</span></span>' +
-            '<span class="hero-sg-rating">★ ' + (parseFloat(h.rating) || 4.5).toFixed(1) + '</span></a>';
+            '<span class="hero-sg-rating">' + (parseFloat(h.rating) ? '★ ' + parseFloat(h.rating).toFixed(1) : 'New') + '</span></a>';
         }).join('');
       }
       html += html

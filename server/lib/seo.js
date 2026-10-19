@@ -289,7 +289,7 @@ function cityAnswers(slug, all, place, count) {
   const section = `<section class="aeo" id="answers" aria-labelledby="aeo-h"><div class="aeo-in">
 <h2 id="aeo-h">${all ? 'Hotels in India' : 'Hotels in ' + E(place)}: quick answers</h2>
 <p class="aeo-lead">${E(lead)}</p>
-${top.length ? `<h3>Top-rated stays${all ? '' : ' in ' + E(place)}</h3><ol class="aeo-top">${top.map((h) => `<li><a href="property.html?id=${encodeURIComponent(h.id)}">${E(h.name)}</a><span>★ ${h.rating}${h.rc ? ' · ' + fmt(h.rc) : ''}</span></li>`).join('')}</ol>` : ''}
+${top.length ? `<h3>Top-rated stays${all ? '' : ' in ' + E(place)}</h3><ol class="aeo-top">${top.map((h) => `<li><a href="property.html?id=${encodeURIComponent(h.id)}">${E(h.name)}</a><span>${h.rating ? '★ ' + h.rating + (h.rc ? ' · ' + fmt(h.rc) : '') : 'New'}</span></li>`).join('')}</ol>` : ''}
 <h3>Frequently asked</h3>
 ${kit.faqHtml(faqs)}<!--aeo-extra-->
 <p class="aeo-upd">Updated ${today()} from live listings.</p>

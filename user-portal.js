@@ -281,7 +281,7 @@
           ${(e.timeline || []).map(t => `
             <div class="timeline-step completed">
               <div class="timeline-dot"></div>
-              <span><strong>${hz(t.title)}:</strong> ${t.desc} <small style="color:var(--user-text-muted);">(${fmt(t.time)})</small></span>
+              <span><strong>${hz(t.title)}:</strong> ${hz(t.desc)} <small style="color:var(--user-text-muted);">(${fmt(t.time)})</small></span>
             </div>
           `).join('')}
         </div>
@@ -297,10 +297,10 @@
   // Enquiry Detail Drawer
   window.openEnquiryDrawer = function (id) {
     const enqs = store.getEnquiries();
-    const e = enqs.find(x => x.id === id) || enqs[0];
+    const e = enqs.find(x => x.id === id);
     const drawer = document.getElementById('enquiryDrawer');
     const body = document.getElementById('enquiryDrawerBody');
-    if (!drawer || !body) return;
+    if (!drawer || !body || !e) return;
 
     body.innerHTML = `
       <div style="margin-bottom:16px;">
@@ -335,7 +335,7 @@
         ${(e.timeline || []).map(t => `
           <div style="font-size:12.5px; display:flex; gap:8px;">
             <span style="color:#10B981; font-weight:700;">✓</span>
-            <span><strong>${hz(t.title)}:</strong> ${t.desc} <small style="color:#94A3B8;">(${fmt(t.time)})</small></span>
+            <span><strong>${hz(t.title)}:</strong> ${hz(t.desc)} <small style="color:#94A3B8;">(${fmt(t.time)})</small></span>
           </div>
         `).join('')}
       </div>
@@ -408,12 +408,14 @@
     const propId = document.getElementById('reviewPropId').value;
     const propName = document.getElementById('reviewPropName').textContent;
     const rating = parseInt(document.getElementById('reviewRatingSelect').value) || 5;
-    const comment = document.getElementById('reviewCommentInput').value.trim() || 'Great experience!';
+    const comment = document.getElementById('reviewCommentInput').value.trim();
 
     store.submitReview({
       propertyId: propId, propertyName: propName, enquiryId: reviewEnquiryId,
-      rating: rating, comment: comment
+      rating: rating, comment: comment || undefined
     }).then(() => {
+      document.getElementById('reviewRatingSelect').value = '5';
+      document.getElementById('reviewCommentInput').value = '';
       showToast('Review submitted successfully!');
       closeModal('reviewModal');
       renderReviewsView();
@@ -754,7 +756,7 @@
     if (checkIn && checkOut && checkOut <= checkIn) return flag('enqCheckOut', 'Check-out must be after check-in.');
 
     const dates = checkIn && checkOut ? ` from ${checkIn} to ${checkOut}` : checkIn ? ` from ${checkIn}` : '';
-    const message = note || `Hi! I am interested in booking ${hz(enquiryTarget.name)} for ${guests} guest${guests === 1 ? '' : 's'}${dates}. Please share availability and your best rate.`;
+    const message = note || `Hi! I am interested in booking ${enquiryTarget.name} for ${guests} guest${guests === 1 ? '' : 's'}${dates}. Please share availability and your best rate.`;
 
     const btn = document.getElementById('enqSubmitBtn');
     btn.disabled = true; btn.textContent = 'Sending\u2026';

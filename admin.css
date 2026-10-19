@@ -1634,7 +1634,8 @@ body.admin-body {
 .sk-checks li a{font-size:12px;white-space:nowrap}
 .sk-dot{width:10px;height:10px;border-radius:50%;background:#059669;align-self:center}
 .sk-checks li.warn .sk-dot{background:#D97706}.sk-checks li.fail .sk-dot{background:#DC2626}
-.sk-pages{display:grid;gap:8px}
+.sk-pages{display:grid;gap:8px;grid-template-columns:minmax(0,1fr)}
+.sk-page{min-width:0}
 .sk-page{border:1px solid var(--admin-border);border-radius:12px;padding:0 14px}
 .sk-page summary{display:flex;align-items:center;gap:12px;padding:12px 0;cursor:pointer;list-style:none}
 .sk-page summary::-webkit-details-marker{display:none}

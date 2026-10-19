@@ -48,7 +48,7 @@ const run = db.transaction((list) => {
       address: h.address || null,
       phone: h.phone || null,
       website: h.website || null,
-      rating: parseFloat(h.rating) || 4.5,
+      rating: parseFloat(h.rating) || null,
       pincode: h.pincode || null,
       image_url: h.image_url || null,
       property_type: h.property_type || null,

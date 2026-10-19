@@ -26,7 +26,7 @@ const many = (sql, ...params) => db.prepare(sql).all(...params);
  * (guestName, hotelName, enquiryId, amount, ...). Used so the Email Center
  * fills a template with this recipient's actual data instead of sample text.
  */
-function buildRealContext(email) {
+function buildRealContext(email, template) {
   const lower = String(email || '').trim().toLowerCase();
   const ctx = {};
   if (!lower) return ctx;
@@ -51,10 +51,11 @@ function buildRealContext(email) {
     if (sub) { ctx.planName = sub.plan_name; ctx.price = sub.price; }
 
     const inv = one('SELECT * FROM invoices WHERE property_id = ? ORDER BY issued_at DESC LIMIT 1', property.id);
-    if (inv) { ctx.invoiceNumber = inv.number; ctx.amount = inv.amount; ctx.plan = inv.plan; }
+    // invoices.amount is stored formatted ("₹4,999"); templates format it themselves.
+    if (inv) { ctx.invoiceNumber = inv.number; ctx.amount = parseFloat(String(inv.amount).replace(/[^\d.]/g, '')) || undefined; ctx.plan = inv.plan; }
 
     const camp = one('SELECT * FROM campaigns WHERE property_id = ? ORDER BY created_at DESC LIMIT 1', property.id);
-    if (camp) { ctx.campaignId = camp.id; ctx.campaign = camp.name; ctx.packageName = camp.plan; ctx.status = camp.status; }
+    if (camp) { ctx.campaignId = camp.id; ctx.campaign = camp.name; ctx.packageName = camp.plan; ctx.campaignStatus = camp.status; }
   }
 
   let enquiry = one('SELECT * FROM enquiries WHERE lower(guest_email) = ? ORDER BY sent_at DESC LIMIT 1', lower);
@@ -71,7 +72,7 @@ function buildRealContext(email) {
     ctx.hotelName = ctx.hotelName || enquiry.property_name;
     ctx.city = ctx.city || enquiry.property_city;
     ctx.response = enquiry.hotel_response;
-    ctx.status = enquiry.status;
+    ctx.enquiryStatus = enquiry.status;
   }
 
   let review = user ? one('SELECT * FROM reviews WHERE user_id = ? ORDER BY created_at DESC LIMIT 1', user.id) : null;
@@ -100,9 +101,16 @@ function buildRealContext(email) {
       ctx.currency = payment.currency;
       ctx.purpose = payment.purpose;
       ctx.reference = payment.reference_id || payment.id;
+      ctx.orderId = payment.id;
+      ctx.paymentRef = payment.provider_payment || '';
     }
   }
 
+  // "status" means the enquiry's status in enquiry emails, the campaign's elsewhere.
+  const status = /enquir/i.test(template || '') ? ctx.enquiryStatus : ctx.campaignStatus;
+  if (status) ctx.status = status;
+  delete ctx.enquiryStatus;
+  delete ctx.campaignStatus;
   return ctx;
 }
 
@@ -162,7 +170,8 @@ router.get('/bootstrap', (req, res) => {
        LEFT JOIN users u ON u.id = p.owner_id`
   );
   const mrr = subs.filter((s) => s.status === 'Active').reduce((sum, s) => sum + planPrice(s.plan_name), 0);
-  const invoiceTotal = many('SELECT amount FROM invoices')
+  // Revenue counts money actually collected — Pending invoices aren't revenue.
+  const invoiceTotal = many("SELECT amount FROM invoices WHERE status = 'Paid'")
     .reduce((sum, i) => sum + (parseFloat(String(i.amount).replace(/[^\d.]/g, '')) || 0), 0);
 
   const cities = many(
@@ -183,7 +192,7 @@ router.get('/bootstrap', (req, res) => {
 
   const claimRows = many(
     `SELECT p.*, u.name AS claimant, u.email AS claimant_email, u.phone AS claimant_phone, u.id AS claimant_id
-       FROM properties p JOIN users u ON u.id = p.owner_id
+       FROM properties p JOIN users u ON u.id = COALESCE(p.owner_id, p.claimed_by)
       WHERE p.claim_status IN ('pending','verified','rejected')
       ORDER BY p.updated_at DESC LIMIT 200`
   );
@@ -219,6 +228,7 @@ router.get('/bootstrap', (req, res) => {
       mrr: inr(mrr),
       mrrGrowth: '',
       claimsTotal: claimed + pendingClaims + rejected,
+      claimsThisMonth: one("SELECT COUNT(*) c FROM properties WHERE claimed_at >= date('now','start of month')").c,
       claimsSuccessful: claimed,
       claimsFailed: rejected,
       claimsSuccessRate,
@@ -239,7 +249,7 @@ router.get('/bootstrap', (req, res) => {
 
     revenueStats: {
       totalRevenue: inr(invoiceTotal),
-      thisMonth: inr(many("SELECT amount FROM invoices WHERE issued_at >= date('now','start of month')")
+      thisMonth: inr(many("SELECT amount FROM invoices WHERE status = 'Paid' AND issued_at >= date('now','start of month')")
         .reduce((s, i) => s + (parseFloat(String(i.amount).replace(/[^\d.]/g, '')) || 0), 0)),
       mrr: inr(mrr),
       arpu: activeSubs ? inr(mrr / activeSubs) : '₹0'
@@ -293,11 +303,16 @@ router.get('/bootstrap', (req, res) => {
       claimantName: c.claimant,
       email: c.claimant_email,
       phoneMasked: mask(c.claimant_phone),
-      phoneMatchStatus: c.claim_status === 'verified' ? 'Verified' : 'Pending review',
+      // Server-side check for the reviewer: does the claimant's phone match the
+      // number on the listing? (claim.html's own check runs in the browser.)
+      phoneMatchStatus: c.claim_status === 'verified' ? 'Verified'
+        : !String(c.phone || '').replace(/\D/g, '') ? 'Listing has no phone'
+        : String(c.phone).replace(/\D/g, '').slice(-10) === String(c.claimant_phone || '').replace(/\D/g, '').slice(-10) ? 'Phone matches listing'
+        : 'Phone does not match',
       claimStatus: c.claim_status === 'verified' ? 'Claimed'
                  : c.claim_status === 'rejected' ? 'Rejected' : 'Pending',
-      startedDate: c.created_at,
-      completedDate: c.claim_status === 'verified' ? c.updated_at : null,
+      startedDate: c.claimed_at || c.created_at,
+      completedDate: c.claim_status !== 'pending' ? c.updated_at : null,
       ownerAccount: c.claimant_id
     })),
 
@@ -375,14 +390,34 @@ router.get('/bootstrap', (req, res) => {
     })),
 
     activityLogs: many(
-      `SELECT al.*, u.name AS admin_name, u.email AS admin_email
+      `SELECT al.*, u.name AS admin_name, u.email AS admin_email, u.role AS user_role
          FROM audit_log al LEFT JOIN users u ON u.id = al.user_id
         ORDER BY al.created_at DESC LIMIT 200`
     ).map((a) => ({
-      id: a.id, timestamp: a.created_at, admin: a.admin_name || a.admin_email || a.user_id || 'System',
+      id: a.id, timestamp: a.created_at,
+      // Every account's actions are logged here; say whose they were.
+      admin: (a.admin_name || a.admin_email || a.user_id || 'System') + (a.user_role && a.user_role !== 'admin' ? ' (' + a.user_role + ')' : ''),
       action: a.action, object: a.entity_id || '—', target: a.entity || '—',
-      ip: a.ip || '—', result: 'Success', meta: json(a.meta, null)
+      ip: a.ip || '—', result: /failed|denied|rejected/i.test(a.action) ? 'Failed' : 'Success', meta: json(a.meta, null)
     })),
+
+    // Import runs, one row per upload (a file is sent in 1,000-row chunks that
+    // share a batch id) — kept separate so other activity can't push them out.
+    importHistory: (() => {
+      const runs = new Map();
+      many(`SELECT al.id, al.meta, al.created_at, u.name AS admin_name, u.email AS admin_email
+              FROM audit_log al LEFT JOIN users u ON u.id = al.user_id
+             WHERE al.action = 'admin.import' ORDER BY al.created_at DESC LIMIT 1000`).forEach((a) => {
+        const m = json(a.meta, {}) || {};
+        const key = m.batch || a.id;
+        const run = runs.get(key) || { importId: key, filename: m.filename || 'CSV upload', rows: 0, imported: 0, skipped: 0,
+          duplicates: 0, excludedCities: 0, date: a.created_at, admin: a.admin_name || a.admin_email || 'Admin', status: 'Completed' };
+        run.rows += m.total || 0; run.imported += m.imported || 0; run.skipped += m.invalid || 0;
+        run.duplicates += m.duplicates || 0; run.excludedCities += m.excludedCities || 0;
+        runs.set(key, run);
+      });
+      return Array.from(runs.values()).slice(0, 100);
+    })(),
 
     emailLog: many('SELECT * FROM email_log ORDER BY created_at DESC LIMIT 100').map((e) => ({
       id: e.id, to: e.to_addr, subject: e.subject, template: e.template,
@@ -452,6 +487,11 @@ router.post('/claims/:propertyId/:action',
     }
     const row = one('SELECT * FROM properties WHERE id = ?', propertyId);
     if (!row) return res.status(404).json({ ok: false, error: 'Property not found.' });
+    // Only a live claim can be decided (approving a rejected, ownerless listing
+    // used to mark it verified with nobody owning it).
+    if (row.claim_status !== 'pending' || !row.owner_id) {
+      return res.status(409).json({ ok: false, error: 'There is no pending claim on this listing.' });
+    }
 
     // Grab the claimant before a reject clears owner_id off the property.
     const owner = row.owner_id ? one('SELECT * FROM users WHERE id = ?', row.owner_id) : null;
@@ -472,7 +512,7 @@ router.post('/claims/:propertyId/:action',
 
 router.patch('/properties/:id',
   validate(z.object({
-    active: z.coerce.boolean().optional(),
+    active: require('../lib/http').bool.optional(),
     claim_status: z.enum(['unclaimed', 'pending', 'verified', 'rejected']).optional(),
     plan: z.string().trim().optional(),
     ownerId: z.string().trim().optional()
@@ -516,7 +556,8 @@ router.patch('/users/:id',
 const csvCell = (v) => {
   let s = v === null || v === undefined ? '' : String(v);
   // Spreadsheet apps run cells starting with = + - @ as formulas.
-  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  // Phone numbers like +91 98200 12345 are left alone.
+  if (/^[=+\-@\t\r]/.test(s) && !/^\+?\d[\d\s-]{6,}$/.test(s)) s = "'" + s;
   return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 };
 const toCsv = (columns, rows) => {
@@ -603,9 +644,10 @@ router.get('/properties/export', (req, res) => {
 router.post('/import',
   validate(z.object({
     rows: z.array(z.record(z.any())).min(1, 'No rows to import').max(50000, 'Split files larger than 50,000 rows'),
-    dryRun: z.coerce.boolean().optional(),
-    updateExisting: z.coerce.boolean().optional(),
-    filename: z.string().trim().max(200).optional()
+    dryRun: require('../lib/http').bool.optional(),
+    updateExisting: require('../lib/http').bool.optional(),
+    filename: z.string().trim().max(200).optional(),
+    batch: z.string().trim().max(60).optional()
   })),
   (req, res) => {
     const { slugify } = require('../lib/http');
@@ -629,6 +671,7 @@ router.post('/import',
       const city = r.city_slug ? slugify(r.city_slug) : slugify(r.location);
       if (city && excluded.has(city)) { skippedCities.push(Object.assign({ id }, r)); return; }
       valid.push(Object.assign({}, r, { id }));
+      existing.add(id); // the same id twice in one file is a duplicate, not two imports
     });
 
     if (req.body.dryRun) {
@@ -638,7 +681,12 @@ router.post('/import',
           total: rows.length, importable: valid.length, duplicates: duplicates.length,
           invalid: invalid.length, excludedCities: skippedCities.length
         },
-        duplicates: duplicates.slice(0, 50)
+        // What each duplicate already is on the site, for the review table.
+        duplicates: duplicates.slice(0, 50).map((d) => {
+          const ex = one('SELECT name, phone FROM properties WHERE id = ?', d.id) || {};
+          return Object.assign({}, d, { existingName: ex.name || null, existingPhone: mask(ex.phone) || null });
+        }),
+        duplicateIds: duplicates.map((d) => d.id)
       });
     }
 
@@ -649,15 +697,16 @@ router.post('/import',
                @image_url,@property_type,@google_cid,@google_review_count,@google_summary,@gmb_link,1)
        ON CONFLICT(id) DO NOTHING`
     );
+    let inserted = 0;
     const run = db.transaction((list) => {
-      list.forEach((h) => insert.run({
+      list.forEach((h) => { inserted += insert.run({
         id: h.id, name: h.name, location: h.location || null,
         city_slug: h.city_slug || slugify(h.location), address: h.address || null,
-        phone: h.phone || null, website: h.website || null, rating: parseFloat(h.rating) || 4.5,
+        phone: h.phone || null, website: h.website || null, rating: parseFloat(h.rating) || null, // no rating yet shows as "New", not a made-up 4.5
         pincode: h.pincode || null, image_url: h.image_url || null, property_type: h.property_type || null,
         google_cid: h.google_cid || null, google_review_count: parseInt(h.google_review_count, 10) || 0,
         google_summary: h.google_summary || null, gmb_link: h.gmb_link || null
-      }));
+      }).changes; });
     });
     run(valid);
 
@@ -679,7 +728,7 @@ router.post('/import',
             const v = h[f] === undefined || h[f] === null ? '' : String(h[f]).trim();
             if (!v) return;
             sets.push(`${f} = ?`);
-            params.push(f === 'rating' ? (parseFloat(v) || 4.5) : f === 'google_review_count' ? (parseInt(v, 10) || 0) : v);
+            params.push(f === 'rating' ? (parseFloat(v) || null) : f === 'google_review_count' ? (parseInt(v, 10) || 0) : v);
           });
           if (h.location || h.city_slug) { sets.push('city_slug = ?'); params.push(h.city_slug ? slugify(h.city_slug) : slugify(h.location)); }
           if (!sets.length) return;
@@ -691,12 +740,12 @@ router.post('/import',
     invalidateCatalog();
 
     audit(req.user.id, 'admin.import', 'properties', null,
-          { total: rows.length, imported: valid.length, duplicates: duplicates.length, invalid: invalid.length,
-            excludedCities: skippedCities.length, updated, filename: req.body.filename || null }, req.ip);
+          { total: rows.length, imported: inserted, duplicates: duplicates.length, invalid: invalid.length,
+            excludedCities: skippedCities.length, updated, filename: req.body.filename || null, batch: req.body.batch || null }, req.ip);
     res.json({
       ok: true,
       summary: {
-        total: rows.length, imported: valid.length, duplicates: duplicates.length,
+        total: rows.length, imported: inserted, duplicates: duplicates.length,
         invalid: invalid.length, excludedCities: skippedCities.length, updated, protectedOwnerListings: protectedRows
       },
       totalProperties: one('SELECT COUNT(*) c FROM properties').c
@@ -744,6 +793,12 @@ router.patch('/plans/:id',
     ).run(b.name || null, b.price != null ? b.price : null, b.period || null,
           b.features ? JSON.stringify(b.features) : null, req.params.id);
 
+    // Subscriptions store the plan by name: carry a rename through so MRR and
+    // subscriber counts keep matching.
+    if (b.name && b.name !== row.name) {
+      db.prepare('UPDATE subscriptions SET plan_name = ? WHERE plan_name = ?').run(b.name, row.name);
+      db.prepare('UPDATE properties SET plan = ? WHERE plan = ?').run(b.name, row.name);
+    }
     audit(req.user.id, 'admin.plan.update', 'plan', req.params.id, b, req.ip);
     res.json({ ok: true, plans: loadPlans() });
   });
@@ -844,8 +899,9 @@ router.post('/email-templates/:name/preview',
   validate(z.object({ data: z.record(z.any()).optional(), to: z.string().trim().email().optional() })),
   (req, res) => {
     try {
-      const real = req.body.to ? buildRealContext(req.body.to) : {};
-      const rendered = renderTemplate(req.params.name, Object.assign({}, real, req.body.data || {}));
+      const real = req.body.to ? buildRealContext(req.body.to, req.params.name) : {};
+      // With a recipient, preview exactly what would be sent (no sample filler).
+      const rendered = renderTemplate(req.params.name, Object.assign({}, real, req.body.data || {}), { preview: !req.body.to });
       res.json({ ok: true, ...rendered });
     } catch (err) {
       res.status(404).json({ ok: false, error: err.message });
@@ -872,7 +928,7 @@ router.post('/email-send',
     if (b.template) {
       // Real data for this recipient (if any account/record matches them)
       // fills the template first; whatever the admin explicitly typed wins.
-      const real = buildRealContext(b.to);
+      const real = buildRealContext(b.to, b.template);
       result = await sendMail(b.to, b.template, Object.assign({}, real, b.data || {}), {
         account: b.account, kind: 'manual', senderUserId: req.user.id
       });
@@ -917,10 +973,10 @@ router.get('/settings', (_req, res) => {
 router.put('/settings',
   validate(z.object({
     platformTitle: z.string().trim().max(120).optional(),
-    supportEmail: z.string().trim().email().optional(),
+    supportEmail: z.string().trim().email().or(z.literal('')).optional(),
     supportPhone: z.string().trim().max(30).optional(),
     whatsappNumber: z.string().trim().max(20).optional(),
-    notifyEmail: z.string().trim().email().optional(),
+    notifyEmail: z.string().trim().email().or(z.literal('')).optional(),
     defaultCurrency: z.string().trim().max(6).optional(),
     excludedCities: z.string().trim().max(2000).optional()
   })),
@@ -964,7 +1020,7 @@ router.post('/users',
     const raw = A2.issueLinkToken({ userId: id, identifier: email, purpose: 'password-reset', ttlMinutes: 60 * 48 });
     const env2 = require('../lib/env');
     const link = `${env2.PUBLIC_URL}/reset-password.html?token=${raw}&email=${encodeURIComponent(email)}&role=admin`;
-    sendMailAsync(email, 'passwordReset', { name: req.body.name, link });
+    sendMailAsync(email, 'adminInvite', { name: req.body.name, link });
 
     audit(req.user.id, 'admin.user.invite', 'user', id, { email }, req.ip);
     res.status(201).json({ ok: true, id, message: 'Invite sent — the link sets their password.' });
@@ -986,6 +1042,11 @@ router.post('/users/:id/credentials',
     if (!user) return res.status(404).json({ ok: false, error: 'User not found.' });
     const { password } = req.body;
     const email = req.body.email ? req.body.email.toLowerCase() : null;
+    // Same rule as an admin changing their own: a default password would be
+    // refused at sign-in in production and lock the account out.
+    if (password && user.role === 'admin' && require('../lib/env').WEAK_ADMIN_PASSWORDS.includes(password)) {
+      return res.status(400).json({ ok: false, field: 'password', error: 'Choose a stronger password.' });
+    }
     if (!email && !password) return res.status(400).json({ ok: false, error: 'Enter a new email or password.' });
 
     const emailChanged = email && email !== String(user.email).toLowerCase();

@@ -312,26 +312,27 @@
 
       let html = '';
       // Search properties
-      const propMatches = data.properties.filter(p => p.name.toLowerCase().includes(q) || p.city.toLowerCase().includes(q) || p.id.toLowerCase().includes(q));
+      const has = (v) => String(v == null ? '' : v).toLowerCase().includes(q);
+      const propMatches = data.properties.filter(p => has(p.name) || has(p.city) || has(p.id));
       if (propMatches.length) {
         html += `<div class="search-category-title">Properties (${propMatches.length})</div>`;
         propMatches.slice(0, 3).forEach(p => {
-          html += `<div class="search-result-item" onclick="openPropertyModal('${p.id}'); document.getElementById('globalSearchDropdown').classList.remove('show');">
+          html += `<div class="search-result-item" onclick="openPropertyModal(${hzArg(p.id)}); document.getElementById('globalSearchDropdown').classList.remove('show');">
             <div>
               <div class="search-result-title">${hz(p.name)}</div>
               <div class="search-result-subtitle">${hz(p.city)}${p.state ? ', ' + p.state : ''} • ${p.phoneMasked}</div>
             </div>
-            <span class="badge badge-info">${p.id}</span>
+            <span class="badge badge-info">${hz(p.id)}</span>
           </div>`;
         });
       }
 
       // Search claims
-      const claimMatches = data.claims.filter(c => c.propertyName.toLowerCase().includes(q) || c.claimantName.toLowerCase().includes(q) || c.id.toLowerCase().includes(q));
+      const claimMatches = data.claims.filter(c => has(c.propertyName) || has(c.claimantName) || has(c.id));
       if (claimMatches.length) {
         html += `<div class="search-category-title">Claims (${claimMatches.length})</div>`;
         claimMatches.slice(0, 3).forEach(c => {
-          html += `<div class="search-result-item" onclick="openReviewClaimModal('${c.id}'); document.getElementById('globalSearchDropdown').classList.remove('show');">
+          html += `<div class="search-result-item" onclick="openReviewClaimModal(${hzArg(c.id)}); document.getElementById('globalSearchDropdown').classList.remove('show');">
             <div>
               <div class="search-result-title">${hz(c.propertyName)}</div>
               <div class="search-result-subtitle">Claimant: ${hz(c.claimantName)} • ${c.phoneMasked}</div>
@@ -342,11 +343,11 @@
       }
 
       // Search owners
-      const ownerMatches = data.owners.filter(o => o.name.toLowerCase().includes(q) || o.email.toLowerCase().includes(q) || o.company.toLowerCase().includes(q));
+      const ownerMatches = data.owners.filter(o => has(o.name) || has(o.email) || has(o.company));
       if (ownerMatches.length) {
         html += `<div class="search-category-title">Owners (${ownerMatches.length})</div>`;
         ownerMatches.slice(0, 3).forEach(o => {
-          html += `<div class="search-result-item" onclick="switchView('owners'); openOwnerModal('${o.id}'); document.getElementById('globalSearchDropdown').classList.remove('show');">
+          html += `<div class="search-result-item" onclick="switchView('owners'); openOwnerModal(${hzArg(o.id)}); document.getElementById('globalSearchDropdown').classList.remove('show');">
             <div>
               <div class="search-result-title">${hz(o.name)}</div>
               <div class="search-result-subtitle">${hz(o.company)} • ${hz(o.email)}</div>
@@ -363,16 +364,16 @@
         cityMatches.slice(0, 3).forEach(c => {
           html += `<div class="search-result-item" onclick="switchView('cities'); document.getElementById('globalSearchDropdown').classList.remove('show');">
             <div>
-              <div class="search-result-title">${c.name || c.slug}</div>
+              <div class="search-result-title">${hz(c.name || c.slug)}</div>
               <div class="search-result-subtitle">${c.properties.toLocaleString('en-IN')} properties • ${c.claimed.toLocaleString('en-IN')} claimed</div>
             </div>
-            <span class="badge badge-info">${c.slug}</span>
+            <span class="badge badge-info">${hz(c.slug)}</span>
           </div>`;
         });
       }
 
       // Search import history
-      const importMatches = data.importHistory.filter(i => i.importId.toLowerCase().includes(q) || i.filename.toLowerCase().includes(q));
+      const importMatches = data.importHistory.filter(i => has(i.importId) || has(i.filename));
       if (importMatches.length) {
         html += `<div class="search-category-title">Import Reports (${importMatches.length})</div>`;
         importMatches.slice(0, 3).forEach(i => {
@@ -427,7 +428,7 @@
     const badge = document.getElementById('notificationBadge');
     if (badge) badge.classList.toggle('show', data.notifications.some(n => !n.read));
     list.innerHTML = data.notifications.map(n => `
-      <div class="notification-item ${n.read ? '' : 'unread'}" style="cursor:pointer;" onclick="openNotification('${n.id}')">
+      <div class="notification-item ${n.read ? '' : 'unread'}" style="cursor:pointer;" onclick="openNotification(${hzArg(n.id)})">
         <div class="notification-icon">🔔</div>
         <div class="notification-content">
           <div class="notification-title">${hz(n.title)}</div>
@@ -599,7 +600,7 @@
 
     setText('dashTotalProps', (data.kpis.totalProperties || 0).toLocaleString('en-IN'));
     setText('dashClaimedProps', (data.kpis.claimedProperties || 0).toLocaleString('en-IN'));
-    setText('dashClaimsMonth', (data.kpis.claimsTotal || 0).toLocaleString('en-IN'));
+    setText('dashClaimsMonth', (data.kpis.claimsThisMonth || 0).toLocaleString('en-IN'));
     setText('dashImportedProps', (data.kpis.totalImportedProperties || 0).toLocaleString('en-IN'));
     setText('dashMRR', data.kpis.mrr || '₹0');
     setText('dashPendingClaims', data.kpis.pendingClaims || 0);
@@ -700,7 +701,7 @@
     const counts = {};
     data.properties.forEach(p => { if (p.city && p.city !== '—') counts[p.city] = (counts[p.city] || 0) + 1; });
     sel.innerHTML = '<option value="">All Cities</option>' + Object.keys(counts).sort().map(c =>
-      `<option value="${c.replace(/"/g, '&quot;')}">${c} (${counts[c]})</option>`).join('');
+      `<option value="${hz(c)}">${hz(c)} (${counts[c]})</option>`).join('');
     if (current && counts[current]) sel.value = current;
   }
 
@@ -717,7 +718,7 @@
           <div style="font-weight: 700;">${hz(p.name)}</div>
           <div style="font-size: 11.5px; color: var(--admin-text-muted);">${hz(p.category)}</div>
         </td>
-        <td><code style="font-weight:700;">${p.id}</code></td>
+        <td><code style="font-weight:700;">${hz(p.id)}</code></td>
         <td>${hz(p.city)}</td>
         <td><span class="phone-masked">${p.phoneMasked}</span></td>
         <td>${hz(p.owner)}</td>
@@ -728,7 +729,7 @@
         </td>
         <td><span class="plan-tag ${String(p.subscription || 'free').toLowerCase()}">${p.subscription}</span></td>
         <td>
-          <button class="btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="openPropertyModal('${p.id}')">Manage</button>
+          <button class="btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="openPropertyModal(${hzArg(p.id)})">Manage</button>
         </td>
       </tr>
     `).join('') + (more > 0 ? `
@@ -772,7 +773,7 @@
       showToast(`Sheet synced: ${r.result.inserted} new, ${r.result.updated} updated.`);
       return reload();
     }).catch((err) => {
-      showToast(err.message, 'error');
+      showToast(err.message, 'danger');
       loadSheetSync();
     }).then(() => { if (btn) btn.textContent = 'Sync now'; });
   };
@@ -831,11 +832,11 @@
       </div>
 
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button class="btn-secondary" onclick="toggleListingActive('${p.id}', ${p.status === 'Active' ? 'false' : 'true'})">
+        <button class="btn-secondary" onclick="toggleListingActive(${hzArg(p.id)}, ${p.status === 'Active' ? 'false' : 'true'})">
           ${p.status === 'Active' ? 'Hide listing' : 'Publish listing'}
         </button>
         <a class="btn-secondary" style="text-decoration:none;" target="_blank" rel="noopener" href="property.html?id=${encodeURIComponent(p.id)}">Open public page</a>
-        ${p.claimStatus === 'Pending' ? `<button class="btn-primary" onclick="approveClaim('${p.id}')">Approve claim</button>` : ''}
+        ${p.claimStatus === 'Pending' ? `<button class="btn-primary" onclick="approveClaim(${hzArg(p.id)})">Approve claim</button>` : ''}
       </div>
     `;
 
@@ -854,12 +855,12 @@
         <td>${hz(c.city)}</td>
         <td>${hz(c.claimantName)}<br/><small style="color:var(--admin-text-muted);">${hz(c.email)}</small></td>
         <td><span class="phone-masked">${c.phoneMasked}</span></td>
-        <td><span class="badge ${c.phoneMatchStatus === 'Verified' ? 'badge-success' : 'badge-danger'}">${c.phoneMatchStatus}</span></td>
-        <td><span class="badge ${c.claimStatus === 'Claimed' ? 'badge-success' : (c.claimStatus === 'Failed' ? 'badge-danger' : 'badge-warning')}">${c.claimStatus}</span></td>
+        <td><span class="badge ${/Verified|matches/.test(c.phoneMatchStatus) ? 'badge-success' : /no phone/.test(c.phoneMatchStatus) ? 'badge-warning' : 'badge-danger'}">${hz(c.phoneMatchStatus)}</span></td>
+        <td><span class="badge ${c.claimStatus === 'Claimed' ? 'badge-success' : (c.claimStatus === 'Rejected' ? 'badge-danger' : 'badge-warning')}">${c.claimStatus}</span></td>
         <td>${fmt(c.startedDate)}</td>
         <td>${c.completedDate ? fmt(c.completedDate) : '—'}</td>
         <td>
-          <button class="btn-primary" style="padding: 4px 10px; font-size: 12px;" onclick="openReviewClaimModal('${c.id}')">Audit Claim</button>
+          <button class="btn-primary" style="padding: 4px 10px; font-size: 12px;" onclick="openReviewClaimModal(${hzArg(c.id)})">Audit Claim</button>
         </td>
       </tr>
     `).join('');
@@ -881,7 +882,7 @@
       <div style="background: var(--admin-bg); padding: 14px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;">
         <div><strong>Claimant:</strong> ${hz(c.claimantName)} (${hz(c.email)})</div>
         <div><strong>Masked Phone Number:</strong> <span class="phone-masked">${c.phoneMasked}</span></div>
-        <div><strong>Phone Verification Match:</strong> <span class="badge ${c.phoneMatchStatus === 'Verified' ? 'badge-success' : 'badge-warning'}">${c.phoneMatchStatus}</span></div>
+        <div><strong>Phone Verification Match:</strong> <span class="badge ${/Verified|matches/.test(c.phoneMatchStatus) ? 'badge-success' : 'badge-warning'}">${hz(c.phoneMatchStatus)}</span></div>
       </div>
 
       <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Verification timeline</h4>
@@ -895,22 +896,22 @@
         <div class="timeline-item">
           <div class="timeline-dot"></div>
           <div class="timeline-time">${fmt(c.startedDate)}</div>
-          <div class="timeline-title">Email verified</div>
-          <div class="timeline-desc">One-time code confirmed for ${hz(c.email)}.</div>
+          <div class="timeline-title">Phone check</div>
+          <div class="timeline-desc">${hz(c.phoneMatchStatus)} — claimant ${hz(c.email)}.</div>
         </div>
         ${c.completedDate ? `
           <div class="timeline-item">
             <div class="timeline-dot"></div>
             <div class="timeline-time">${fmt(c.completedDate)}</div>
-            <div class="timeline-title">Claim approved</div>
-            <div class="timeline-desc">Listing transferred to the partner account.</div>
+            <div class="timeline-title">${c.claimStatus === 'Rejected' ? 'Claim rejected' : 'Claim approved'}</div>
+            <div class="timeline-desc">${c.claimStatus === 'Rejected' ? 'The claimant was emailed; the listing is unclaimed again.' : 'Listing transferred to the partner account.'}</div>
           </div>` : ''}
       </div>
 
       ${c.claimStatus === 'Pending' ? `
         <div style="display:flex; gap:10px; margin-top:20px;">
-          <button class="btn-primary" onclick="approveClaim('${c.propertyId}')">Approve claim</button>
-          <button class="btn-secondary" onclick="rejectClaim('${c.propertyId}')">Reject claim</button>
+          <button class="btn-primary" onclick="approveClaim(${hzArg(c.propertyId)})">Approve claim</button>
+          <button class="btn-secondary" onclick="rejectClaim(${hzArg(c.propertyId)})">Reject claim</button>
         </div>` : ''}
     `;
 
@@ -945,7 +946,8 @@
 
   window.setOwnerStatus = function (userId, status) {
     data.updateUserStatus(userId, status).then(() => {
-      showToast('Owner account is now ' + status + '.');
+      const who = (data.adminUsers || []).some((u) => u.id === userId) ? 'Admin' : 'Owner';
+      showToast(who + ' account is now ' + status + '.');
       closeModal('ownerModal');
       return reload();
     }).catch(fail);
@@ -1047,6 +1049,7 @@
         renderCsvQualityDonutChart();
         renderCsvCitiesBarChart();
         renderCsvRatingBarChart();
+        window.applyFlexibleCsvFilters(true);
       }, 50);
     }
     if (stepNum === 5) renderImportPreview();
@@ -1060,150 +1063,134 @@
     const skip = (sess.duplicateRows || 0) + (sess.invalidRows || 0);
     set('previewWillSkip', skip.toLocaleString('en-IN') + ' Records');
     set('previewExcludedCities', (sess.excludedCitiesRows || 0).toLocaleString('en-IN') + ' Records');
+    const btn = document.getElementById('importNowBtn');
+    if (btn) btn.textContent = `Import ${(sess.newListings || 0).toLocaleString('en-IN')} Listing${sess.newListings === 1 ? '' : 's'} Now →`;
   }
 
-  // SVG Chart 1: Record Quality Donut Chart
+  // SVG Chart 1: Record Quality Donut Chart — arcs sized from the real counts.
   function renderCsvQualityDonutChart() {
     const container = document.getElementById('csvQualityDonutChart');
     if (!container) return;
-    const items = data.importSession.qualityBreakdown;
-
-    let svg = `<svg width="100%" height="100%" viewBox="0 0 440 220">
+    const items = (data.importSession.qualityBreakdown || []).filter((it) => it.count > 0);
+    const total = items.reduce((n, it) => n + it.count, 0);
+    const R = 85;
+    let angle = -Math.PI / 2;
+    const arcs = items.map((it) => {
+      const sweep = total ? (it.count / total) * Math.PI * 2 : 0;
+      const a0 = angle, a1 = angle + Math.min(sweep, Math.PI * 2 - 0.0001);
+      angle += sweep;
+      const p = (a) => (R * Math.cos(a)).toFixed(2) + ',' + (R * Math.sin(a)).toFixed(2);
+      return `<path d="M ${p(a0)} A ${R},${R} 0 ${sweep > Math.PI ? 1 : 0},1 ${p(a1)}" fill="none" stroke="${it.color}" stroke-width="28" />`;
+    }).join('');
+    container.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 440 220" role="img" aria-label="Record quality">
       <g transform="translate(110, 110)">
-        <!-- Donut Slices -->
-        <path d="M 0,-85 A 85,85 0 1,1 -78,34" fill="none" stroke="#2563EB" stroke-width="28" />
-        <path d="M -78,34 A 85,85 0 0,1 -84,-12" fill="none" stroke="#64748B" stroke-width="28" />
-        <path d="M -84,-12 A 85,85 0 0,1 -68,-51" fill="none" stroke="#F59E0B" stroke-width="28" />
-        <path d="M -68,-51 A 85,85 0 0,1 -42,-74" fill="none" stroke="#3B82F6" stroke-width="28" />
-        <path d="M -42,-74 A 85,85 0 0,1 0,-85" fill="none" stroke="#EF4444" stroke-width="28" />
+        ${total ? arcs : `<circle r="${R}" fill="none" stroke="#E2E8F0" stroke-width="28" />`}
         <text x="0" y="6" text-anchor="middle" font-size="18" font-weight="800" fill="#0F172A">${(data.importSession.totalRows || 0).toLocaleString('en-IN')}</text>
         <text x="0" y="24" text-anchor="middle" font-size="11" fill="#64748B" font-weight="600">Total Rows</text>
       </g>
-      <!-- Legend -->
       <g transform="translate(240, 30)">
-        ${items.slice(0, 5).map((item, i) => `
+        ${(data.importSession.qualityBreakdown || []).map((item, i) => `
           <g transform="translate(0, ${i * 34})">
             <rect x="0" y="0" width="12" height="12" rx="3" fill="${item.color}" />
             <text x="20" y="10" font-size="12" font-weight="700" fill="#0F172A">${hz(item.label)}</text>
-            <text x="20" y="24" font-size="11" fill="#64748B">${item.count.toLocaleString('en-IN')} (${item.percentage})</text>
-          </g>
-        `).join('')}
+            <text x="20" y="24" font-size="11" fill="#64748B">${item.count.toLocaleString('en-IN')} (${total ? Math.round(item.count / total * 100) : 0}%)</text>
+          </g>`).join('')}
       </g>
     </svg>`;
-
-    container.innerHTML = svg;
   }
 
   // SVG Chart 2: Top Cities Bar Chart
   function renderCsvCitiesBarChart() {
     const container = document.getElementById('csvCitiesBarChart');
     if (!container) return;
-    const cities = data.importSession.cityAnalysis.slice(0, 5);
-
-    const maxRecords = 2000;
+    const cities = (data.importSession.cityAnalysis || []).slice(0, 5);
+    const max = Math.max(1, ...cities.map((c) => c.count));
     const width = container.clientWidth || 400;
-
-    let svg = `<svg width="100%" height="100%" viewBox="0 0 ${width} 220">
+    container.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 ${width} 220">
       ${cities.map((c, i) => {
         const y = 20 + i * 40;
-        const barW = Math.floor((c.records / maxRecords) * (width - 120));
+        const barW = Math.max(2, Math.floor((c.count / max) * (width - 150)));
         return `
-          <text x="0" y="${y + 14}" font-size="12" font-weight="700" fill="#0F172A">${hz(c.city)}</text>
-          <rect x="80" y="${y}" width="${barW}" height="20" rx="4" fill="#2563EB" />
-          <text x="${85 + barW}" y="${y + 14}" font-size="11" font-weight="700" fill="#64748B">${c.records.toLocaleString('en-IN')}</text>
-        `;
-      }).join('')}
+          <text x="0" y="${y + 14}" font-size="12" font-weight="700" fill="#0F172A">${hz(String(c.city).slice(0, 12))}</text>
+          <rect x="90" y="${y}" width="${barW}" height="20" rx="4" fill="#2563EB" />
+          <text x="${96 + barW}" y="${y + 14}" font-size="11" font-weight="700" fill="#64748B">${c.count.toLocaleString('en-IN')}</text>`;
+      }).join('') || '<text x="0" y="20" font-size="12" fill="#64748B">No city column in this file.</text>'}
     </svg>`;
-
-    container.innerHTML = svg;
   }
 
   // SVG Chart 3: Rating Distribution Vertical Bar Chart
   function renderCsvRatingBarChart() {
     const container = document.getElementById('csvRatingBarChart');
     if (!container) return;
-    const ratings = data.importSession.ratingDistribution;
-
+    const ratings = data.importSession.ratingDistribution || [];
+    const max = Math.max(1, ...ratings.map((r) => r.count));
     const width = container.clientWidth || 600;
-    const height = 180;
-    const maxCount = 6000;
-
-    let svg = `<svg width="100%" height="100%" viewBox="0 0 ${width} ${height}">
+    const slot = width / Math.max(1, ratings.length);
+    const barW = Math.min(80, slot - 16);
+    container.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 ${width} 180">
       ${ratings.map((r, i) => {
-        const barW = 80;
-        const x = 50 + i * (width / ratings.length);
-        const barH = (r.count / maxCount) * 120;
+        const x = i * slot + (slot - barW) / 2;
+        const barH = (r.count / max) * 110;
         const y = 140 - barH;
         return `
           <rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="6" fill="#3B82F6" />
           <text x="${x + barW / 2}" y="${y - 8}" text-anchor="middle" font-size="12" font-weight="800" fill="#0F172A">${r.count.toLocaleString('en-IN')}</text>
-          <text x="${x + barW / 2}" y="160" text-anchor="middle" font-size="11" font-weight="700" fill="#64748B">${r.rating}</text>
-        `;
+          <text x="${x + barW / 2}" y="160" text-anchor="middle" font-size="11" font-weight="700" fill="#64748B">${hz(r.label)}</text>`;
       }).join('')}
     </svg>`;
-
-    container.innerHTML = svg;
   }
 
-  // Flexible Data Filter Handlers
-  window.applyFlexibleCsvFilters = function () {
-    const phoneFilter = document.getElementById('csvPhoneFilter').value;
-    const ratingFilter = document.getElementById('csvRatingFilter').value;
-    const dupeFilter = document.getElementById('csvDupeFilter').value;
-
-    let rows = 12540;
-    let completeness = 94.8;
-    let mrrLakhs = 49.2;
-    let avgRatingVal = 4.38;
-
-    if (phoneFilter === 'has_phone') rows = 12124;
-    if (phoneFilter === 'missing_phone') { rows = 416; completeness = 72.1; mrrLakhs = 1.6; }
-
-    if (ratingFilter === '4.5') { rows = Math.round(rows * 0.35); avgRatingVal = 4.75; mrrLakhs = Math.round(mrrLakhs * 0.45 * 10) / 10; }
-    if (ratingFilter === '4.0') { rows = Math.round(rows * 0.75); avgRatingVal = 4.42; }
-
-    if (dupeFilter === 'exact_only') { rows = 183; completeness = 100.0; }
-    if (dupeFilter === 'possible_only') { rows = 247; completeness = 88.4; }
-    if (dupeFilter === 'new_only') { rows = 9842; mrrLakhs = 42.1; }
-
-    document.getElementById('calcFilteredRows').textContent = rows.toLocaleString('en-IN');
-    document.getElementById('calcCompleteness').textContent = `${completeness}%`;
-    document.getElementById('calcPotentialMRR').textContent = `₹${mrrLakhs} Lakhs`;
-    document.getElementById('calcAvgRating').textContent = `${avgRatingVal} ★`;
-
-    showToast(`Flexible filters applied: ${rows.toLocaleString('en-IN')} rows matching query`);
+  // Data filter & live calculator — every number comes from the uploaded rows.
+  window.applyFlexibleCsvFilters = function (silent) {
+    const sess = data.importSession;
+    const rows = sess.rows || [];
+    const phoneFilter = (document.getElementById('csvPhoneFilter') || {}).value || 'all';
+    const ratingFilter = (document.getElementById('csvRatingFilter') || {}).value || 'all';
+    const dupeFilter = (document.getElementById('csvDupeFilter') || {}).value || 'all';
+    const dupes = new Set(sess.duplicateIds || []);
+    const list = rows.filter((r) => {
+      if (phoneFilter === 'has_phone' && !r.phone) return false;
+      if (phoneFilter === 'missing_phone' && r.phone) return false;
+      if (ratingFilter !== 'all' && !((parseFloat(r.rating) || 0) >= parseFloat(ratingFilter))) return false;
+      if (dupeFilter === 'new_only' && dupes.has(r.id)) return false;
+      if (dupeFilter === 'exact_only' && !dupes.has(r.id)) return false;
+      return true;
+    });
+    const complete = list.filter((r) => r.name && r.phone && (r.location || r.city_slug)).length;
+    const rated = list.map((r) => parseFloat(r.rating)).filter((v) => v > 0);
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('calcFilteredRows', list.length.toLocaleString('en-IN'));
+    set('calcCompleteness', list.length ? Math.round(complete / list.length * 1000) / 10 + '%' : '—');
+    set('calcPotentialMRR', list.filter((r) => r.website).length.toLocaleString('en-IN'));
+    set('calcAvgRating', rated.length ? (rated.reduce((a, b) => a + b, 0) / rated.length).toFixed(2) + ' ★' : '—');
+    if (silent !== true) showToast(`${list.length.toLocaleString('en-IN')} rows match these filters.`);
   };
 
   window.resetFlexibleCsvFilters = function () {
-    document.getElementById('csvPhoneFilter').value = 'all';
-    document.getElementById('csvRatingFilter').value = 'all';
-    document.getElementById('csvDupeFilter').value = 'all';
-
-    document.getElementById('calcFilteredRows').textContent = '12,540';
-    document.getElementById('calcCompleteness').textContent = '94.8%';
-    document.getElementById('calcPotentialMRR').textContent = '₹49.2 Lakhs';
-    document.getElementById('calcAvgRating').textContent = '4.38 ★';
-
-    showToast('Analytics filters reset to default dataset');
+    ['csvPhoneFilter', 'csvRatingFilter', 'csvDupeFilter'].forEach((id) => { const el = document.getElementById(id); if (el) el.value = 'all'; });
+    window.applyFlexibleCsvFilters(true);
   };
 
   function renderImportDuplicatesTable() {
     const tbody = document.getElementById('duplicateTableBody');
     if (!tbody) return;
-
-    tbody.innerHTML = data.importSession.duplicatesSample.map(d => `
+    const sess = data.importSession;
+    const list = sess.duplicatesSample || [];
+    const sub = document.getElementById('duplicateSummary');
+    if (sub) sub.textContent = (sess.duplicateRows || 0)
+      ? `${(sess.duplicateRows || 0).toLocaleString('en-IN')} rows already exist (same listing id). They are skipped — or refreshed if "Update existing listings" is ticked.`
+      : 'No duplicates: every row in this file is a new listing.';
+    const update = !!(document.getElementById('importUpdateExisting') || {}).checked;
+    tbody.innerHTML = list.map((d) => `
       <tr>
-        <td style="font-weight: 700;">${d.importedName}</td>
-        <td>${d.existingName}</td>
-        <td>${hz(d.city)}</td>
-        <td><span class="phone-masked">${d.importedPhone}</span></td>
-        <td><span class="phone-masked">${d.existingPhone}</span></td>
-        <td><span class="badge ${d.matchType === 'Exact' ? 'badge-danger' : 'badge-warning'}">${d.matchType}</span></td>
-        <td>
-          <button class="btn-secondary" style="padding: 4px 8px; font-size: 11.5px;" onclick="showToast('Duplicate rule applied: ${d.action}');">${d.action}</button>
-        </td>
-      </tr>
-    `).join('');
+        <td style="font-weight: 700;">${hz(d.name || d.id)}</td>
+        <td>${hz(d.existingName || '—')}</td>
+        <td>${hz(d.location || d.city_slug || '—')}</td>
+        <td><span class="phone-masked">${hz(d.phone || '—')}</span></td>
+        <td><span class="phone-masked">${hz(d.existingPhone || '—')}</span></td>
+        <td><span class="badge badge-danger">Same ID</span></td>
+        <td><span class="badge ${update ? 'badge-info' : 'badge-gray'}">${update ? 'Will update' : 'Will skip'}</span></td>
+      </tr>`).join('') || '<tr><td colspan="7" style="text-align:center; padding:18px; color:var(--admin-text-muted);">No duplicates found.</td></tr>';
   }
 
   /** The real, persisted list — same string Settings → "Cities excluded from
@@ -1221,7 +1208,7 @@
 
     container.innerHTML = list.length ? list.map(city => `
       <div class="chip">
-        <span>${city}</span>
+        <span>${hz(city)}</span>
         <span class="chip-remove" onclick="removeExcludedCity(${hzArg(city)})">×</span>
       </div>
     `).join('') : '<span style="font-size:12.5px;color:var(--admin-text-muted);">No cities excluded — every city is importable.</span>';
@@ -1238,21 +1225,16 @@
   function renderColumnMapperTable() {
     const tbody = document.getElementById('columnMapperBody');
     if (!tbody) return;
-
-    tbody.innerHTML = data.importSession.columnMapping.map(m => `
-      <tr>
-        <td style="font-weight: 700;">${m.field}</td>
-        <td>
-          <select class="filter-select">
-            <option selected>${m.csvHeader}</option>
-            <option>property_name</option>
-            <option>city_name</option>
-            <option>contact_number</option>
-          </select>
-        </td>
-        <td><span class="badge badge-success">Mapped</span></td>
-      </tr>
-    `).join('');
+    const KNOWN = ['id', 'name', 'location', 'city_slug', 'address', 'phone', 'email', 'website', 'rating', 'pincode', 'image_url',
+                   'property_type', 'google_cid', 'google_review_count', 'google_summary', 'gmb_link'];
+    tbody.innerHTML = (data.importSession.columnMapping || []).map((m) => {
+      const used = KNOWN.indexOf(m.mappedTo) !== -1;
+      return `<tr>
+        <td style="font-weight: 700;">${used ? hz(m.mappedTo) : '—'}</td>
+        <td>${hz(m.csvColumn)}</td>
+        <td><span class="badge ${used ? 'badge-success' : 'badge-gray'}">${used ? 'Mapped' : 'Ignored'}</span></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="3" style="text-align:center; padding:18px; color:var(--admin-text-muted);">Upload a file to see its columns.</td></tr>';
   }
 
   window.openImportConfirmModal = function () {
@@ -1336,7 +1318,7 @@
         <td>${n(h.duplicates)}</td>
         <td><span class="badge badge-success">${hz(h.status)}</span></td>
         <td>${hz(h.admin)}</td>
-        <td><button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="showImportReport('${h.importId}')">Report</button></td>
+        <td><button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="showImportReport(${hzArg(h.importId)})">Report</button></td>
       </tr>
     `).join('');
   }
@@ -1366,7 +1348,7 @@
         <td style="font-weight: 600;">${hz(o.email)}</td>
         <td>${fmt(o.joinedDate)}</td>
         <td><span class="badge ${o.status === 'Active' ? 'badge-success' : 'badge-warning'}">${hz(o.status)}</span></td>
-        <td><button class="btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="openOwnerModal('${o.id}')">Profile</button></td>
+        <td><button class="btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="openOwnerModal(${hzArg(o.id)})">Profile</button></td>
       </tr>
     `).join('');
   }
@@ -1391,8 +1373,8 @@
       </div>
       <div style="display:flex; gap:10px;">
         ${o.status === 'Suspended'
-          ? `<button class="btn-primary" onclick="setOwnerStatus('${o.id}', 'active')">Reactivate account</button>`
-          : `<button class="btn-secondary" onclick="setOwnerStatus('${o.id}', 'suspended')">Suspend account</button>`}
+          ? `<button class="btn-primary" onclick="setOwnerStatus(${hzArg(o.id)}, 'active')">Reactivate account</button>`
+          : `<button class="btn-secondary" onclick="setOwnerStatus(${hzArg(o.id)}, 'suspended')">Suspend account</button>`}
       </div>`;
     modal.classList.add('show');
   };
@@ -1410,7 +1392,7 @@
         <td>${fmt(s.lastChanged) || '—'}</td>
         <td>${s.renewalDate || '—'}</td>
         <td><span class="badge badge-success">${hz(s.status)}</span></td>
-        <td><span class="badge badge-success">${s.paymentStatus}</span></td>
+        <td><span class="badge ${s.paymentStatus === 'Paid' ? 'badge-success' : s.paymentStatus === 'Pending' ? 'badge-warning' : 'badge-gray'}">${hz(s.paymentStatus)}</span></td>
       </tr>
     `).join('');
   }
@@ -1423,7 +1405,7 @@
         <div class="plan-title">${hz(p.name)}</div>
         <div class="plan-price">₹${p.price.toLocaleString('en-IN')} <span>/${p.period}</span></div>
         <ul class="plan-features-list">${p.features.map(f => `<li>✓ ${f}</li>`).join('')}</ul>
-        <button class="btn-secondary" style="width:100%; margin-top:12px;" onclick="openPlanEditModal('${p.id}')">Edit plan</button>
+        <button class="btn-secondary" style="width:100%; margin-top:12px;" onclick="openPlanEditModal(${hzArg(p.id)})">Edit plan</button>
       </div>
     `).join('');
   }
@@ -1498,7 +1480,7 @@
              <div style="font-size:20px; font-weight:800;">${stats.mrr || '₹0'}</div></div>
         <div><div style="font-size:11.5px; font-weight:700; color:var(--admin-text-muted);">COLLECTED THIS MONTH</div>
              <div style="font-size:20px; font-weight:800;">${stats.thisMonth || '₹0'}</div></div>
-        <div><div style="font-size:11.5px; font-weight:700; color:var(--admin-text-muted);">TOTAL INVOICED</div>
+        <div><div style="font-size:11.5px; font-weight:700; color:var(--admin-text-muted);">TOTAL COLLECTED</div>
              <div style="font-size:20px; font-weight:800;">${stats.totalRevenue || '₹0'}</div></div>
         <div><div style="font-size:11.5px; font-weight:700; color:var(--admin-text-muted);">ARPU</div>
              <div style="font-size:20px; font-weight:800;">${stats.arpu || '₹0'}</div></div>
@@ -1513,8 +1495,8 @@
       const unclaimed = c.properties - c.claimed;
       const rate = c.properties ? Math.round((c.claimed / c.properties) * 100) : 0;
       return `<tr>
-        <td style="font-weight:700;">${c.name || c.slug}</td>
-        <td><code>${c.slug}</code></td>
+        <td style="font-weight:700;">${hz(c.name || c.slug)}</td>
+        <td><code>${hz(c.slug)}</code></td>
         <td>${c.properties.toLocaleString('en-IN')}</td>
         <td>${c.claimed.toLocaleString('en-IN')}</td>
         <td>${unclaimed.toLocaleString('en-IN')}</td>
@@ -1528,7 +1510,7 @@
     const tbody = document.getElementById('leadsTableBody');
     if (!tbody) return;
     tbody.innerHTML = data.leads.map(l => `
-      <tr data-row-id="${l.id}">
+      <tr data-row-id="${hz(l.id)}">
         <td style="font-weight:700;">${hz(l.leadName)}<br/><span class="phone-masked">${l.phoneMasked}</span></td>
         <td>${hz(l.hotel)}</td>
         <td>${hz(l.owner)}</td>
@@ -1536,14 +1518,14 @@
         <td>${fmt(l.date)}</td>
         <td><span class="badge badge-info">${hz(l.status)}</span></td>
       </tr>`).join('') + data.marketingLeads.map(l => `
-      <tr data-row-id="${l.id}">
+      <tr data-row-id="${hz(l.id)}">
         <td style="font-weight:700;">${hz(l.name)}<br/><span class="phone-masked">${hz(l.phone || '—')}</span></td>
         <td>${hz(l.hotel || '—')}${l.city ? ' <span style="color:var(--admin-text-muted);font-size:11.5px;">(' + l.city + ')</span>' : ''} ${l.plan ? '<span class="badge badge-info">' + l.plan + '</span>' : ''}</td>
         <td>—</td>
         <td>${hz(l.source || 'marketing')}</td>
         <td>${fmt(l.date)}</td>
         <td>
-          <select onchange="updateMarketingLead('${l.id}', this.value)" style="padding:4px 6px; border-radius:6px; border:1px solid var(--admin-border); font-size:12px;">
+          <select onchange="updateMarketingLead(${hzArg(l.id)}, this.value)" style="padding:4px 6px; border-radius:6px; border:1px solid var(--admin-border); font-size:12px;">
             ${['New', 'Contacted', 'Qualified', 'Won', 'Lost'].map(st =>
               `<option value="${st}" ${st === l.status ? 'selected' : ''}>${st}</option>`).join('')}
           </select>
@@ -1581,16 +1563,16 @@
 
     tbody.innerHTML = (data.payments || []).map(p => `
       <tr>
-        <td><code style="font-weight:700;">${p.id}</code></td>
+        <td><code style="font-weight:700;">${hz(p.id)}</code></td>
         <td>${p.purpose === 'plan'
           ? `<strong>${payEsc(p.planName || p.referenceId)}</strong><br/><small style="color:var(--admin-text-muted);">${payEsc(p.buyerName || '')} · ${payEsc(p.buyerEmail || '')}${p.buyerPhone ? ' · ' + payEsc(p.buyerPhone) : ''}</small>`
           : `${p.hotelName || p.propertyId || '—'}${p.referenceId && p.referenceId !== p.propertyId ? `<br/><small style="color:var(--admin-text-muted);">${p.referenceId}</small>` : ''}`}</td>
         <td>${p.purpose}</td>
         <td style="font-weight:700;">₹${Number(p.amount).toLocaleString('en-IN')}</td>
         <td>${p.provider}</td>
-        <td><span class="badge ${p.status === 'paid' ? 'badge-success' : p.status === 'failed' ? 'badge-danger' : 'badge-warning'}">${hz(p.status)}</span></td>
+        <td><span class="badge ${p.status === 'paid' ? 'badge-success' : p.status === 'failed' ? 'badge-danger' : 'badge-warning'}">${hz(p.status)}</span>${p.needsReview ? `<br/><span class="badge badge-danger" title="${hz(p.needsReview)}">Needs review</span>` : ''}</td>
         <td>${fmt(p.createdAt)}</td>
-        <td>${p.status === 'paid' ? '' : `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="markPaymentPaid('${p.id}')">Mark paid</button>`}</td>
+        <td>${p.status === 'paid' ? '' : `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="markPaymentPaid(${hzArg(p.id)})">Mark paid</button>`}</td>
       </tr>`).join('') || '<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--admin-text-muted);">No payments yet.</td></tr>';
   }
 
@@ -1628,8 +1610,8 @@
         <td>${fmt(r.date)}</td>
         <td><span class="badge ${r.status === 'Published' ? 'badge-success' : r.status === 'Rejected' ? 'badge-danger' : 'badge-warning'}">${hz(r.status)}</span></td>
         <td>
-          ${r.status !== 'Published' ? `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="moderateReview('${r.id}', 'Published')">Publish</button>` : ''}
-          ${r.status !== 'Rejected' ? `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="moderateReview('${r.id}', 'Rejected')">Reject</button>` : ''}
+          ${r.status !== 'Published' ? `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="moderateReview(${hzArg(r.id)}, 'Published')">Publish</button>` : ''}
+          ${r.status !== 'Rejected' ? `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="moderateReview(${hzArg(r.id)}, 'Rejected')">Reject</button>` : ''}
         </td>
       </tr>`).join('');
   }
@@ -1637,7 +1619,7 @@
   function renderActivityLogsTable() {
     const tbody = document.getElementById('activityTableBody');
     if (!tbody) return;
-    tbody.innerHTML = data.activityLogs.map(a => `<tr><td>${fmt(a.timestamp)}</td><td style="font-weight:700;">${hz(a.admin)}</td><td><span class="badge badge-info">${a.action}</span></td><td>${a.target}</td><td><code>${a.ip}</code></td><td><span class="badge badge-success">${a.result}</span></td></tr>`).join('');
+    tbody.innerHTML = data.activityLogs.map(a => `<tr><td>${fmt(a.timestamp)}</td><td style="font-weight:700;">${hz(a.admin)}</td><td><span class="badge badge-info">${hz(a.action)}</span></td><td>${hz(a.target)}${a.object && a.object !== '—' ? '<br/><small style="color:var(--admin-text-muted);">' + hz(a.object) + '</small>' : ''}</td><td><code>${hz(a.ip)}</code></td><td><span class="badge ${a.result === 'Failed' ? 'badge-danger' : 'badge-success'}">${hz(a.result)}</span></td></tr>`).join('');
   }
 
   function renderAdminUsersTable() {
@@ -1646,7 +1628,7 @@
     tbody.innerHTML = data.adminUsers.map(u => `<tr><td style="font-weight:700;">${hz(u.name)}</td><td>${hz(u.email)}</td><td><span class="badge badge-info">${u.role}</span></td><td>${fmt(u.lastActive)}</td><td><span class="badge ${u.status === 'Active' ? 'badge-success' : 'badge-warning'}">${hz(u.status)}</span></td>
       <td>
         <button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="resetUserPassword(${hzArg(u.id)})">Send reset link</button>
-        ${u.id === (data.admin || {}).id ? '' : `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="setOwnerStatus('${u.id}', '${u.status === 'Active' ? 'suspended' : 'active'}')">${u.status === 'Active' ? 'Suspend' : 'Reactivate'}</button>`}
+        ${u.id === (data.admin || {}).id ? '' : `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="setOwnerStatus(${hzArg(u.id)}, '${u.status === 'Active' ? 'suspended' : 'active'}')">${u.status === 'Active' ? 'Suspend' : 'Reactivate'}</button>`}
       </td></tr>`).join('');
   }
 
@@ -1750,8 +1732,8 @@
           <span style="color:var(--admin-text-muted);">spend ${inr(c.spend)}${c.kpis.costPerLead ? ' • CPL ' + inr(c.kpis.costPerLead) : ''}</span>
         </td>
         <td style="white-space:nowrap;">
-          <button class="btn-primary" style="padding:4px 8px; font-size:11.5px;" onclick="openAdminStatusModal('${c.id}')">Update</button>
-          ${!c.paid && c.payment ? `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="markCampaignPaid('${c.payment.id}')">Mark paid</button>` : ''}
+          <button class="btn-primary" style="padding:4px 8px; font-size:11.5px;" onclick="openAdminStatusModal(${hzArg(c.id)})">Update</button>
+          ${!c.paid && c.payment ? `<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="markCampaignPaid(${hzArg(c.payment.id)})">Mark paid</button>` : ''}
         </td>
       </tr>`;
     }).join('');
@@ -1841,7 +1823,7 @@
           </div>
         </div>
 
-        <button class="btn-secondary" style="width:100%; text-align:center;" onclick="openAdminEditPkgModal('${p.id}')">Edit Package Pricing & Details</button>
+        <button class="btn-secondary" style="width:100%; text-align:center;" onclick="openAdminEditPkgModal(${hzArg(p.id)})">Edit Package Pricing & Details</button>
       </div>`;
     }).join('');
   }
@@ -1880,7 +1862,7 @@
       if (!(price > 0)) invalid = true;
       return Object.assign({}, d, { price: price });
     });
-    if (invalid) { showToast('Every duration needs a price above ₹0.', 'error'); return; }
+    if (invalid) { showToast('Every duration needs a price above ₹0.', 'danger'); return; }
 
     window.HotelzzMarketingStore.updatePackage(selectedAdminPkgId, {
       name: name,

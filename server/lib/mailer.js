@@ -141,6 +141,19 @@ define('welcomeOwner',
        ${button(env.PUBLIC_URL + '/owner.html', 'Open owner dashboard')}`)
   }));
 
+define('adminInvite',
+  { account: 'info', category: 'Auth', label: 'Admin invite',
+    description: 'Invites a new team member to the admin panel; the link sets their password.',
+    sample: { name: 'Aarav Shah', link: env.PUBLIC_URL + '/reset-password.html?token=sample&email=aarav%40example.com&role=admin' } },
+  ({ name, link }) => ({
+    subject: "You're invited to the Hotelzz admin panel",
+    text: `Hi ${name || 'there'}, you've been added as a Hotelzz admin. Set your password here (link valid 48 hours): ${link}`,
+    html: layout('Welcome to the Hotelzz team',
+      `<p style="line-height:1.6">Hi ${name || 'there'}, you've been added as an admin on Hotelzz. Set your password to sign in — the link is valid for 48 hours.</p>
+       ${button(link, 'Set your password')}
+       <p style="color:#64748B;font-size:12px;word-break:break-all">${link}</p>`)
+  }));
+
 define('passwordReset',
   { account: 'info', category: 'Auth', label: 'Password reset link',
     description: 'A time-limited link to set a new password.',
@@ -193,8 +206,8 @@ define('enquiryToOwner',
 Guest: ${guestName}
 Email: ${guestEmail}
 Phone: ${guestPhone}
-Stay: ${checkIn} to ${checkOut} (${guests} guests)
-Message: ${message}
+Stay: ${checkIn && checkOut ? checkIn + ' to ' + checkOut : 'dates not given'}${guests ? ' (' + guests + ' guests)' : ''}
+Message: ${message || '—'}
 
 Respond here: ${env.PUBLIC_URL}/owner.html`,
     html: layout('New guest enquiry',
@@ -211,7 +224,7 @@ define('enquiryReceipt',
     sample: { guestName: 'Priya Nair', hotelName: 'The Grand Palace', checkIn: '2026-10-04', checkOut: '2026-10-07', enquiryId: 'HZ-ENQ-58231' } },
   ({ guestName, hotelName, checkIn, checkOut, enquiryId }) => ({
     subject: `Enquiry sent to ${hotelName}`,
-    text: `Hi ${guestName}, your enquiry (${enquiryId}) has been delivered to ${hotelName} for ${checkIn} to ${checkOut}. The hotel replies directly — you can track the status in your portal: ${env.PUBLIC_URL}/user-portal.html`,
+    text: `Hi ${guestName}, your enquiry (${enquiryId}) has been delivered to ${hotelName}${checkIn && checkOut ? ' for ' + checkIn + ' to ' + checkOut : ''}. The hotel replies directly — you can track the status in your portal: ${env.PUBLIC_URL}/user-portal.html`,
     html: layout('Your enquiry is on its way',
       `<p style="line-height:1.6">Hi ${guestName}, we delivered your enquiry to <b>${hotelName}</b> for ${checkIn || '—'} → ${checkOut || '—'}. The hotel responds directly, so you get their best direct rate.</p>
        <p style="color:#64748B;font-size:13px">Reference: ${enquiryId}</p>
@@ -293,7 +306,7 @@ define('newReviewToOwner',
     subject: `New ${rating}★ review for ${hotelName}`,
     text: `${userName} left a ${rating}-star review for ${hotelName}:
 
-${comment}
+${comment || '(No written comment.)'}
 
 Reply from your dashboard: ${env.PUBLIC_URL}/owner.html`,
     html: layout(`New ${rating}★ review`,
@@ -495,15 +508,22 @@ define('dealGrabbedOwner',
    MARKETING / CAMPAIGNS
    ========================================================================= */
 
+/** "Professional Plan" → "the Professional plan"; "Not sure yet…" or empty → "Hotelzz's plans". */
+function planPhrase(plan) {
+  const p = String(plan || '').trim();
+  if (!p || /not sure|recommend/i.test(p)) return "Hotelzz's plans";
+  return 'the ' + p.replace(/\s*plan$/i, '') + ' plan';
+}
+
 define('leadReceipt',
   { account: 'info', category: 'Marketing', label: 'Marketing lead receipt',
     description: 'Acknowledges a public marketing/pricing enquiry.',
     sample: { name: 'Rohan Mehta', plan: 'Professional Plan' } },
   ({ name, plan }) => ({
-    subject: 'We received your Hotelzz marketing enquiry',
-    text: `Hi ${name}, thanks for your interest in the ${plan || 'Hotelzz'} plan. Our team calls you back within one business day.`,
+    subject: 'We received your Hotelzz enquiry',
+    text: `Hi ${name || 'there'}, thanks for your interest in ${planPhrase(plan)}. Our team calls you back within one business day.`,
     html: layout('Thanks — we have your request',
-      `<p style="line-height:1.6">Hi ${name}, thanks for your interest in the <b>${plan || 'Hotelzz'}</b> plan. Our team will call you back within one business day.</p>`)
+      `<p style="line-height:1.6">Hi ${name || 'there'}, thanks for your interest in <b>${planPhrase(plan)}</b>. Our team will call you back within one business day.</p>`)
   }));
 
 define('leadFollowUp',
@@ -512,9 +532,9 @@ define('leadFollowUp',
     sample: { name: 'Rohan Mehta', plan: 'Professional Plan' } },
   ({ name, plan }) => ({
     subject: 'Still interested in growing direct bookings?',
-    text: `Hi ${name}, you asked about the ${plan || 'Hotelzz'} plan a few days ago. Reply to this email and we will set it up, or call +91 99300 90487.`,
+    text: `Hi ${name}, you asked about ${planPhrase(plan)} a few days ago. Reply to this email and we will set it up, or call +91 99300 90487.`,
     html: layout('Shall we pick this up?',
-      `<p style="line-height:1.6">Hi ${name}, you asked about the <b>${plan || 'Hotelzz'}</b> plan a few days back. Reply to this email and our team will set it up — or call <b>+91 99300 90487</b>.</p>
+      `<p style="line-height:1.6">Hi ${name}, you asked about <b>${planPhrase(plan)}</b> a few days back. Reply to this email and our team will set it up — or call <b>+91 99300 90487</b>.</p>
        ${button(env.PUBLIC_URL + '/marketing.html#pricing', 'See the plans again')}`)
   }));
 
@@ -685,17 +705,29 @@ function escapeData(v) {
   if (v && typeof v === 'object') { const o = {}; Object.keys(v).forEach((k) => { o[k] = escapeData(v[k]); }); return o; }
   return v;
 }
-function buildSafe(t, data) {
-  const merged = Object.assign({}, t.sample, data || {});
+// Real sends must never borrow the gallery's sample values (a made-up claim
+// rejection reason, "rohan@example.com" in an ops alert…): missing fields are
+// blank instead. Only previews fill gaps from the sample.
+function blankOf(v) {
+  if (Array.isArray(v)) return [];
+  if (v && typeof v === 'object') { const o = {}; Object.keys(v).forEach((k) => { o[k] = blankOf(v[k]); }); return o; }
+  return typeof v === 'number' ? 0 : '';
+}
+function buildSafe(t, data, preview) {
+  const base = preview ? t.sample : blankOf(t.sample || {});
+  const given = {};
+  Object.keys(data || {}).forEach((k) => { if (data[k] !== undefined && data[k] !== null) given[k] = data[k]; });
+  const merged = Object.assign({}, base, given);
   const plain = t.build(merged);
+  if (plain.text) plain.text = String(plain.text).replace(/^([A-Z][A-Za-z /]{1,30}):[ \t]*$/gm, '$1: —');
   const safe = t.build(escapeData(merged));
   return { subject: String(plain.subject || '').replace(/[\r\n]+/g, ' '), text: plain.text, html: safe.html };
 }
 
-function renderTemplate(name, data) {
+function renderTemplate(name, data, opts) {
   const t = T[name];
   if (!t) throw new Error('Unknown email template: ' + name);
-  const msg = buildSafe(t, data);
+  const msg = buildSafe(t, data, !opts || opts.preview !== false);
   return Object.assign({ account: t.account, from: (env.SMTP_ACCOUNTS[t.account] || env.SMTP_ACCOUNTS.info).from }, msg);
 }
 
@@ -779,4 +811,13 @@ async function sendCustomMail(to, { subject, text, html }, opts) {
   }
 }
 
-module.exports = { sendMail, sendMailAsync, sendCustomMail, renderTemplate, listTemplates, templates: T };
+/** Where ops copies go: Admin → Settings → "Operations notification email", else ADMIN_EMAIL. */
+function opsEmail() {
+  try {
+    const row = db.prepare("SELECT value FROM settings WHERE key = 'notifyEmail'").get();
+    if (row && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(row.value || '').trim())) return String(row.value).trim();
+  } catch (_) { /* settings table not ready */ }
+  return env.ADMIN_EMAIL;
+}
+
+module.exports = { sendMail, sendMailAsync, sendCustomMail, renderTemplate, listTemplates, opsEmail, templates: T };

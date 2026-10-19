@@ -239,7 +239,7 @@
           + '<div class="hz-result-name">' + highlight(h.name, q) + '</div>'
           + '<div class="hz-result-meta">' + escHtml(meta || 'India') + (h.claim_status === 'verified' ? ' · ✓ Verified' : '') + '</div>'
           + '</div>'
-          + '<span class="hz-result-rating">★ ' + (parseFloat(h.rating) || 4.5).toFixed(1) + '</span>'
+          + '<span class="hz-result-rating">' + (parseFloat(h.rating) ? '★ ' + parseFloat(h.rating).toFixed(1) : 'New') + '</span>'
           + '</a>';
       }).join('');
     }

@@ -104,13 +104,32 @@ const settingsSchema = z.object({
   })).max(200).optional(),
   redirects: z.array(z.object({
     from: z.string().trim().max(200).regex(/^\/[A-Za-z0-9_\-./%]*$/, 'Redirect "from" is a path like /old-page.html (no ?query)')
-      .refine((v) => !/^\/(api|admin|owner|uploads|\.well-known)(\/|\.|$)/.test(v) && v !== '/', 'That path cannot be redirected'),
+      // Sign-in pages, panels, the API and the SEO files must always answer.
+      .refine((v) => v !== '/' && !/^\/(api|admin|owner|uploads|\.well-known|login|dashboard-login|reset-password|user-portal)([/.\-]|$)/.test(v) &&
+        !/^\/(robots\.txt|sitemap\.xml|llms\.txt|index\.html)$/.test(v), 'That path cannot be redirected'),
     to: z.string().trim().max(300).refine((v) => /^\/[^\s]*$/.test(v) || /^https:\/\/[^\s]+$/.test(v), 'Redirect "to" is a /path or an https:// URL')
   })).max(300).optional()
 });
 
+/**
+ * One spelling per page, the same one the page lookup uses: "/deals" →
+ * "/deals.html", "/city.html?city=Pune" → "/city.html?city=pune"; other query
+ * strings are dropped (static pages ignore them).
+ */
+function normPageKey(raw) {
+  const [path, query = ''] = String(raw).split('?');
+  if (path === '/city') return '/city';
+  const key = kit.pageKey(path);
+  const params = new URLSearchParams(query);
+  if (key === '/city.html' && params.get('city')) return key + '?city=' + params.get('city').toLowerCase();
+  if (key === '/property.html' && params.get('id')) return key + '?id=' + params.get('id');
+  return key;
+}
+
 router.put('/', validate(settingsSchema), (req, res) => {
   const b = req.body;
+  if (b.pages) b.pages = Object.fromEntries(Object.entries(b.pages).map(([k, v]) => [normPageKey(k), v]));
+  if (b.faqs) b.faqs = b.faqs.map((f) => Object.assign({}, f, { page: normPageKey(f.page) }));
   if (b.redirects) {
     const froms = new Set();
     for (const r of b.redirects) {

@@ -152,6 +152,11 @@ function analyticsTags(s) {
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
+  // Consent Mode v2 with the cookie banner (cookie-consent.js): analytics is on
+  // unless the visitor declined; ad cookies only after they accept.
+  (function(){var c=null;try{c=localStorage.getItem('hotelzz_cookie_consent');}catch(e){}
+    gtag('consent','default',{analytics_storage:c==='declined'?'denied':'granted',ad_storage:c==='accepted'?'granted':'denied',
+      ad_user_data:c==='accepted'?'granted':'denied',ad_personalization:c==='accepted'?'granted':'denied'});})();
   gtag('js', new Date());
   gtag('config', '${s.ga4Id}');
 </script>`);

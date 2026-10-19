@@ -521,7 +521,7 @@
               ' + cEsc(h.address || h.location || 'India') + '\
             </div>\
             <div class="hotel-rating">\
-              <span class="rating-pill">★ ' + h.rating.toFixed(1) + '</span>\
+              <span class="rating-pill">' + (h.rating ? '★ ' + h.rating.toFixed(1) : 'New') + '</span>\
               ' + (h.google_review_count ? '<span class="gscore">' + h.google_review_count + ' Google reviews</span>' : '') + '\
             </div>\
             ' + ((h.realAmenities || []).length ? '<div class="amenities" style="margin-top:8px;">' + h.realAmenities.slice(0, 4).map(function(a){return '<span class="amenity" style="display:inline-block; background:#EFF6FF; color:#2563EB; font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; margin-right:4px;">'+cEsc(a)+'</span>';}).join('') + '</div>' : '') + '\

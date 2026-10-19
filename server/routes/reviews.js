@@ -36,7 +36,7 @@ const score = z.coerce.number().int().min(1).max(5).optional();
 router.get('/',
   validateQuery(z.object({
     propertyId: z.string().trim().optional(),
-    mine: z.coerce.boolean().optional(),
+    mine: z.enum(['true', 'false', '1', '0']).transform((v) => v === 'true' || v === '1').optional(),
     status: z.string().trim().optional(),
     limit: z.coerce.number().int().min(1).max(200).default(100),
     offset: z.coerce.number().int().min(0).default(0)
@@ -86,19 +86,29 @@ router.post('/',
   wrap(async (req, res) => {
     const b = req.body;
     const property = db.prepare('SELECT * FROM properties WHERE id = ?').get(b.propertyId);
-    const propertyName = property ? property.name : b.propertyName;
-    if (!propertyName) return res.status(400).json({ ok: false, field: 'propertyId', error: 'Unknown property.' });
+    if (!property) return res.status(404).json({ ok: false, field: 'propertyId', error: 'Unknown property.' });
+    const propertyName = property.name;
 
-    // Reviews are tied to a real enquiry the hotel answered — that is the proof of stay.
+    // Reviews are tied to a real enquiry for this property that the hotel
+    // answered — that is the proof of stay behind "from verified stays".
+    if (req.user.role !== 'admin' && !b.enquiryId) {
+      return res.status(400).json({ ok: false, error: 'Reviews are left from an enquiry the hotel replied to — open it in My Enquiries.' });
+    }
     if (b.enquiryId) {
       const enq = db.prepare('SELECT * FROM enquiries WHERE id = ?').get(b.enquiryId);
       if (!enq || (req.user.role !== 'admin' && enq.user_id !== req.user.id)) {
         return res.status(403).json({ ok: false, error: 'That enquiry is not yours.' });
       }
+      if (enq.property_id !== property.id) return res.status(400).json({ ok: false, error: 'That enquiry is for a different property.' });
+      if (!['Responded', 'Contacted', 'Converted', 'Closed'].includes(enq.status)) {
+        return res.status(400).json({ ok: false, error: 'You can review this stay once the hotel has replied to your enquiry.' });
+      }
       if (enq.review_id) return res.status(409).json({ ok: false, error: 'You already reviewed this stay.' });
     }
 
-    const id = 'REV-' + Math.floor(Math.random() * 899999 + 100000);
+    let id;
+    do { id = 'REV-' + Math.floor(Math.random() * 899999 + 100000); }
+    while (db.prepare('SELECT 1 FROM reviews WHERE id = ?').get(id));
     db.prepare(
       `INSERT INTO reviews (id,user_id,user_name,property_id,property_name,enquiry_id,rating,comment,
                             cleanliness,service,location,amenities,value,status)
@@ -110,7 +120,7 @@ router.post('/',
     if (b.enquiryId) db.prepare('UPDATE enquiries SET review_id = ? WHERE id = ?').run(id, b.enquiryId);
     audit(req.user.id, 'review.create', 'review', id, { propertyId: b.propertyId, rating: b.rating }, req.ip);
 
-    if (property && property.owner_id) {
+    if (property && property.owner_id && require('../lib/ownership').canManage(property)) {
       const owner = db.prepare('SELECT email FROM users WHERE id = ?').get(property.owner_id);
       if (owner && owner.email) {
         sendMailAsync(owner.email, 'newReviewToOwner', {
@@ -131,8 +141,10 @@ router.post('/:id/reply',
     const row = db.prepare('SELECT * FROM reviews WHERE id = ?').get(req.params.id);
     if (!row) return res.status(404).json({ ok: false, error: 'Review not found.' });
     if (req.user.role === 'owner') {
-      const owns = db.prepare('SELECT 1 FROM properties WHERE id = ? AND owner_id = ?').get(row.property_id, req.user.id);
-      if (!owns) return res.status(403).json({ ok: false, error: 'Not your property.' });
+      const prop = db.prepare('SELECT * FROM properties WHERE id = ? AND owner_id = ?').get(row.property_id, req.user.id);
+      if (!prop) return res.status(403).json({ ok: false, error: 'Not your property.' });
+      // A public reply speaks for the hotel: verified owners only.
+      if (!require('../lib/ownership').canManage(prop)) return res.status(403).json({ ok: false, error: require('../lib/ownership').PENDING_MESSAGE });
     }
     db.prepare(`UPDATE reviews SET owner_reply = ?, updated_at = datetime('now') WHERE id = ?`).run(req.body.reply, row.id);
 

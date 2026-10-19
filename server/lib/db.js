@@ -396,6 +396,22 @@ CREATE TABLE IF NOT EXISTS property_stats (
   if (!cols.includes('session_epoch')) db.exec('ALTER TABLE users ADD COLUMN session_epoch INTEGER NOT NULL DEFAULT 0');
 })();
 
+// An invoice remembers the exact plan it was raised for, so paying it applies
+// that plan — not whatever the owner picked afterwards.
+// Who claimed a listing and when — kept after a rejection clears owner_id, so
+// rejected claims stay visible to the team with their real timestamps.
+(function migrateClaimColumns() {
+  const cols = db.prepare("PRAGMA table_info(properties)").all().map((c) => c.name);
+  if (!cols.includes('claimed_by')) db.exec('ALTER TABLE properties ADD COLUMN claimed_by TEXT');
+  if (!cols.includes('claimed_at')) db.exec('ALTER TABLE properties ADD COLUMN claimed_at TEXT');
+  db.exec("UPDATE properties SET claimed_by = owner_id, claimed_at = COALESCE(claimed_at, updated_at) WHERE claimed_by IS NULL AND owner_id IS NOT NULL AND claim_status IN ('pending','verified')");
+})();
+
+(function migrateInvoiceDetails() {
+  const cols = db.prepare("PRAGMA table_info(invoices)").all().map((c) => c.name);
+  if (!cols.includes('details')) db.exec('ALTER TABLE invoices ADD COLUMN details TEXT');
+})();
+
 // Offers became public "Deals" (deals.html): they gained a category, an image,
 // price points, terms, a featured flag and view/grab counters.
 (function migrateOfferDealColumns() {

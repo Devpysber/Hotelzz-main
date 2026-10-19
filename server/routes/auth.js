@@ -15,6 +15,15 @@ const lower = (s) => norm(s).toLowerCase();
 const normPhone = (s) => norm(s).replace(/[^\d+]/g, '');
 
 const digits = (s) => String(s || '').replace(/\D/g, '');
+// At least 10 digits once spaces, dashes and +country code are stripped.
+const phoneSchema = z.string().trim().refine((v) => digits(v).length >= 10 && digits(v).length <= 13, 'Enter a valid 10-digit phone number');
+const phoneTaken = (phone, role, exceptId) => db.prepare(
+  `SELECT 1 FROM users WHERE role = ? AND id <> ? AND phone IS NOT NULL
+     AND replace(replace(replace(replace(replace(phone,' ',''),'-',''),'(',''),')',''),'+','') LIKE ?`
+).get(role, exceptId || '', '%' + digits(phone).slice(-10));
+// Login compares against this when the account doesn't exist, so the response
+// time doesn't reveal which emails are registered.
+let dummyHash = null;
 
 // Matches on email, or on the last 10 digits of the phone so that "+91 98201 44512",
 // "919820144512" and "9820144512" all resolve to the same account.
@@ -56,7 +65,7 @@ router.post('/register/traveler',
   validate(z.object({
     name: z.string().trim().min(2, 'Enter your full name'),
     email: emailSchema,
-    phone: z.string().trim().min(8, 'Enter a valid phone number'),
+    phone: phoneSchema,
     password: passwordSchema,
     city: z.string().trim().optional()
   })),
@@ -64,6 +73,9 @@ router.post('/register/traveler',
     const { name, email, phone, password, city } = req.body;
     if (db.prepare('SELECT 1 FROM users WHERE lower(email) = ? AND role = ?').get(lower(email), 'traveler')) {
       return res.status(409).json({ ok: false, field: 'email', error: 'An account with this email already exists. Sign in instead.' });
+    }
+    if (phoneTaken(phone, 'traveler')) {
+      return res.status(409).json({ ok: false, field: 'phone', error: 'This phone number is already on another account. Sign in instead, or use a different number.' });
     }
     const user = createUser({
       role: 'traveler', name, email: lower(email), phone: normPhone(phone),
@@ -81,7 +93,7 @@ router.post('/register/owner',
     hotelName: z.string().trim().min(2, 'Enter the property name'),
     city: z.string().trim().min(2, 'Enter the city'),
     name: z.string().trim().min(2, 'Enter the owner or manager name'),
-    phone: z.string().trim().min(8, 'Enter a valid phone number'),
+    phone: phoneSchema,
     email: emailSchema,
     password: passwordSchema
   })),
@@ -89,6 +101,9 @@ router.post('/register/owner',
     const { hotelName, city, name, phone, email, password } = req.body;
     if (db.prepare('SELECT 1 FROM users WHERE lower(email) = ? AND role = ?').get(lower(email), 'owner')) {
       return res.status(409).json({ ok: false, field: 'email', error: 'This email is already registered as a partner. Sign in instead.' });
+    }
+    if (phoneTaken(phone, 'owner')) {
+      return res.status(409).json({ ok: false, field: 'phone', error: 'This phone number is already on another partner account. Sign in instead, or use a different number.' });
     }
     const user = createUser({
       role: 'owner', name, email: lower(email), phone: normPhone(phone), city,
@@ -98,14 +113,14 @@ router.post('/register/owner',
     const propId = uid('prop');
     const citySlug = city.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
     db.prepare(
-      `INSERT INTO properties (id, owner_id, name, location, city_slug, phone, email, claim_status, active)
-       VALUES (?,?,?,?,?,?,?, 'pending', 1)`
-    ).run(propId, user.id, hotelName, city, citySlug, normPhone(phone), lower(email));
+      `INSERT INTO properties (id, owner_id, claimed_by, claimed_at, name, location, city_slug, phone, email, claim_status, rating, active)
+       VALUES (?,?,?, datetime('now'),?,?,?,?,?, 'pending', NULL, 1)`
+    ).run(propId, user.id, user.id, hotelName, city, citySlug, normPhone(phone), lower(email));
 
     A.setSessionCookie(res, user);
     audit(user.id, 'auth.register', 'user', user.id, { role: 'owner', propertyId: propId }, req.ip);
     sendMailAsync(user.email, 'welcomeOwner', { name: user.name, hotelName });
-    sendMailAsync(env.ADMIN_EMAIL, 'adminNewOwner', { name, hotelName, city, email: lower(email), phone });
+    sendMailAsync(require('../lib/mailer').opsEmail(), 'adminNewOwner', { name, hotelName, city, email: lower(email), phone });
     res.status(201).json({ ok: true, user: A.publicUser(user), propertyId: propId, redirect: redirectFor('owner') });
   });
 
@@ -121,7 +136,8 @@ router.post('/login',
   async (req, res) => {
     const { role, identifier, password } = req.body;
     const user = findUser(identifier, role);
-    const ok = user && await A.verifyPassword(password, user.password_hash);
+    if (!dummyHash) dummyHash = await A.hashPassword('not-a-real-password-' + Date.now());
+    const ok = await A.verifyPassword(password, (user && user.password_hash) || dummyHash) && !!user && !!user.password_hash;
     if (!ok) {
       audit(user ? user.id : null, 'auth.login.failed', 'user', user ? user.id : null, { role, identifier }, req.ip);
       return res.status(401).json({ ok: false, error: 'Incorrect email/phone or password.' });
@@ -313,7 +329,7 @@ router.post('/password/reset',
   })),
   async (req, res) => {
     const { email, token, password } = req.body;
-    const result = A.consumeToken({ identifier: lower(email), purpose: 'password-reset', value: token });
+    const result = A.consumeLinkToken({ identifier: lower(email), purpose: 'password-reset', value: token });
     if (!result.ok) return res.status(400).json({ ok: false, error: 'This reset link is invalid or has expired.' });
 
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.row.user_id);
@@ -366,7 +382,9 @@ router.post('/email/change',
     const taken = db.prepare('SELECT 1 FROM users WHERE lower(email) = ? AND role = ? AND id <> ?').get(email, req.user.role, req.user.id);
     if (taken) return res.status(409).json({ ok: false, field: 'email', error: 'Another account already uses that email.' });
 
-    db.prepare(`UPDATE users SET email = ?, updated_at = datetime('now') WHERE id = ?`).run(email, req.user.id);
+    // The new address hasn't been proven yet: an account marked verified for an
+    // address it doesn't own could be taken over through Google sign-in.
+    db.prepare(`UPDATE users SET email = ?, email_verified = 0, updated_at = datetime('now') WHERE id = ?`).run(email, req.user.id);
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
     A.setSessionCookie(res, user);
     audit(user.id, 'auth.email.change', 'user', user.id, { from: oldEmail, to: email }, req.ip);
@@ -386,11 +404,14 @@ router.patch('/me',
   A.requireAuth(),
   validate(z.object({
     name: z.string().trim().min(2).optional(),
-    phone: z.string().trim().min(8).optional(),
+    phone: phoneSchema.optional(),
     city: z.string().trim().optional()
   })),
   (req, res) => {
     const { name, phone, city } = req.body;
+    if (phone && phoneTaken(phone, req.user.role, req.user.id)) {
+      return res.status(409).json({ ok: false, field: 'phone', error: 'This phone number is already on another account.' });
+    }
     db.prepare(
       `UPDATE users SET name = COALESCE(?, name), phone = COALESCE(?, phone),
               city = COALESCE(?, city), updated_at = datetime('now')

@@ -90,7 +90,7 @@
     // (Google Sheet sync, seed data) never went through an import run.
     data.kpis.totalImportedProperties = payload.kpis.totalImportedProperties || 0;
     data.propertyTrends = buildTrends(payload);
-    data.importHistory = (payload.activityLogs || [])
+    data.importHistory = payload.importHistory || (payload.activityLogs || [])
       .filter(function (a) { return a.action === 'admin.import'; })
       .map(function (a) {
         var m = a.meta || {};
@@ -203,7 +203,15 @@
     if (field.length || row.length) { row.push(field); rows.push(row); }
     if (rows.length < 2) return { headers: [], records: [] };
 
-    var headers = rows[0].map(function (h) { return h.trim(); });
+    // Header names are matched loosely ("ID", "Image URL", "Property Type"…),
+    // so the panel's own Properties export can be re-imported as is.
+    var ALIASES = { city: 'city_slug', city_slug: 'city_slug', company_name: 'name', property_name: 'name', hotel_name: 'name',
+                    image: 'image_url', imageurl: 'image_url', type: 'property_type', category: 'property_type',
+                    google_reviews: 'google_review_count', reviews: 'google_review_count', summary: 'google_summary', description: 'google_summary' };
+    var headers = rows[0].map(function (h) {
+      var k = h.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+      return ALIASES[k] || k;
+    });
     var records = rows.slice(1)
       .filter(function (r) { return !(r.length === 1 && !r[0].trim()); })
       .map(function (r) {
@@ -266,7 +274,8 @@
   /** Asks the server which rows are new; fills in the duplicate counters. */
   data.dryRunImport = function () {
     // Only the ids matter for duplicate detection, so send just those.
-    var probe = data.importSession.rows.map(function (r) { return { id: r.id, name: r.name }; });
+    // Ids for duplicates, city for the excluded-cities count.
+    var probe = data.importSession.rows.map(function (r) { return { id: r.id, name: r.name, location: r.location, city_slug: r.city_slug }; });
     return API.post('/admin/import', { rows: probe, dryRun: true })
       .then(function (r) {
         data.importSession.duplicateRows = r.summary.duplicates;
@@ -275,6 +284,7 @@
         data.importSession.invalidRows = r.summary.invalid;
         data.importSession.excludedCitiesRows = r.summary.excludedCities;
         data.importSession.duplicatesSample = r.duplicates || [];
+        data.importSession.duplicateIds = r.duplicateIds || [];
         return r;
       });
   };
@@ -289,13 +299,15 @@
     var total = { total: rows.length, imported: 0, duplicates: 0, invalid: 0, updated: 0 };
     var updateExisting = !!(document.getElementById('importUpdateExisting') || {}).checked;
     var totalProperties = 0;
+    var batch = 'imp-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    var filename = data.importSession.filename || undefined;
 
     var sendChunk = function (index) {
       if (index >= rows.length) {
         return Promise.resolve({ ok: true, summary: total, totalProperties: totalProperties });
       }
       var slice = rows.slice(index, index + CHUNK);
-      return API.post('/admin/import', { rows: slice, updateExisting: updateExisting }).then(function (r) {
+      return API.post('/admin/import', { rows: slice, updateExisting: updateExisting, filename: filename, batch: batch }).then(function (r) {
         total.imported += r.summary.imported;
         total.updated += r.summary.updated || 0;
         total.duplicates += r.summary.duplicates;

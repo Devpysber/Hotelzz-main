@@ -22,7 +22,11 @@ router.get('/', A.requireAuth(), (req, res) => {
   });
 });
 
+// Only real, live listings can be saved (an unknown id showed as a blank card).
+const listed = (id) => db.prepare('SELECT 1 FROM properties WHERE id = ? AND active = 1').get(id);
+
 router.post('/:propertyId', A.requireAuth(), (req, res) => {
+  if (!listed(req.params.propertyId)) return res.status(404).json({ ok: false, error: 'That property is no longer listed.' });
   db.prepare('INSERT OR IGNORE INTO saved_hotels (user_id, property_id) VALUES (?,?)')
     .run(req.user.id, req.params.propertyId);
   res.status(201).json({ ok: true, saved: true });
@@ -42,6 +46,7 @@ router.post('/:propertyId/toggle', A.requireAuth(), (req, res) => {
     db.prepare('DELETE FROM saved_hotels WHERE user_id = ? AND property_id = ?').run(req.user.id, req.params.propertyId);
     return res.json({ ok: true, saved: false });
   }
+  if (!listed(req.params.propertyId)) return res.status(404).json({ ok: false, error: 'That property is no longer listed.' });
   db.prepare('INSERT INTO saved_hotels (user_id, property_id) VALUES (?,?)').run(req.user.id, req.params.propertyId);
   res.json({ ok: true, saved: true });
 });

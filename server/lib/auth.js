@@ -85,12 +85,20 @@ function requireAuth(...roles) {
 
 // ---- one-time codes / links (OTP, password reset, email verification) ----
 
+// "+91 98201 44512", "919820144512" and "9820144512" are one identifier.
+function normId(identifier) {
+  const s = String(identifier || '').trim().toLowerCase();
+  if (s.includes('@')) return s;
+  const d = s.replace(/\D/g, '');
+  return d.length >= 10 ? d.slice(-10) : s;
+}
+
 function issueCode({ userId, identifier, purpose, ttlMinutes, length = 6, meta }) {
   const code = String(crypto.randomInt(0, 10 ** length)).padStart(length, '0');
   db.prepare(
     `INSERT INTO tokens (id,user_id,identifier,purpose,token_hash,expires_at,meta)
      VALUES (?,?,?,?,?, datetime('now', ?), ?)`
-  ).run(uid('tok'), userId || null, String(identifier).toLowerCase(), purpose, sha256(code),
+  ).run(uid('tok'), userId || null, normId(identifier), purpose, sha256(code),
         `+${ttlMinutes} minutes`, meta ? JSON.stringify(meta) : null);
   return code;
 }
@@ -113,7 +121,7 @@ function consumeToken({ identifier, purpose, value }) {
       WHERE purpose = ? AND consumed_at IS NULL
         AND (? IS NULL OR identifier = ?)
       ORDER BY created_at DESC LIMIT 1`
-  ).get(purpose, identifier ? String(identifier).toLowerCase() : null, identifier ? String(identifier).toLowerCase() : null);
+  ).get(purpose, identifier ? normId(identifier) : null, identifier ? normId(identifier) : null);
 
   if (!row) return { ok: false, error: 'No pending code. Request a new one.' };
   if (new Date(row.expires_at + 'Z') < new Date()) return { ok: false, error: 'Code expired. Request a new one.' };
@@ -127,11 +135,27 @@ function consumeToken({ identifier, purpose, value }) {
   return { ok: true, row };
 }
 
+/**
+ * Emailed links (password reset): the token itself is the lookup key. Looking
+ * up "the newest token for this email" let anyone burn a stranger's reset link
+ * with wrong guesses, and a second reset (other role) replaced the first.
+ */
+function consumeLinkToken({ identifier, purpose, value }) {
+  const row = db.prepare(
+    `SELECT * FROM tokens WHERE purpose = ? AND token_hash = ? AND consumed_at IS NULL
+        AND (? IS NULL OR identifier = ?)`
+  ).get(purpose, sha256(String(value || '')), identifier ? normId(identifier) : null, identifier ? normId(identifier) : null);
+  if (!row) return { ok: false, error: 'This link is invalid or has already been used.' };
+  if (new Date(row.expires_at + 'Z') < new Date()) return { ok: false, error: 'This link has expired.' };
+  db.prepare("UPDATE tokens SET consumed_at = datetime('now') WHERE id = ?").run(row.id);
+  return { ok: true, row };
+}
+
 function purgeExpiredTokens() {
   db.prepare("DELETE FROM tokens WHERE expires_at < datetime('now','-1 day')").run();
 }
 
 module.exports = {
   ROLES, hashPassword, verifyPassword, sha256, signToken, setSessionCookie, clearSessionCookie, revokeSessions,
-  publicUser, attachUser, requireAuth, issueCode, issueLinkToken, consumeToken, purgeExpiredTokens
+  publicUser, attachUser, requireAuth, issueCode, issueLinkToken, consumeToken, consumeLinkToken, purgeExpiredTokens, normId
 };
