@@ -267,7 +267,7 @@ router.get('/content', (req, res) => {
   const counts = Object.entries(ISSUES).map(([key, v]) => ({
     key, label: v.label, hint: v.hint, count: db.prepare(`SELECT COUNT(*) c FROM properties p WHERE p.active = 1 AND ${v.where}`).get().c
   }));
-  const issue = ISSUES[req.query.issue] ? req.query.issue : null;
+  const issue = Object.prototype.hasOwnProperty.call(ISSUES, req.query.issue) ? req.query.issue : null;
   const rows = issue ? db.prepare(
     `SELECT p.id, p.name, p.location, p.property_type, p.phone, p.claim_status, p.rating, p.google_review_count
        FROM properties p WHERE p.active = 1 AND ${ISSUES[issue].where}
@@ -286,7 +286,7 @@ router.get('/content', (req, res) => {
 
 router.post('/indexnow', validate(z.object({
   scope: z.enum(['changed', 'key', 'urls']),
-  urls: z.array(z.string().trim().url()).max(500).optional()
+  urls: z.array(z.string().trim().max(500).refine((u) => u.startsWith(SITE + '/'), 'Only hotelzz.in addresses can be submitted')).max(500).optional()
 })), wrap(async (req, res) => {
   const s = kit.load();
   const urls = req.body.scope === 'changed' ? kit.changedUrls(s.lastIndexNowAt)
@@ -322,7 +322,8 @@ router.get('/google', wrap(async (req, res) => {
       ? google.analytics(s.ga4PropertyId, days).then((d) => { out.analytics = d; }).catch((e) => { out.analyticsError = e.message; })
       : Promise.resolve((out.analyticsError = 'Add the GA4 property id in Connections to see traffic here.'))
   ]);
-  googleCache = { key: cacheKey, at: Date.now(), body: out };
+  // Only good answers are cached, so fixing a permission shows up on the next load.
+  googleCache = out.searchError || (out.analyticsError && /^\d/.test(s.ga4PropertyId || '')) ? null : { key: cacheKey, at: Date.now(), body: out };
   res.json(out);
 }));
 

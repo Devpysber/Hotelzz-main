@@ -107,7 +107,7 @@
 
     html += '<div class="sk-grid">';
     html += card('Instant indexing (IndexNow)', 'Tells Bing, Yandex, Seznam and Naver about new or changed pages within minutes. Google reads the sitemap.',
-      '<div class="sk-kv"><span>Last submit</span><b>' + esc(when(s.lastIndexNowAt)) + '</b></div>' +
+      '<div class="sk-kv"><span>Last accepted</span><b>' + esc(when(s.lastIndexNowAt)) + '</b></div>' +
       '<div class="sk-kv"><span>Result</span><b>' + esc(s.lastIndexNowResult || '—') + '</b></div>' +
       '<div class="sk-kv"><span>Key file</span><a href="' + esc(d.links.indexNowKey) + '" target="_blank" rel="noopener">' + esc(d.links.indexNowKey.replace('https://', '')) + '</a></div>' +
       '<div class="sk-actions"><button class="btn-primary" onclick="skIndexNow(\'changed\')">Submit changed pages</button>' +
@@ -167,18 +167,19 @@
       return;
     }
     pane('search').innerHTML = '<div class="sk-loading">Loading Google data…</div>';
-    API.get('/admin/sitekit/google?days=' + state.days).then(function (g) { state.google = g; drawSearch(); }).catch(function (e) {
+    API.get('/admin/sitekit/google?days=' + state.days + (state.fresh ? '&fresh=1' : '')).then(function (g) { state.google = g; drawSearch(); }).catch(function (e) {
       pane('search').innerHTML = card('Google data', '', '<p class="sk-note">' + esc(e.message) + '</p>');
     });
   }
 
   window.skDays = function (d) { state.days = d; renderSearch(); };
+  window.skReloadGoogle = function () { state.fresh = true; renderSearch(); state.fresh = false; };
 
   function drawSearch() {
     var g = state.google, html = '';
     html += '<div class="sk-range">' + [7, 28, 90].map(function (d) {
       return '<button class="' + (d === state.days ? 'active' : '') + '" onclick="skDays(' + d + ')">' + d + ' days</button>';
-    }).join('') + '<span>Service account: ' + esc(g.status.email) + '</span></div>';
+    }).join('') + '<button onclick="skReloadGoogle()">↻ Reload</button><span>Service account: ' + esc(g.status.email) + '</span></div>';
 
     if (g.search) {
       var t = g.search.totals;

@@ -1,7 +1,7 @@
 // SEO / AEO / Site Kit checks against a running server (no browser needed).
 //
 //   npm start                (NODE_ENV=development)
-//   node tests/seo.js        (HZ_BASE to override)
+//   node tests/seo.js        (HZ_BASE to override; HZ_ADMIN_EMAIL / HZ_ADMIN_PASSWORD for a production copy)
 //
 // Saves Site Kit settings while it runs and puts the originals back at the end.
 const { BASE } = require('./_browser');
@@ -69,7 +69,7 @@ const ldTypes = (html) => {
 
   console.log('Site Kit admin API');
   check((await req('GET', '/api/admin/sitekit')).status === 401, 'anonymous access refused');
-  const login = await req('POST', '/api/auth/login', { identifier: 'admin@hotelzz.in', password: 'admin123', role: 'admin' });
+  const login = await req('POST', '/api/auth/login', { identifier: process.env.HZ_ADMIN_EMAIL || 'admin@hotelzz.in', password: process.env.HZ_ADMIN_PASSWORD || 'admin123', role: 'admin' });
   cookie = (login.headers.get('set-cookie') || '').split(';')[0];
   const kit = await req('GET', '/api/admin/sitekit');
   check(kit.status === 200 && kit.json.settings.indexNowKey, 'admin can read Site Kit');
@@ -92,6 +92,25 @@ const ldTypes = (html) => {
   const redirect = await req('GET', '/seo-test-old.html?a=1');
   check(redirect.status === 301 && /\/deals\.html\?a=1$/.test(redirect.headers.get('location') || ''), '301 redirect keeps the query string');
   check(/switched off[^\n]*\n(User-agent: [^\n]+\n)*User-agent: CCBot\n(User-agent: [^\n]+\n)*Disallow: \/\n/.test((await req('GET', '/robots.txt')).text), 'switched-off crawler is disallowed');
+
+  // Text with "$'" / "$&" must come out literally, not splice the page.
+  await req('PUT', '/api/admin/sitekit', {
+    faqs: [{ page: '/claim.html', q: "Costs $' and $& and $1 here?", a: "Price is $' exactly $& nothing $1 more." }],
+    pages: { '/claim.html': { title: "Claim $' $& $1 | Hotelzz.in", description: '', noindex: false },
+             '/privacy.html': { title: '', description: '', noindex: true } },
+    redirects: [{ from: '/terms.html', to: '/privacy.html' }]
+  });
+  const claim = await req('GET', '/claim.html');
+  check(claim.text.includes("Costs $' and $&amp; and $1 here?") && claim.text.includes("<title>Claim $' $&amp; $1 | Hotelzz.in</title>") &&
+        (claim.text.match(/<\/html>/g) || []).length === 1, 'special $ patterns stay literal');
+  const sm2 = (await req('GET', '/sitemap.xml')).text;
+  check(!sm2.includes('/privacy.html') && !sm2.includes('/terms.html'), 'noindex and redirected pages left out of the sitemap');
+  check(/<meta name="robots" content="noindex, follow"/.test((await req('GET', '/privacy.html')).text), 'noindex override on the page');
+  check((await req('GET', '/api/admin/sitekit/content?issue=constructor')).status === 200, 'unknown issue name handled');
+  check((await req('GET', '/api/admin/sitekit/content?issue=__proto__')).status === 200, 'prototype issue name handled');
+  const inx = await req('POST', '/api/admin/sitekit/indexnow', { scope: 'key' });
+  check((inx.status === 200 && inx.json.ok) || (inx.status === 502 && inx.json.error), 'IndexNow endpoint answers (sent, skipped in dev, or a clear error)');
+  check((await req('POST', '/api/admin/sitekit/indexnow', { scope: 'urls', urls: ['javascript:alert(1)'] })).status === 400, 'IndexNow rejects bad URLs');
 
   check((await req('PUT', '/api/admin/sitekit', { ga4Id: 'UA-1' })).status === 400, 'bad GA4 id rejected');
   check((await req('PUT', '/api/admin/sitekit', { gscVerification: '"><script>' })).status === 400, 'unsafe verification code rejected');
