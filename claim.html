@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Find My Listing & Claim Property — Hotelzz.in</title>
+  <title>Claim Your Hotel Listing on Hotelzz.in — Free</title>
   <link rel="icon" type="image/png" href="jpg.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -30,7 +30,7 @@
     /* Header */
     header { background: #FFF; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
     .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 20px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
-    .brand { font-size: 22px; font-weight: 800; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 6px; }
+    .brand { font-size: 22px; font-weight: 800; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0; }
     .brand span { color: var(--text); }
     .nav-links { display: flex; align-items: center; gap: 16px; }
     .nav-links a { color: var(--text); font-weight: 600; font-size: 14px; text-decoration: none; }
@@ -51,7 +51,7 @@
     .claim-step-view { display: none; }
     .claim-step-view.active { display: block; }
 
-    h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+    h1, .step-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
     p.subtitle { color: var(--text-muted); font-size: 14.5px; margin-bottom: 24px; }
 
     /* Form Controls */
@@ -86,7 +86,7 @@
       .nav-links { display: none; }
       .claim-card { padding: 24px 18px; }
       .container { margin: 24px auto; }
-      h1 { font-size: 20px; }
+      h1, .step-title { font-size: 20px; }
       .property-card { flex-direction: column; align-items: flex-start; }
       .btn-this-is-mine { width: 100%; text-align: center; }
       .steps-indicator { gap: 0; }
@@ -98,6 +98,19 @@
     }
   </style>
 <link rel="stylesheet" href="responsive.css" />
+<meta name="description" content="Find your hotel, villa or homestay on Hotelzz.in and claim it for free. Update photos, prices and offers, and get guest enquiries directly — no commission." />
+<link rel="canonical" href="https://hotelzz.in/claim.html" />
+<meta property="og:site_name" content="Hotelzz.in" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Claim Your Hotel Listing on Hotelzz.in — Free" />
+<meta property="og:description" content="Find your hotel, villa or homestay on Hotelzz.in and claim it for free. Update photos, prices and offers, and get guest enquiries directly — no commission." />
+<meta property="og:url" content="https://hotelzz.in/claim.html" />
+<meta property="og:image" content="https://hotelzz.in/og-image.jpg" />
+<meta property="og:locale" content="en_IN" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Claim Your Hotel Listing on Hotelzz.in — Free" />
+<meta name="twitter:description" content="Find your hotel, villa or homestay on Hotelzz.in and claim it for free. Update photos, prices and offers, and get guest enquiries directly — no commission." />
+<meta name="twitter:image" content="https://hotelzz.in/og-image.jpg" />
 </head>
 <body>
 
@@ -135,12 +148,7 @@
         <div class="form-group">
           <label>City</label>
           <select id="searchCity" class="form-control">
-            <option value="Mumbai" selected>Mumbai</option>
-            <option value="Goa">Goa</option>
-            <option value="Bengaluru">Bengaluru</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Udaipur">Udaipur</option>
-            <option value="Jaipur">Jaipur</option>
+            <option value="" selected>All cities</option>
           </select>
         </div>
 
@@ -153,7 +161,7 @@
 
       <!-- STEP 2: SEARCH RESULTS -->
       <div class="claim-step-view" id="step2">
-        <h1>Select your property</h1>
+        <h2 class="step-title">Select your property</h2>
         <p class="subtitle">We found matching properties in our directory. Select your listing to continue.</p>
 
         <div id="resultsList"></div>
@@ -163,7 +171,7 @@
 
       <!-- STEP 3: PHONE VERIFICATION -->
       <div class="claim-step-view" id="step3">
-        <h1>Verify your phone number</h1>
+        <h2 class="step-title">Verify your phone number</h2>
         <p class="subtitle">We already have a phone number associated with this property listing. Enter your phone number to verify ownership.</p>
 
         <div style="background: var(--bg-alt); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
@@ -197,7 +205,7 @@
           <div><strong>Phone number verified!</strong> Your identity matches the listing record.</div>
         </div>
 
-        <h1>Where should we send your login details?</h1>
+        <h2 class="step-title">Where should we send your login details?</h2>
         <p class="subtitle">We'll send your temporary login credentials and password instructions to this email address.</p>
 
         <div class="form-group">
@@ -212,7 +220,7 @@
       <div class="claim-step-view" id="step5">
         <div style="text-align: center; padding: 20px 0;">
           <div style="font-size: 48px; margin-bottom: 12px;">📧</div>
-          <h1>Login details sent</h1>
+          <h2 class="step-title">Login details sent</h2>
           <p class="subtitle" style="max-width: 480px; margin: 0 auto 24px;">We've sent your temporary password and login instructions to <strong id="sentEmailDisplay">owner@hotel.com</strong>.</p>
         </div>
 
@@ -230,22 +238,23 @@
       <div class="claim-step-view" id="step6">
         <div style="text-align: center; padding: 24px 0;">
           <div style="font-size: 56px; margin-bottom: 12px;">🎉</div>
-          <h1 style="color: var(--success);">Your property has been claimed!</h1>
+          <h2 class="step-title" style="color: var(--success);">Your property has been claimed!</h2>
           <p class="subtitle" style="max-width: 480px; margin: 0 auto 24px;">Your Hotelzz listing is now successfully connected to your verified owner account.</p>
 
           <div style="background: #F0FDF4; border: 1px solid #BBF7D0; padding: 20px; border-radius: 12px; margin-bottom: 28px; text-align: left;">
             <div style="font-weight: 800; font-size: 16px; color: #166534;" id="finalPropName">Taj Palace Hotel</div>
             <div style="font-size: 13px; color: #15803D;" id="finalPropCity">Mumbai, Maharashtra</div>
-            <div style="font-size: 12.5px; color: #166534; margin-top: 6px;">Status: <strong style="text-transform: uppercase;">Claimed & Verified</strong></div>
+            <div style="font-size: 12.5px; color: #166534; margin-top: 6px;">Status: <strong style="text-transform: uppercase;">Claim submitted — pending verification</strong></div>
+            <div style="font-size: 12.5px; color: #15803D; margin-top: 4px;">Our team verifies ownership within 24 hours. You can sign in now — editing the listing and receiving guest enquiries unlock as soon as it's approved.</div>
           </div>
 
-          <a href="admin.html#properties" class="btn-submit" style="display: block; text-decoration: none;">Go to Owner Dashboard →</a>
+          <a href="owner.html" class="btn-submit" style="display: block; text-decoration: none;">Go to Owner Dashboard →</a>
         </div>
       </div>
 
       <!-- NEW PROPERTY REGISTRATION FORM -->
       <div class="claim-step-view" id="stepRegister">
-        <h1>Register New Property</h1>
+        <h2 class="step-title">Register New Property</h2>
         <p class="subtitle">If your property isn't listed on Hotelzz yet, submit your property details below.</p>
 
         <div class="form-group"><label>Property Name</label><input type="text" class="form-control" placeholder="e.g. Grand Horizon Resort" /></div>
@@ -340,7 +349,7 @@
           results = r.properties || [];
           if (!results.length) {
             container.innerHTML = '<div style="padding:18px;text-align:center;color:var(--text-muted);">' +
-              'No listing matched "' + esc(name) + '" in ' + esc(city) + '. ' +
+              'No listing matched "' + esc(name) + '"' + (city ? ' in ' + esc(document.getElementById('searchCity').selectedOptions[0].textContent.replace(/\s*\(\d+\)$/, '')) : '') + '. ' +
               'Try a shorter name, or register the property as new.</div>';
           } else {
             container.innerHTML = results.map(function (p, idx) {
@@ -457,6 +466,42 @@
         goToStep('step6');
       }).catch(function (err) { show(err.message); });
     }
+
+    // Every city that has listings, so owners anywhere can find theirs.
+    API.get('/properties/cities').then(function (r) {
+      var sel = document.getElementById('searchCity');
+      (r.cities || []).slice().sort(function (a, b) { return String(a.name).localeCompare(String(b.name)); }).forEach(function (c) {
+        var o = document.createElement('option');
+        o.value = c.slug; o.textContent = c.name + ' (' + c.count + ')';
+        sel.appendChild(o);
+      });
+    }).catch(function () {});
+    // Enter in the name box runs the search.
+    document.getElementById('searchName').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); executeSearch(); }
+    });
+
+    /* ------------------------------------- deep link: claim.html?id=<id> */
+    // "Claim this listing" on a property page lands here with the listing
+    // already chosen, skipping the search.
+    (function () {
+      var id = new URLSearchParams(window.location.search).get('id');
+      if (!id) return;
+      API.get('/properties/' + encodeURIComponent(id)).then(function (r) {
+        var p = r.property;
+        if (!p) return;
+        document.getElementById('searchName').value = p.name;
+        if (p.claimStatus === 'verified') {
+          document.getElementById('resultsList').innerHTML =
+            '<div style="padding:18px;text-align:center;color:var(--text-muted);"><strong>' + esc(p.name) +
+            '</strong> has already been claimed and verified. If this is your property, contact ' +
+            '<a href="mailto:support@hotelzz.in">support@hotelzz.in</a>.</div>';
+          return goToStep('step2');
+        }
+        results = [p];
+        selectProperty(0);
+      }).catch(function () { /* fall back to the normal search */ });
+    })();
 
     /* ------------------------------------------------ register new property */
 

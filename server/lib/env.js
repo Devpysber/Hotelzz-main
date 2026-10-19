@@ -2,7 +2,9 @@
 require('dotenv').config();
 
 const env = {
-  NODE_ENV: process.env.NODE_ENV || 'development',
+  // Unset means production: dev conveniences (echoed login codes, seeded demo
+  // accounts, relaxed rate limits) only switch on when asked for explicitly.
+  NODE_ENV: process.env.NODE_ENV || 'production',
   PORT: parseInt(process.env.PORT || '3000', 10),
   DB_PATH: process.env.DB_PATH || './data/hotelzz.db',
   JWT_SECRET: process.env.JWT_SECRET || 'dev-insecure-secret-change-me',
@@ -17,6 +19,9 @@ const env = {
   SMTP_PASS: process.env.SMTP_PASS || '',
   MAIL_FROM: process.env.MAIL_FROM || 'Hotelzz <no-reply@hotelzz.in>',
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || 'admin@hotelzz.in',
+  // Everyone who gets a copy of every plan purchase confirmation (comma separated).
+  PURCHASE_NOTIFY_EMAILS: String(process.env.PURCHASE_NOTIFY_EMAILS || 'antriksh@psyber.co')
+    .split(',').map((e) => e.trim()).filter(Boolean),
 
   // "Sign in with Google" for travelers/owners.
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
@@ -60,7 +65,8 @@ const env = {
   GOOGLE_ADS_DEVELOPER_TOKEN: process.env.GOOGLE_ADS_DEVELOPER_TOKEN || '',
   GOOGLE_ADS_CUSTOMER_ID: process.env.GOOGLE_ADS_CUSTOMER_ID || '',
   GOOGLE_ADS_ACCESS_TOKEN: process.env.GOOGLE_ADS_ACCESS_TOKEN || '',
-  OTP_DEV_ECHO: String(process.env.OTP_DEV_ECHO || 'true') === 'true',
+  OTP_DEV_ECHO: String(process.env.OTP_DEV_ECHO || 'true') === 'true' &&
+    ['development', 'test'].includes(process.env.NODE_ENV || ''),
 
   // Google Sheet mirror. When set, every admin write (claim decisions, listing
   // edits, moderation, imports, campaign/package changes, settings...) is also
@@ -74,11 +80,20 @@ const env = {
   // GOOGLE_SHEET_SYNC_MIN minutes, and on demand from Admin → Import Listings.
   GOOGLE_SHEET_CSV_URLS: String(process.env.GOOGLE_SHEET_CSV_URLS || '')
     .split(',').map((u) => u.trim()).filter(Boolean),
+  // Android app (Trusted Web Activity, android/). The SHA-256 fingerprint(s) of
+  // the app signing key, comma separated — served at /.well-known/assetlinks.json
+  // so Android trusts the app to show hotelzz.in full-screen.
+  ANDROID_PACKAGE: process.env.ANDROID_PACKAGE || 'com.hotelzz.app',
+  ANDROID_CERT_SHA256: String(process.env.ANDROID_CERT_SHA256 || '')
+    .split(',').map((f) => f.trim().toUpperCase()).filter(Boolean),
+
   GOOGLE_SHEET_SYNC_MIN: Math.max(1, parseInt(process.env.GOOGLE_SHEET_SYNC_MIN, 10) || 15)
 };
 
 env.googleAuthConfigured = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
-env.isProd = env.NODE_ENV === 'production';
+env.isProd = !['development', 'test'].includes(env.NODE_ENV);
+// Passwords that must never guard a live admin account.
+env.WEAK_ADMIN_PASSWORDS = ['admin123', 'password', 'password123', 'admin', '12345678'];
 env.smtpConfigured = Boolean(env.SMTP_HOST &&
   Object.values(env.SMTP_ACCOUNTS).some((a) => a.user && a.pass));
 // Any account missing its own creds sends through the info mailbox instead of
@@ -86,7 +101,17 @@ env.smtpConfigured = Boolean(env.SMTP_HOST &&
 if (env.SMTP_ACCOUNTS.info.user && env.SMTP_ACCOUNTS.info.pass) {
   for (const key of ['support', 'admin']) {
     if (!env.SMTP_ACCOUNTS[key].user || !env.SMTP_ACCOUNTS[key].pass) {
-      env.SMTP_ACCOUNTS[key] = Object.assign({}, env.SMTP_ACCOUNTS.info, { from: env.SMTP_ACCOUNTS[key].from });
+      // Sending as support@/admin@ through the info@ login is rejected by
+      // Hostinger ("sender address not owned"), so keep the friendly name but
+      // send from info@, and point replies at the intended mailbox.
+      const wanted = env.SMTP_ACCOUNTS[key].from;
+      const name = (wanted.match(/^\s*"?([^"<]+?)"?\s*</) || [])[1] || 'Hotelzz';
+      const replyTo = (wanted.match(/<([^>]+)>/) || [])[1] || '';
+      env.SMTP_ACCOUNTS[key] = Object.assign({}, env.SMTP_ACCOUNTS.info, {
+        from: `${name} <${env.SMTP_ACCOUNTS.info.user}>`,
+        replyTo: replyTo && replyTo.toLowerCase() !== env.SMTP_ACCOUNTS.info.user.toLowerCase() ? replyTo : '',
+        sharedLogin: true
+      });
     }
   }
 }

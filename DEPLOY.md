@@ -119,3 +119,29 @@ is on the new code.
   That repo already has a `main` branch with a commit on it — before the
   first push, tell me whether to merge with what's already there or force
   it to your local copy, so nothing gets overwritten by accident.
+
+## Site Kit (SEO + AEO) — Admin → Site Kit · SEO
+
+Everything is managed in the admin panel; no file edits are needed after deploy.
+
+1. **Connections** — paste the Google Search Console HTML-tag code and the Bing
+   `msvalidate.01` code, then click *Verify* in each tool. GA4 (`G-S3XDVMFR2D`) is
+   already on every public page.
+2. **Search Console** → Sitemaps → submit `https://hotelzz.in/sitemap.xml`.
+3. **Overview** → *Submit all key pages* once (IndexNow → Bing, Yandex). After
+   that, changed listings are sent automatically every hour.
+4. Optional — Google numbers inside the panel (*Search & traffic* tab):
+   create a Google Cloud service account JSON key, enable the Search Console API
+   and the Google Analytics Data API, then
+   ```bash
+   # on the VPS
+   nano /var/www/hotelzz/google-service-account.json     # paste the key
+   chmod 600 /var/www/hotelzz/google-service-account.json
+   echo 'GOOGLE_SERVICE_ACCOUNT_FILE=/var/www/hotelzz/google-service-account.json' >> /var/www/hotelzz/.env
+   pm2 restart hotelzz --update-env
+   ```
+   and add the service-account email as a user in Search Console (Full) and GA4 (Viewer).
+
+Public files it serves: `/sitemap.xml`, `/robots.txt` (with AI-crawler rules),
+`/llms.txt` (site summary for ChatGPT/Claude/Perplexity) and the IndexNow key file.
+Check with `npm run test:seo` against a running dev server.

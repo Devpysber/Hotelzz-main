@@ -40,7 +40,8 @@
     style.id = 'hzSessNavStyle';
     style.textContent =
       '.hz-sessnav{position:relative;display:inline-flex;}' +
-      '.hz-sessnav-btn{display:inline-flex;align-items:center;gap:6px;background:#EFF6FF;color:#2563EB;font-weight:700;font-size:14px;border:1px solid #BFDBFE;border-radius:8px;padding:8px 12px;cursor:pointer;font-family:inherit;}' +
+      '.hz-sessnav{flex-shrink:0;}' +
+      '.hz-sessnav-btn{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;background:#EFF6FF;color:#2563EB;font-weight:700;font-size:14px;border:1px solid #BFDBFE;border-radius:8px;padding:8px 12px;cursor:pointer;font-family:inherit;}' +
       '.hz-sessnav-avatar{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#2563EB;color:#fff;font-size:11px;font-weight:800;}' +
       '.hz-sessnav-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #E2E8F0;border-radius:10px;box-shadow:0 12px 28px rgba(15,23,42,0.14);min-width:170px;overflow:hidden;z-index:1000;}' +
       '.hz-sessnav-menu.open{display:block;}' +

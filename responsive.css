@@ -766,3 +766,7 @@
 .hz-mnav-signin { background: #2563EB; color: #FFFFFF !important; }
 .hz-mnav-signup { background: #EFF6FF; color: #2563EB !important; border: 1px solid #BFDBFE; }
 .hz-mnav-account .hz-mnav-acct-name { grid-column: 1 / -1; justify-content: flex-start; padding: 4px 2px; font-size: 13px; color: #64748B; font-weight: 600; }
+
+
+/* A photo that fails to load shows its placeholder background, not raw alt text. */
+.hotel-img img, .gallery img, .thotel-media img, .deal-img img, .dest-card img, .property-card img { color: transparent; }

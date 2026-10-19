@@ -142,8 +142,11 @@
       .filter(function (o) { return o && o.id && o.name && String(o.active || 'yes').toLowerCase() !== 'no'; });
   }
 
+  // The bundled snapshot (hotels-data.js), kept aside before anything replaces it.
+  if (!window.HOTELS_SNAPSHOT && Array.isArray(window.HOTELS)) window.HOTELS_SNAPSHOT = window.HOTELS.slice();
+
   var cached = read();
-  if (cached && Array.isArray(cached.d) && cached.d.length > 5 &&
+  if (cached && Array.isArray(cached.d) && cached.d.length > Math.max(5, (window.HOTELS_SNAPSHOT || []).length * 0.5) &&
       (Date.now() - cached.t) < CACHE_TTL_MS) {
     window.HOTELS = cached.d;
     dispatchUpdate();
@@ -203,7 +206,8 @@
       var apiResult = results[0];
       var sheetById = results[1];
 
-      if (apiResult.unchanged && !Object.keys(sheetById).length) {
+      if (apiResult.unchanged && !Object.keys(sheetById).length &&
+          apiResult.hotels.length >= (window.HOTELS_SNAPSHOT || []).length * 0.5) {
         window.HOTELS = apiResult.hotels;
         store(apiResult.hotels, apiResult.etag);
         dispatchUpdate();
@@ -211,6 +215,14 @@
       }
 
       var byId = {};
+      // Safety net: if the database answers with far fewer listings than the
+      // bundled snapshot (e.g. it was never fully imported), keep the snapshot
+      // underneath so the site never goes empty — database rows still win.
+      var snapshot = window.HOTELS_SNAPSHOT || [];
+      if (snapshot.length && apiResult.hotels.length < snapshot.length * 0.5) {
+        snapshot.forEach(function (h) { byId[h.id] = h; });
+        console.warn('[Hotelzz] Database returned only ' + apiResult.hotels.length + ' listings; keeping the bundled catalogue underneath.');
+      }
       apiResult.hotels.forEach(function (h) { byId[h.id] = h; });
       Object.keys(sheetById).forEach(function (id) { byId[id] = sheetById[id]; });
       var hotels = Object.keys(byId).map(function (id) { return byId[id]; });

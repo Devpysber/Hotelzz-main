@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+<meta name="robots" content="noindex, nofollow" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hotelzz Portal Login & Registration — Traveler, Hotel Owner & Admin</title>
   <link rel="icon" type="image/png" href="jpg.png" />
@@ -89,6 +90,7 @@
     }
   </style>
 <link rel="stylesheet" href="responsive.css" />
+<link rel="stylesheet" href="auth-fit.css" />
 </head>
 <body>
 
@@ -216,8 +218,8 @@
 
             <form id="formOwnerRegister">
               <div class="form-group"><label>Hotel / Property Name *</label><input type="text" name="hotelName" class="form-control" placeholder="e.g. Royal Residency Mumbai" required /></div>
-              <div class="form-group"><label>City / Location *</label><input type="text" name="city" class="form-control" placeholder="e.g. Mumbai, Goa, Pune" required /></div>
-              <div class="form-group"><label>Owner / Manager Name *</label><input type="text" name="name" class="form-control" placeholder="e.g. Vikram Malhotra" required /></div>
+              <div class="form-group"><label>City / Location *</label><input type="text" name="city" class="form-control" placeholder="e.g. Goa" required /></div>
+              <div class="form-group"><label>Owner / Manager Name *</label><input type="text" name="name" class="form-control" placeholder="Your name" required /></div>
               <div class="form-group"><label>Phone Number (WhatsApp) *</label><input type="text" name="phone" class="form-control" placeholder="+91 98000 12345" required /></div>
               <div class="form-group"><label>Work Email *</label><input type="email" name="email" class="form-control" placeholder="vikram@hotel.com" required /></div>
               <div class="form-group"><label>Create Password *</label><input type="password" name="password" class="form-control" placeholder="Minimum 8 characters" minlength="8" autocomplete="new-password" required /></div>
@@ -298,10 +300,20 @@
       if (el) el.style.display = visible ? 'block' : 'none';
     }
 
+function safeNext(next) {
+      // Same-site paths only: resolve against this origin and compare, so
+      // tricks like /%09/evil.com or /\\evil.com can't leave the site.
+      if (!next) return null;
+      try {
+        var u = new URL(next, window.location.origin);
+        if (u.origin !== window.location.origin || !/^\/[\w-]/.test(u.pathname)) return null;
+        return u.pathname + u.search + u.hash;
+      } catch (_) { return null; }
+    }
     function nextUrl(fallback) {
       var next = new URLSearchParams(window.location.search).get('next');
       // Only allow same-site relative paths — never an attacker-supplied origin.
-      var url = (next && /^\/[^/\\]/.test(next)) ? next : fallback;
+      var url = safeNext(next) || fallback;
       // Travelers always start on Search Hotels after signing in, whichever
       // portal section they were on when the session ran out.
       if (/^\/?user-portal\.html/.test(url)) url = '/user-portal.html#search';
@@ -462,6 +474,9 @@
     (function init() {
       var type = new URLSearchParams(window.location.search).get('type') || 'traveler';
       switchAuthTab(type);
+      // login.html?forgot=owner|traveler opens the reset form directly.
+      var forgot = new URLSearchParams(window.location.search).get('forgot');
+      if (forgot === 'owner' || forgot === 'traveler') openForgot(forgot);
 
       // Already signed in? Go straight to the right portal.
       API.auth.me().then(function (r) {

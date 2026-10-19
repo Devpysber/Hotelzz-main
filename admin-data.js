@@ -286,7 +286,8 @@
   data.commitImport = function (onProgress) {
     var rows = data.importSession.rows;
     var CHUNK = 1000;
-    var total = { total: rows.length, imported: 0, duplicates: 0, invalid: 0 };
+    var total = { total: rows.length, imported: 0, duplicates: 0, invalid: 0, updated: 0 };
+    var updateExisting = !!(document.getElementById('importUpdateExisting') || {}).checked;
     var totalProperties = 0;
 
     var sendChunk = function (index) {
@@ -294,8 +295,9 @@
         return Promise.resolve({ ok: true, summary: total, totalProperties: totalProperties });
       }
       var slice = rows.slice(index, index + CHUNK);
-      return API.post('/admin/import', { rows: slice }).then(function (r) {
+      return API.post('/admin/import', { rows: slice, updateExisting: updateExisting }).then(function (r) {
         total.imported += r.summary.imported;
+        total.updated += r.summary.updated || 0;
         total.duplicates += r.summary.duplicates;
         total.invalid += r.summary.invalid;
         totalProperties = r.totalProperties;

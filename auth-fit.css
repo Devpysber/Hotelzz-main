@@ -1,0 +1,117 @@
+/*
+ * Sign-in pages (login, admin-login, dashboard-login, reset-password):
+ * one screen, no page scrolling. Header and footer stay put; the card is
+ * centred and, only on very short screens, scrolls inside itself so nothing
+ * is ever cut off. Loaded after each page's own styles.
+ */
+html, body { height: 100%; }
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+body > header { flex: 0 0 auto; }
+body > header .header-inner,
+body > header.auth-header { height: 60px; }
+body > main,
+body > main.auth-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: hidden;
+}
+body > footer,
+body > footer.auth-footer { flex: 0 0 auto; padding: 10px 16px; font-size: 12px; }
+
+.auth-card,
+.login-card,
+body > main > .card {
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  margin: 0 !important;
+}
+.auth-card { padding: 0 !important; }
+.auth-body { padding: 26px 30px; }
+.login-card { padding: 30px 32px; }
+body > main > .card { padding: 26px 28px; }
+
+.form-group { margin-bottom: 13px; }
+.form-control,
+.form-field input,
+input.form-control { min-height: 44px; }
+.btn-submit, .btn, .login-card .btn-primary { min-height: 46px; }
+.toggle-subform { margin-top: 12px; }
+
+/* Long forms (registration): short fields share a row so the whole form
+   fits one screen. Wide screens put every field in two columns. */
+#formOwnerRegister, #formTravelerSignup {
+  display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px;
+}
+#formOwnerRegister > *, #formTravelerSignup > * { grid-column: 1 / -1; min-width: 0; }
+#formOwnerRegister .form-group:nth-child(2),
+#formOwnerRegister .form-group:nth-child(3),
+#formTravelerSignup .form-group:nth-child(3),
+#formTravelerSignup .form-group:nth-child(4) { grid-column: auto; }
+@media (min-width: 560px) {
+  #formOwnerRegister .form-group:nth-child(4),
+  #formOwnerRegister .form-group:nth-child(5),
+  #formTravelerSignup .form-group:nth-child(1),
+  #formTravelerSignup .form-group:nth-child(2) { grid-column: auto; }
+  .auth-card:has(#ownerRegisterForm:not([style*="none"])),
+  .auth-card:has(#travelerSignupForm:not([style*="none"])) { max-width: 600px; }
+}
+
+/* Phones: iOS zooms into any input under 16px, so keep 16px there. */
+@media (max-width: 600px) {
+  body > header .header-inner,
+  body > header.auth-header { height: 52px; padding: 0 16px; }
+  .brand-logo, .brand { font-size: 20px; }
+  body > main, body > main.auth-main { padding: 10px 12px; align-items: center; }
+  .auth-body { padding: 20px 18px; }
+  .login-card { padding: 22px 18px; border-radius: 14px; }
+  body > main > .card { padding: 22px 18px; }
+  .form-control, .form-field input, input.form-control { font-size: 16px; }
+  .auth-body h2, .login-card h1, body > main > .card h1 { font-size: 19px !important; line-height: 1.25; }
+  .login-card p.sub, .auth-body > p, .auth-body h2 + p { font-size: 13px !important; margin-bottom: 14px !important; }
+  .auth-tab-btn { padding: 11px 6px; }
+  .login-card .label-eyebrow { margin-bottom: 8px; }
+  .help-row { margin-top: 16px; padding-top: 12px; }
+}
+
+/* Short phones (SE, small Androids): tighten everything a notch more. */
+@media (max-height: 700px) and (max-width: 600px) {
+  body > header .header-inner,
+  body > header.auth-header { height: 48px; }
+  body > footer, body > footer.auth-footer { display: none; }
+  .auth-body { padding: 16px 16px; }
+  .login-card { padding: 18px 16px; }
+  body > main > .card { padding: 18px 16px; }
+  .form-group { margin-bottom: 10px; }
+  .form-group label, .form-field label { margin-bottom: 2px; font-size: 12px; }
+  .form-control, .form-field input, input.form-control { min-height: 42px; padding-top: 8px; padding-bottom: 8px; }
+  .btn-submit, .btn, .login-card .btn-primary { min-height: 44px; margin-top: 4px; }
+  .toggle-subform { margin-top: 10px; font-size: 12.5px; }
+  .auth-body > p, .auth-body h2 + p, .login-card p.sub { margin-bottom: 10px !important; }
+  .mode-tabs { margin-bottom: 12px !important; }
+  #ownerRegisterForm > p, #travelerSignupForm > p { display: none; }
+  #ownerRegisterForm > h2, #travelerSignupForm > h2 { margin-bottom: 10px !important; }
+}
+
+/* Laptops with short screens (1366×768 etc.). */
+@media (min-width: 601px) and (max-height: 820px) {
+  body > header .header-inner,
+  body > header.auth-header { height: 56px; }
+  .auth-body { padding: 22px 28px; }
+  .form-group { margin-bottom: 11px; }
+  body > footer, body > footer.auth-footer { padding: 6px; }
+}

@@ -11,6 +11,9 @@ const automation = require('./lib/automation');
 const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
+// gzip/deflate every text response — the bundled hotel catalogue alone goes
+// from ~1.8 MB to ~200 KB, which matters for phones and for page-speed SEO.
+app.use(require('compression')());
 
 // The Razorpay webhook signature covers the exact bytes, so it needs the raw
 // body — mount it before the JSON parser.
@@ -20,15 +23,26 @@ app.use('/api/admin/import', express.json({ limit: '32mb' }));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(require('./lib/sanitize').sanitizeBody);
 app.use(A.attachUser);
 
 app.use((req, res, next) => {
   res.set('X-Content-Type-Options', 'nosniff');
   res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // No other site may frame Hotelzz (clickjacking on the admin/owner panels).
+  res.set('X-Frame-Options', 'SAMEORIGIN');
+  res.set('Content-Security-Policy', "frame-ancestors 'self'; base-uri 'self'; object-src 'none'");
+  res.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
+  if (env.isProd) res.set('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
   next();
 });
 
-app.get('/api/health', (_req, res) => {
+app.get('/api/health', (req, res) => {
+  // Public callers only learn that the service is up; the details are for admins.
+  if (env.isProd && !(req.user && req.user.role === 'admin')) {
+    return res.json({ ok: true, smtp: env.smtpConfigured ? 'configured' : 'dev-log-only',
+                      payments: env.paymentsConfigured ? 'razorpay' : 'manual-invoicing', time: new Date().toISOString() });
+  }
   res.json({
     ok: true,
     env: env.NODE_ENV,
@@ -49,14 +63,46 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/saved', require('./routes/saved'));
 app.use('/api/owner', require('./routes/owner'));
 app.use('/api/leads', require('./routes/leads'));
+app.use('/api/admin/deals', require('./routes/deals').admin);
+app.use('/api/admin/sitekit', require('./routes/sitekit'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/deals', require('./routes/deals'));
 app.use('/api/marketing', require('./routes/marketing'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/uploads', require('./routes/uploads'));
 
+// Digital Asset Links for the Android app (android/). express.static skips
+// dot-folders, so this is served explicitly.
+app.get('/.well-known/assetlinks.json', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=3600');
+  res.json(env.ANDROID_CERT_SHA256.length ? [{
+    relation: ['delegate_permission/common.handle_all_urls'],
+    target: { namespace: 'android_app', package_name: env.ANDROID_PACKAGE, sha256_cert_fingerprints: env.ANDROID_CERT_SHA256 }
+  }] : []);
+});
+
 // Uploaded partner photos, served read-only from outside the repo.
 const { UPLOAD_ROOT } = require('./lib/uploads');
 app.use('/uploads', express.static(UPLOAD_ROOT, { maxAge: '30d', index: false, dotfiles: 'ignore' }));
+
+// SEO: live sitemap/robots, per-listing <head> for hotel and city pages, and
+// noindex on private pages (server/lib/seo.js).
+// Site Kit (server/lib/sitekit.js, Admin → Site Kit) adds tracking and
+// verification tags, page overrides, AEO answers and redirects on top.
+const seo = require('./lib/seo');
+const sitekit = require('./lib/sitekit');
+app.use(sitekit.redirects);
+app.use(seo.noindexPrivate);
+app.get('/sitemap.xml', seo.sitemap);
+app.get('/robots.txt', seo.robots);
+app.get('/llms.txt', seo.llms);
+app.get(/^\/([a-f0-9]{32})\.txt$/, (req, res, next) => {
+  if (req.params[0] !== sitekit.load().indexNowKey) return next();
+  res.type('text/plain').send(sitekit.load().indexNowKey);
+});
+app.get(['/property.html', '/property'], seo.propertyPage);
+app.get(['/city.html', '/city'], seo.cityPage);
+app.use(sitekit.staticPages);
 
 // Static site (same origin as the API, so cookies just work).
 const ROOT = path.resolve(__dirname, '..');
@@ -77,6 +123,7 @@ seed().then(() => {
   A.purgeExpiredTokens();
   setInterval(A.purgeExpiredTokens, 6 * 60 * 60 * 1000).unref();
   automation.start();
+  sitekit.startAutoIndexNow();
   require('./lib/sheetSync').start();
 
   // Keep campaign spend/impressions fresh when an ad platform is connected.

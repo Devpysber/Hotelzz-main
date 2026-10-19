@@ -10,7 +10,7 @@ async function upsertUser({ role, name, email, phone, password, city }) {
   db.prepare(
     `INSERT INTO users (id, role, name, email, phone, password_hash, city, email_verified, status)
      VALUES (?,?,?,?,?,?,?,1,'active')`
-  ).run(id, role, name, email.toLowerCase(), phone || null, await hashPassword(password), city || null);
+  ).run(id, role, name, email.toLowerCase(), phone || null, password ? await hashPassword(password) : null, city || null);
   console.log(`[seed] created ${role}: ${email}`);
   return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
 }
@@ -43,20 +43,61 @@ function seedPlans() {
   });
 }
 
+/**
+ * The public catalogue lives in the database. If it is missing most of the
+ * bundled hotels.csv (a fresh or partly-imported database), add the missing
+ * listings. Insert-only: existing rows — edited, deactivated, claimed — are
+ * never touched, so admin and owner changes always win.
+ */
+function seedCatalogue() {
+  const fs = require('fs');
+  const path = require('path');
+  const file = path.resolve(__dirname, '..', '..', 'hotels.csv');
+  if (!fs.existsSync(file)) return;
+  const { parseCSV } = require('./csv');
+  const { slugify } = require('./http');
+  const rows = parseCSV(fs.readFileSync(file, 'utf8')).filter((r) => r.id && r.name);
+  const have = db.prepare('SELECT COUNT(*) c FROM properties').get().c;
+  if (!rows.length || have >= rows.length * 0.5) return;
+
+  const truthy = (v) => { const t = String(v || '').toLowerCase(); return !t || ['yes', 'true', '1', 'y'].includes(t); };
+  const insert = db.prepare(
+    `INSERT INTO properties (id, name, location, city_slug, address, phone, website, rating, pincode,
+                             image_url, property_type, google_cid, google_review_count, google_summary, gmb_link, active)
+     VALUES (@id,@name,@location,@city_slug,@address,@phone,@website,@rating,@pincode,
+             @image_url,@property_type,@google_cid,@google_review_count,@google_summary,@gmb_link,@active)
+     ON CONFLICT(id) DO NOTHING`
+  );
+  const added = db.transaction((list) => list.reduce((n, h) => n + insert.run({
+    id: h.id, name: h.name, location: h.location || null, city_slug: h.city_slug || slugify(h.location),
+    address: h.address || null, phone: h.phone || null, website: h.website || null,
+    rating: parseFloat(h.rating) || 4.5, pincode: h.pincode || null, image_url: h.image_url || null,
+    property_type: h.property_type || null, google_cid: String(h.google_cid || '').replace(/\D/g, '') || null,
+    google_review_count: parseInt(h.google_review_count, 10) || 0, google_summary: h.google_summary || null,
+    gmb_link: h.gmb_link || null, active: truthy(h.active) ? 1 : 0
+  }).changes, 0))(rows);
+  console.log(`[seed] catalogue had ${have} listings — added ${added} missing ones from hotels.csv`);
+}
+
 async function seed() {
   seedPackages();
   seedPlans();
+  seedCatalogue();
   // Only bootstrap the first admin. Once any admin exists, never re-create the
   // seed account — otherwise changing the admin email in Settings would bring
   // SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD back on the next restart.
   const anyAdmin = db.prepare("SELECT 1 FROM users WHERE role = 'admin' LIMIT 1").get();
-  if (!anyAdmin) await upsertUser({
-    role: 'admin',
-    name: 'Hotelzz Admin',
-    email: env.SEED_ADMIN_EMAIL,
-    phone: '+919930090487',
-    password: env.SEED_ADMIN_PASSWORD
-  });
+  if (!anyAdmin) {
+    const weak = env.WEAK_ADMIN_PASSWORDS.includes(env.SEED_ADMIN_PASSWORD) || env.SEED_ADMIN_PASSWORD.length < 10;
+    if (env.isProd && weak) {
+      // Never create a production admin with a guessable password: create it
+      // without one — sign in with an email code or "Forgot password".
+      await upsertUser({ role: 'admin', name: 'Hotelzz Admin', email: env.SEED_ADMIN_EMAIL, phone: '+919930090487', password: null });
+      console.warn('[seed] SEED_ADMIN_PASSWORD is weak — admin created without a password. Use Email OTP or Forgot password at /admin-login.html.');
+    } else {
+      await upsertUser({ role: 'admin', name: 'Hotelzz Admin', email: env.SEED_ADMIN_EMAIL, phone: '+919930090487', password: env.SEED_ADMIN_PASSWORD });
+    }
+  }
 
   if (!env.isProd) {
     await upsertUser({

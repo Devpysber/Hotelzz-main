@@ -42,6 +42,8 @@
       setCount('userCountOwner', c.owner);
       setCount('userCountAdmin', c.admin);
 
+      lastUsers = {};
+      (r.users || []).forEach(function (u) { lastUsers[u.id] = u; });
       tbody.innerHTML = (r.users || []).map(function (u) {
         var nextStatus = u.status === 'suspended' ? 'active' : 'suspended';
         var actionLabel = u.status === 'suspended' ? 'Reactivate' : 'Suspend';
@@ -56,10 +58,42 @@
           '<td>' + window.hzFormatDate(u.createdAt) + '</td>' +
           '<td>' + (u.lastActive ? window.hzFormatDate(u.lastActive) : '—') + '</td>' +
           '<td><span class="badge ' + (STATUS_BADGE[u.status] || 'badge-gray') + '">' + u.status + '</span></td>' +
-          '<td><button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="toggleUserStatus(\'' + u.id + '\', \'' + nextStatus + '\', \'' + esc(u.name).replace(/'/g, "\\'") + '\')">' + actionLabel + '</button></td>' +
+          '<td style="white-space:nowrap;"><button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="toggleUserStatus(\'' + u.id + '\', \'' + nextStatus + '\', \'' + esc(u.name).replace(/'/g, "\\'") + '\')">' + actionLabel + '</button> ' +
+          '<button class="btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="openUserCredentials(\'' + u.id + '\')">Edit login</button></td>' +
           '</tr>';
       }).join('') || '<tr><td colspan="11" style="text-align:center; color:var(--admin-text-muted);">No accounts match.</td></tr>';
     }).catch(function (err) { showToast(err.message || 'Could not load users.', 'danger'); });
+  };
+
+  var lastUsers = {};
+  window.openUserCredentials = function (userId) {
+    var u = lastUsers[userId];
+    if (!u) return;
+    document.getElementById('credUserId').value = u.id;
+    document.getElementById('credUserLabel').textContent = u.name + ' (' + (ROLE_LABEL[u.role] || u.role) + ')';
+    document.getElementById('credEmail').value = u.email || '';
+    document.getElementById('credPassword').value = '';
+    document.getElementById('credError').textContent = '';
+    document.getElementById('userCredModal').classList.add('show');
+  };
+
+  window.saveUserCredentials = function (e) {
+    e.preventDefault();
+    var id = document.getElementById('credUserId').value;
+    var u = lastUsers[id] || {};
+    var email = document.getElementById('credEmail').value.trim();
+    var pw = document.getElementById('credPassword').value;
+    var err = document.getElementById('credError');
+    var payload = {};
+    if (email && email.toLowerCase() !== String(u.email || '').toLowerCase()) payload.email = email;
+    if (pw) payload.password = pw;
+    if (!payload.email && !payload.password) { err.textContent = 'Change the email or enter a new password.'; return; }
+    if (pw && pw.length < 8) { err.textContent = 'Password must be at least 8 characters.'; return; }
+    API.post('/admin/users/' + encodeURIComponent(id) + '/credentials', payload).then(function () {
+      window.closeModal('userCredModal');
+      showToast('Login details updated — ' + (u.name || 'the user') + ' has been emailed.');
+      window.loadUsersTable();
+    }).catch(function (e2) { err.textContent = e2.message; });
   };
 
   window.toggleUserStatus = function (userId, nextStatus, name) {

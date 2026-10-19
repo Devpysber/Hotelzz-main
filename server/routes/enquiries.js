@@ -87,8 +87,10 @@ router.post('/',
   wrap(async (req, res) => {
     const b = req.body;
     const property = db.prepare('SELECT * FROM properties WHERE id = ?').get(b.propertyId);
-    const propertyName = property ? property.name : b.propertyName;
-    if (!propertyName) return res.status(400).json({ ok: false, field: 'propertyId', error: 'Unknown property.' });
+    // Only real listings: a made-up property name would otherwise be mailed
+    // to whatever address the form gave, from our own mailbox.
+    if (!property) return res.status(404).json({ ok: false, field: 'propertyId', error: 'That property is no longer listed.' });
+    const propertyName = property.name;
 
     const id = 'HZ-ENQ-' + Math.floor(Math.random() * 89999 + 10000);
     db.prepare(
@@ -97,7 +99,7 @@ router.post('/',
                               message, source, status, delivered_at)
        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'Sent', datetime('now'))`
     ).run(id, req.user ? req.user.id : null, b.propertyId, propertyName,
-          b.propertyCity || (property ? property.location : null), property ? property.owner_id : null,
+          b.propertyCity || (property ? property.location : null), property && require('../lib/ownership').canManage(property) ? property.owner_id : null,
           b.name, b.email.toLowerCase(), b.phone, b.checkIn || null, b.checkOut || null,
           b.guests, b.message || null, b.source || 'website');
 
@@ -116,7 +118,8 @@ router.post('/',
       city: b.propertyCity || (property ? property.location : null)
     };
     const ownerEmail = property && (property.email || null);
-    const ownerUser = property && property.owner_id
+    // Guests' details only go to a partner who actually manages the listing.
+    const ownerUser = property && property.owner_id && require('../lib/ownership').canManage(property)
       ? db.prepare('SELECT email FROM users WHERE id = ?').get(property.owner_id) : null;
     const target = (ownerUser && ownerUser.email) || ownerEmail;
     // Timeline used to always say "Notification sent to the hotel owner" even

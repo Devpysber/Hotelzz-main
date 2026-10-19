@@ -1,0 +1,61 @@
+plugins {
+    id 'com.android.application'
+}
+
+// The site the app opens. Everything else (pages, login, payments) is the
+// live website running in Chrome as a Trusted Web Activity.
+def siteHost = 'hotelzz.in'
+def startUrl = "https://${siteHost}/?utm_source=android_app"
+
+android {
+    namespace 'com.hotelzz.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.hotelzz.app'
+        minSdk 21
+        targetSdk 34
+        versionCode Integer.parseInt(System.getenv('VERSION_CODE') ?: '1')
+        versionName System.getenv('VERSION_NAME') ?: '1.0.0'
+
+        manifestPlaceholders = [
+            hostName        : siteHost,
+            defaultUrl      : startUrl,
+            launcherName    : 'Hotelzz',
+            themeColor      : '#2563EB',
+            navColor        : '#FFFFFF',
+            backgroundColor : '#153A54'
+        ]
+        resValue 'string', 'asset_statements',
+            "[{ \\\"relation\\\": [\\\"delegate_permission/common.handle_all_urls\\\"], \\\"target\\\": {\\\"namespace\\\": \\\"web\\\", \\\"site\\\": \\\"https://${siteHost}\\\"}}]"
+    }
+
+    signingConfigs {
+        release {
+            // Supplied by CI (.github/workflows/android.yml).
+            def ks = System.getenv('KEYSTORE_PATH')
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv('KEYSTORE_PASSWORD')
+                keyAlias System.getenv('KEY_ALIAS')
+                keyPassword System.getenv('KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig System.getenv('KEYSTORE_PATH') ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}

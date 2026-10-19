@@ -1,0 +1,109 @@
+name: Build Android APK
+
+# Builds the Hotelzz Android app (android/ — a Trusted Web Activity that opens
+# https://hotelzz.in full-screen) and publishes it on the "android-latest"
+# GitHub Release, so the APK has a stable download link.
+#
+# Signing: add these repository secrets (Settings → Secrets → Actions) so every
+# build is signed with the same permanent key and installs as an update:
+#   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+# Without them the build still works but uses a throwaway key: the app shows a
+# small address bar and each new build needs an uninstall first.
+
+on:
+  push:
+    branches: [main, claude/trusting-clarke-esie43]
+    paths:
+      - 'android/**'
+      - '.github/workflows/android.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Prepare signing key
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KS_KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          KS="$RUNNER_TEMP/release.jks"
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > "$KS"
+            echo "KEYSTORE_PASSWORD=$KS_PASS" >> "$GITHUB_ENV"
+            echo "KEY_ALIAS=$KS_ALIAS" >> "$GITHUB_ENV"
+            echo "KEY_PASSWORD=${KS_KEY_PASS:-$KS_PASS}" >> "$GITHUB_ENV"
+            echo "SIGNING=permanent" >> "$GITHUB_ENV"
+          else
+            echo "::warning::ANDROID_KEYSTORE_BASE64 secret not set — signing with a throwaway key."
+            PW="$(openssl rand -hex 16)"
+            keytool -genkeypair -keystore "$KS" -alias hotelzz -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "$PW" -keypass "$PW" -dname "CN=Hotelzz Test Build, O=Hotelzz.in, C=IN"
+            echo "::add-mask::$PW"
+            echo "KEYSTORE_PASSWORD=$PW" >> "$GITHUB_ENV"
+            echo "KEY_ALIAS=hotelzz" >> "$GITHUB_ENV"
+            echo "KEY_PASSWORD=$PW" >> "$GITHUB_ENV"
+            echo "SIGNING=throwaway" >> "$GITHUB_ENV"
+          fi
+          echo "KEYSTORE_PATH=$KS" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=${{ github.run_number }}" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=1.0.${{ github.run_number }}" >> "$GITHUB_ENV"
+
+      - name: Build APK and Play Store bundle
+        working-directory: android
+        run: gradle --no-daemon assembleRelease bundleRelease
+
+      - name: Collect outputs
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/release/app-release.apk dist/hotelzz.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab dist/hotelzz-playstore.aab
+          FP=$(keytool -list -v -keystore "$KEYSTORE_PATH" -storepass "$KEYSTORE_PASSWORD" | grep 'SHA256:' | awk '{print $2}')
+          echo "FINGERPRINT=$FP" >> "$GITHUB_ENV"
+          ls -la dist
+          {
+            echo "### Hotelzz Android app $VERSION_NAME"
+            echo "- Signing: **$SIGNING**"
+            echo "- SHA-256: \`$FP\`"
+            echo "- Put this in the VPS .env as \`ANDROID_CERT_SHA256=$FP\` so the app opens full-screen."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hotelzz-android
+          path: dist/
+
+      - name: Publish to the android-latest release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-latest
+          name: Hotelzz Android app (latest)
+          prerelease: true
+          make_latest: false
+          body: |
+            **Download `hotelzz.apk` below and open it on an Android phone to install.**
+            (Allow "Install unknown apps" for your browser/file manager when asked.)
+
+            Version ${{ env.VERSION_NAME }} · built from ${{ github.sha }}
+            Signing key: ${{ env.SIGNING }} · SHA-256 `${{ env.FINGERPRINT }}`
+
+            `hotelzz-playstore.aab` is the bundle to upload to Google Play Console.
+          files: |
+            dist/hotelzz.apk
+            dist/hotelzz-playstore.aab

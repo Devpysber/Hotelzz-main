@@ -409,6 +409,88 @@ define('paymentReceipt',
        ${button(env.PUBLIC_URL + '/owner.html#billing', 'View invoices')}`)
   }));
 
+// Template data arrives already HTML-escaped (see buildSafe), so this only
+// normalises empty values.
+const esc = (v) => String(v == null ? '' : v);
+const money = (currency, amount) => `${currency || 'INR'} ${Number(amount || 0).toLocaleString('en-IN')}`;
+
+define('purchaseConfirmation',
+  { account: 'info', category: 'Billing', label: 'Plan purchase confirmation',
+    description: 'Sent to the buyer when a plan, subscription or campaign purchase is confirmed.',
+    sample: { name: 'Rohan Mehta', planName: 'OTA Bundle — 4 OTAs', amount: 2999, currency: 'INR',
+              orderId: 'pay_abc123', paymentRef: 'pay_Nx12', status: 'Paid', hotelName: 'The Grand Palace' } },
+  ({ name, planName, amount, currency, orderId, paymentRef, status, hotelName }) => {
+    const paid = status !== 'Awaiting payment';
+    return {
+      subject: paid ? `Purchase confirmed — ${planName}` : `Order received — ${planName}`,
+      text: `Hi ${name || 'there'},\n\n` +
+        (paid ? `Thank you! Your purchase of ${planName} is confirmed.` :
+          `We have received your order for ${planName}. Our team will send you a payment link shortly.`) +
+        `\n\nPlan: ${planName}\nAmount: ${money(currency, amount)}\n` +
+        (hotelName ? `Hotel: ${hotelName}\n` : '') + `Order: ${orderId}\n` +
+        (paymentRef ? `Payment ref: ${paymentRef}\n` : '') +
+        `\nOur team will be in touch within 24 hours to get you started.\n\nTeam Hotelzz`,
+      html: layout(paid ? 'Purchase confirmed 🎉' : 'Order received',
+        `<p style="line-height:1.6">Hi ${esc(name || 'there')}, ` +
+        (paid ? `thank you! Your purchase of <b>${esc(planName)}</b> is confirmed.` :
+          `we've received your order for <b>${esc(planName)}</b>. Our team will send you a payment link shortly.`) + `</p>
+         ${infoTable([['Plan', esc(planName)], ['Amount', money(currency, amount)], ['Hotel', esc(hotelName)],
+                      ['Order', esc(orderId)], ['Payment ref', esc(paymentRef)],
+                      ['Status', paid ? badge('Paid', '#047857', '#ECFDF5') : badge('Awaiting payment', '#92400E', '#FEF3C7')]])}
+         <p style="line-height:1.6">Our team will be in touch within 24 hours to get you started.</p>`)
+    };
+  });
+
+define('adminPlanPurchase',
+  { account: 'admin', category: 'Admin', label: 'Plan purchase (ops copy)',
+    description: 'Internal copy of every plan purchase, sent to PURCHASE_NOTIFY_EMAILS.',
+    sample: { name: 'Rohan Mehta', email: 'rohan@example.com', phone: '+91 98200 12345', planName: 'OTA Bundle — 4 OTAs',
+              amount: 2999, currency: 'INR', orderId: 'pay_abc123', paymentRef: 'pay_Nx12', status: 'Paid',
+              hotelName: 'The Grand Palace', city: 'Mumbai' } },
+  ({ name, email, phone, planName, amount, currency, orderId, paymentRef, status, hotelName, city }) => ({
+    subject: `${status === 'Paid' ? 'New purchase' : 'New order (unpaid)'}: ${planName} — ${money(currency, amount)}`,
+    text: `Plan: ${planName}\nAmount: ${money(currency, amount)}\nStatus: ${status}\nBuyer: ${name} / ${email} / ${phone || '-'}\n` +
+      `Hotel: ${hotelName || '-'} (${city || '-'})\nOrder: ${orderId}\nPayment ref: ${paymentRef || '-'}`,
+    html: layout('New plan purchase',
+      infoTable([['Plan', esc(planName)], ['Amount', money(currency, amount)], ['Status', esc(status)],
+                 ['Buyer', esc(name)], ['Email', esc(email)], ['Phone', esc(phone || '—')],
+                 ['Hotel', esc(hotelName || '—')], ['City', esc(city || '—')],
+                 ['Order', esc(orderId)], ['Payment ref', esc(paymentRef || '—')]]))
+  }));
+
+define('dealGrabbed',
+  { account: 'info', category: 'Traveler', label: 'Deal code',
+    description: 'Sends a traveller the coupon code for a deal they grabbed.',
+    sample: { name: 'Priya Nair', title: 'Flat 25% off weekend stays', hotelName: 'The Grand Palace',
+              discount: '25% OFF', code: 'WEEKEND25', validTo: '2026-12-31', propertyId: 'grand-palace' } },
+  ({ name, title, hotelName, discount, code, validTo, terms, propertyId }) => ({
+    subject: `Your Hotelzz deal: ${title}`,
+    text: `Hi ${name}, here is your deal at ${hotelName}: ${title}${discount ? ' (' + discount + ')' : ''}.\n` +
+      (code ? `Code: ${code}\n` : 'No code needed — mention Hotelzz when you book.\n') +
+      (validTo ? `Valid till: ${validTo}\n` : '') + (terms ? `Terms: ${terms}\n` : '') +
+      `${env.PUBLIC_URL}/property.html?id=${encodeURIComponent(propertyId || '')}`,
+    html: layout('Your deal is ready',
+      `<p style="line-height:1.6">Hi ${esc(name)}, here is your deal at <b>${esc(hotelName)}</b>: <b>${esc(title)}</b>${discount ? ' — ' + esc(discount) : ''}.</p>
+       ${code ? codeBox(esc(code)) : '<p style="line-height:1.6"><b>No code needed</b> — just mention Hotelzz when you contact the hotel.</p>'}
+       ${infoTable([['Valid till', esc(validTo)], ['Terms', esc(terms)]])}
+       ${button(env.PUBLIC_URL + '/property.html?id=' + encodeURIComponent(propertyId || ''), 'View the hotel')}`)
+  }));
+
+define('dealGrabbedOwner',
+  { account: 'support', category: 'Partner', label: 'Deal grabbed (partner)',
+    description: 'Tells the hotel a traveller unlocked one of its deals, with their contact details.',
+    sample: { name: 'Rohan Mehta', hotelName: 'The Grand Palace', title: 'Flat 25% off weekend stays',
+              guestName: 'Priya Nair', guestEmail: 'priya@example.com', guestPhone: '+91 98200 12345' } },
+  ({ name, hotelName, title, guestName, guestEmail, guestPhone }) => ({
+    subject: `New deal lead for ${hotelName}: ${guestName}`,
+    text: `Hi ${name}, ${guestName} just unlocked your deal "${title}" on Hotelzz.\nEmail: ${guestEmail}\nPhone: ${guestPhone}\nReach out before they book elsewhere.`,
+    html: layout('Someone grabbed your deal 🎯',
+      `<p style="line-height:1.6">Hi ${esc(name)}, a traveller just unlocked <b>${esc(title)}</b> at <b>${esc(hotelName)}</b>.</p>
+       ${infoTable([['Name', esc(guestName)], ['Email', esc(guestEmail)], ['Phone', esc(guestPhone)]])}
+       <p style="line-height:1.6">Reach out quickly — they're ready to book.</p>
+       ${button(env.PUBLIC_URL + '/owner.html', 'Open dashboard')}`)
+  }));
+
 /* =========================================================================
    MARKETING / CAMPAIGNS
    ========================================================================= */
@@ -592,11 +674,28 @@ function listTemplates() {
 }
 
 /** Pure render — merges sample data with overrides, no send, no DB write. */
+/**
+ * Builds a template safely: the plain-text parts (subject, text) from the raw
+ * values, the HTML part from HTML-escaped values — so a guest's name, message
+ * or hotel name can never turn into markup in an email or the admin's log.
+ */
+function escapeData(v) {
+  if (typeof v === 'string') return v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  if (Array.isArray(v)) return v.map(escapeData);
+  if (v && typeof v === 'object') { const o = {}; Object.keys(v).forEach((k) => { o[k] = escapeData(v[k]); }); return o; }
+  return v;
+}
+function buildSafe(t, data) {
+  const merged = Object.assign({}, t.sample, data || {});
+  const plain = t.build(merged);
+  const safe = t.build(escapeData(merged));
+  return { subject: String(plain.subject || '').replace(/[\r\n]+/g, ' '), text: plain.text, html: safe.html };
+}
+
 function renderTemplate(name, data) {
   const t = T[name];
   if (!t) throw new Error('Unknown email template: ' + name);
-  const merged = Object.assign({}, t.sample, data || {});
-  const msg = t.build(merged);
+  const msg = buildSafe(t, data);
   return Object.assign({ account: t.account, from: (env.SMTP_ACCOUNTS[t.account] || env.SMTP_ACCOUNTS.info).from }, msg);
 }
 
@@ -627,10 +726,10 @@ async function sendMail(to, templateName, data, opts) {
   const account = opts.account || t.account;
   const acctCfg = env.SMTP_ACCOUNTS[account] || env.SMTP_ACCOUNTS.info;
   const from = opts.from || acctCfg.from;
-  const msg = t.build(Object.assign({}, t.sample, data || {}));
+  const msg = buildSafe(t, data);
 
   try {
-    await getTransport(account).sendMail({ from, to, replyTo: opts.replyTo, ...msg });
+    await getTransport(account).sendMail({ from, to, replyTo: opts.replyTo || acctCfg.replyTo || undefined, ...msg });
     const id = logEmail({
       to, subject: msg.subject, template: templateName, account, from,
       status: accountConfigured(account) ? 'sent' : 'dev-logged',
@@ -662,7 +761,7 @@ async function sendCustomMail(to, { subject, text, html }, opts) {
   const msg = { subject, text: text || '', html: html || `<p>${String(text || '').replace(/\n/g, '<br/>')}</p>` };
 
   try {
-    await getTransport(account).sendMail({ from, to, replyTo: opts.replyTo, ...msg });
+    await getTransport(account).sendMail({ from, to, replyTo: opts.replyTo || acctCfg.replyTo || undefined, ...msg });
     const id = logEmail({
       to, subject, template: null, account, from,
       status: accountConfigured(account) ? 'sent' : 'dev-logged',

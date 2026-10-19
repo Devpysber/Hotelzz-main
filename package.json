@@ -7,7 +7,9 @@
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
     "import:hotels": "node server/scripts/import-hotels.js",
-    "test": "node tests/smoke.js && node tests/public-pages.js && node tests/portal-sections.js && node tests/dashboard-sections.js && node tests/buttons.js && node tests/actions.js && node tests/owner-actions.js"
+    "test": "node tests/e2e.js",
+    "test:seo": "node tests/seo.js",
+    "test:legacy": "node tests/smoke.js && node tests/public-pages.js && node tests/portal-sections.js && node tests/dashboard-sections.js && node tests/buttons.js && node tests/actions.js && node tests/owner-actions.js"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +19,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^13.0.3",
+    "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
