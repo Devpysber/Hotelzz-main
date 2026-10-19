@@ -65,6 +65,7 @@ app.use('/api/owner', require('./routes/owner'));
 app.use('/api/leads', require('./routes/leads'));
 app.use('/api/admin/deals', require('./routes/deals').admin);
 app.use('/api/admin/sitekit', require('./routes/sitekit'));
+app.use('/api/admin/promotions', require('./routes/promotions').admin);
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/deals', require('./routes/deals'));
 app.use('/api/marketing', require('./routes/marketing'));
@@ -92,6 +93,7 @@ app.use('/uploads', express.static(UPLOAD_ROOT, { maxAge: '30d', index: false, d
 const seo = require('./lib/seo');
 const sitekit = require('./lib/sitekit');
 app.use(sitekit.redirects);
+app.use(require('./routes/promotions').pub); // /unsubscribe
 app.use(seo.noindexPrivate);
 app.get('/sitemap.xml', seo.sitemap);
 app.get('/robots.txt', seo.robots);
@@ -124,6 +126,7 @@ seed().then(() => {
   setInterval(A.purgeExpiredTokens, 6 * 60 * 60 * 1000).unref();
   automation.start();
   sitekit.startAutoIndexNow();
+  require('./lib/promotions').start();
   require('./lib/sheetSync').start();
 
   // Keep campaign spend/impressions fresh when an ad platform is connected.

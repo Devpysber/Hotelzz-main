@@ -145,3 +145,17 @@ Everything is managed in the admin panel; no file edits are needed after deploy.
 Public files it serves: `/sitemap.xml`, `/robots.txt` (with AI-crawler rules),
 `/llms.txt` (site summary for ChatGPT/Claude/Perplexity) and the IndexNow key file.
 Check with `npm run test:seo` against a running dev server.
+
+## Promotional & scheduled email — Admin → Email Center → Promotions
+
+Runs by itself on the live server; nothing to set up beyond working SMTP.
+
+- **Promotions** (owners, unclaimed hotels with a public email, travellers):
+  2–3 runs a day at random times between 10:00 and 19:30 IST. Each person gets
+  at most one promotional email every 5 days (adjustable), the same message is
+  not repeated, and every email has a one-click unsubscribe (`/unsubscribe`).
+  Use **Preview next run** to see who would get what before switching it on or
+  sending a run by hand. Turn individual templates on/off there.
+- **Account emails** (enquiry reminders, review requests, digests, lead
+  follow-ups) run every 15 minutes and are never suppressed by unsubscribes.
+- Check everything locally: `npm run test:email` against a dev server.
