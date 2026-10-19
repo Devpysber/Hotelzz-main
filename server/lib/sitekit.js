@@ -103,11 +103,25 @@ function load() {
     raw.indexNowKey = require('crypto').randomBytes(16).toString('hex');
     write(raw, null);
   }
+  writeKeyFile(raw.indexNowKey);
   const merged = Object.assign({}, DEFAULTS, raw);
   merged.org = Object.assign({}, DEFAULTS.org, raw.org || {});
   merged.aiCrawlers = Object.assign({}, DEFAULTS.aiCrawlers, raw.aiCrawlers || {});
   cache = merged;
   return cache;
+}
+
+// IndexNow fetches https://hotelzz.in/<key>.txt. The app answers that route,
+// but a web server that serves *.txt from disk (common nginx setups) never
+// passes it on — so the key also lives as a real file in the site root.
+let keyFileDone = null;
+function writeKeyFile(key) {
+  if (!key || keyFileDone === key) return;
+  try {
+    const file = path.join(ROOT, key + '.txt');
+    if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8').trim() !== key) fs.writeFileSync(file, key);
+    keyFileDone = key;
+  } catch (e) { console.error('[sitekit] could not write IndexNow key file:', e.message); }
 }
 
 function write(obj, userId) {
