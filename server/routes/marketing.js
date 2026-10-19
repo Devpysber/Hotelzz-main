@@ -53,8 +53,8 @@ router.patch('/packages/:id',
     name: z.string().trim().min(2).optional(),
     description: z.string().trim().max(2000).optional(),
     startingPrice: z.coerce.number().min(0).optional(),
-    recommended: z.coerce.boolean().optional(),
-    active: z.coerce.boolean().optional(),
+    recommended: require('../lib/http').bool.optional(),
+    active: require('../lib/http').bool.optional(),
     platforms: z.array(z.string()).optional(),
     estimatedReach: z.string().trim().optional(),
     estimatedImpressions: z.string().trim().optional(),
@@ -191,9 +191,10 @@ function pickDuration(pkg, label, days) {
   }
   const opt = list.find((o) => o.label === label) ||
               (!label ? list.find((o) => labelToDays(o.label) === days) : null);
-  if (!opt || !(Number(opt.price) > 0)) return null;
-  const optDays = labelToDays(opt.label) || (opt.custom ? Math.min(Math.max(parseInt(days, 10) || 30, 1), 400) : 30);
-  return { label: opt.custom ? optDays + ' Days (custom)' : opt.label, days: optDays, price: Number(opt.price) };
+  // Custom lengths are quoted by the team; one flat price for any length let a
+  // 400-day campaign be bought for the price of a short one.
+  if (!opt || opt.custom || !(Number(opt.price) > 0)) return null;
+  return { label: opt.label, days: labelToDays(opt.label) || 30, price: Number(opt.price) };
 }
 
 router.get('/campaigns', A.requireAuth(), (req, res) => {
@@ -231,15 +232,20 @@ router.post('/campaigns',
     // the browser — it used to trust b.amount, so any duration of any package
     // could be bought at whatever price the page sent.
     const option = pickDuration(shapePackage(pkg), b.durationLabel, b.durationDays);
-    if (!option) return res.status(400).json({ ok: false, field: 'durationLabel', error: 'Pick a campaign duration.' });
+    if (!option) {
+      const custom = (shapePackage(pkg).durations || []).some((o) => o.custom && o.label === b.durationLabel);
+      return res.status(400).json({ ok: false, field: 'durationLabel', error: custom
+        ? 'Custom durations are priced by our team — message us on WhatsApp for a quote.' : 'Pick a campaign duration.' });
+    }
     b.amount = option.price;
     b.durationDays = option.days;
     b.durationLabel = option.label;
 
     const gst = Math.round(b.amount * 0.18);
     const total = b.amount + gst;
+    // Date + 6 random characters: the old 3-digit suffix collided within a day.
     const id = 'HZ-CMP-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' +
-               String(Math.floor(Math.random() * 900 + 100));
+               require('crypto').randomBytes(4).toString('hex').slice(0, 6).toUpperCase();
     const start = new Date().toISOString().slice(0, 10);
     const end = new Date(Date.now() + b.durationDays * 864e5).toISOString().slice(0, 10);
 
@@ -265,7 +271,7 @@ router.post('/campaigns',
       name: req.user.name, hotelName: property.name, campaignId: id, packageName: pkg.name,
       amount: '₹' + total.toLocaleString('en-IN')
     });
-    sendMailAsync(env.ADMIN_EMAIL, 'adminNewLead', {
+    sendMailAsync(require('../lib/mailer').opsEmail(), 'adminNewLead', {
       name: req.user.name, email: req.user.email, phone: req.user.phone,
       hotelName: property.name, city: property.location, plan: pkg.name,
       message: `Campaign ${id}: ${b.durationDays} days, ₹${total} incl. GST. Locations: ${(b.targetLocations || []).join(', ')}`

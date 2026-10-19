@@ -43,9 +43,9 @@ router.get('/',
   validateQuery(z.object({
     city: z.string().trim().optional(),
     q: z.string().trim().optional(),
-    mine: z.coerce.boolean().optional(),
+    mine: require('../lib/http').bool.optional(),
     claimStatus: z.string().trim().optional(),
-    includeInactive: z.coerce.boolean().optional(),
+    includeInactive: require('../lib/http').bool.optional(),
     limit: z.coerce.number().int().min(1).max(200).default(24),
     offset: z.coerce.number().int().min(0).default(0)
   })),
@@ -62,8 +62,9 @@ router.get('/',
     if (city) { where.push('(city_slug = ? OR lower(location) = ?)'); params.push(slugify(city), city.toLowerCase()); }
     if (claimStatus) { where.push('claim_status = ?'); params.push(claimStatus); }
     if (q) {
-      where.push('(name LIKE ? OR location LIKE ? OR address LIKE ?)');
-      const like = '%' + q + '%';
+      // "%" and "_" are searched for literally, not as wildcards.
+      where.push("(name LIKE ? ESCAPE '\\' OR location LIKE ? ESCAPE '\\' OR address LIKE ? ESCAPE '\\')");
+      const like = '%' + q.replace(/[\\%_]/g, '\\$&') + '%';
       params.push(like, like, like);
     }
 
@@ -167,8 +168,8 @@ router.post('/',
     db.prepare(
       `INSERT INTO properties (id, owner_id, name, location, city_slug, address, phone, email, website,
                                pincode, image_url, property_type, google_cid, gmb_link, google_summary,
-                               claim_status, active)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)`
+                               claim_status, rating, active)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,1)`
     ).run(id, req.user.role === 'owner' ? req.user.id : null, b.name, b.location || null, slugify(b.location),
           b.address || null, b.phone || null, b.email || null, b.website || null, b.pincode || null,
           b.image_url || null, b.property_type || null, b.google_cid || null, b.gmb_link || null,
@@ -181,7 +182,7 @@ router.post('/',
 router.patch('/:id',
   A.requireAuth('owner', 'admin'),
   validate(z.object(Object.assign({}, propertyFields, {
-    active: z.coerce.boolean().optional(),
+    active: require('../lib/http').bool.optional(),
     plan: z.string().trim().optional(),
     claim_status: z.enum(['unclaimed', 'pending', 'verified', 'rejected']).optional()
   }))),
@@ -230,8 +231,8 @@ router.post('/:id/claim',
     if (own.heldByAnother(row, req.user.id)) {
       return res.status(409).json({ ok: false, error: 'This listing is already managed or claimed by another partner. Contact support@hotelzz.in if it is yours.' });
     }
-    db.prepare(`UPDATE properties SET owner_id = ?, claim_status = 'pending', updated_at = datetime('now') WHERE id = ?`)
-      .run(req.user.id, row.id);
+    db.prepare(`UPDATE properties SET owner_id = ?, claimed_by = ?, claimed_at = datetime('now'), claim_status = 'pending', updated_at = datetime('now') WHERE id = ?`)
+      .run(req.user.id, req.user.id, row.id);
     invalidateCatalog();
     audit(req.user.id, 'property.claim', 'property', row.id, { note: req.body.note }, req.ip);
     sendMailAsync(req.user.email, 'claimSubmitted', { name: req.user.name, hotelName: row.name });
@@ -241,6 +242,7 @@ router.post('/:id/claim',
 router.post('/:id/claim/approve', A.requireAuth('admin'), (req, res) => {
   const row = db.prepare('SELECT * FROM properties WHERE id = ?').get(req.params.id);
   if (!row) return res.status(404).json({ ok: false, error: 'Property not found.' });
+  if (row.claim_status !== 'pending' || !row.owner_id) return res.status(409).json({ ok: false, error: 'There is no pending claim on this listing.' });
   db.prepare(`UPDATE properties SET claim_status='verified', updated_at=datetime('now') WHERE id = ?`).run(row.id);
   invalidateCatalog();
   const owner = row.owner_id ? db.prepare('SELECT * FROM users WHERE id = ?').get(row.owner_id) : null;
@@ -337,14 +339,14 @@ router.post('/:id/claim/confirm',
         .run(await A.hashPassword(req.body.password), user.id);
     }
     db.prepare(`UPDATE users SET email_verified = 1, last_login_at = datetime('now') WHERE id = ?`).run(user.id);
-    db.prepare(`UPDATE properties SET owner_id = ?, claim_status = 'pending', updated_at = datetime('now') WHERE id = ?`)
-      .run(user.id, row.id);
+    db.prepare(`UPDATE properties SET owner_id = ?, claimed_by = ?, claimed_at = datetime('now'), claim_status = 'pending', updated_at = datetime('now') WHERE id = ?`)
+      .run(user.id, user.id, row.id);
     invalidateCatalog();
 
     A.setSessionCookie(res, user);
     audit(user.id, 'property.claim.confirm', 'property', row.id, null, req.ip);
     sendMailAsync(user.email, 'claimSubmitted', { name: user.name, hotelName: row.name });
-    sendMailAsync(env.ADMIN_EMAIL, 'adminNewOwner', {
+    sendMailAsync(require('../lib/mailer').opsEmail(), 'adminNewOwner', {
       name: user.name, hotelName: row.name, city: row.location || '', email: user.email, phone: user.phone || ''
     });
 

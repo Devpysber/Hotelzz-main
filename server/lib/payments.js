@@ -137,9 +137,10 @@ function markPaid(payment, providerPaymentId) {
   // Only subscription payments settle a subscription invoice — a campaign
   // payment used to mark the latest Pending plan invoice Paid as well.
   if (payment.property_id && payment.purpose === 'subscription') {
-    const invoice = db.prepare(
-      'SELECT * FROM invoices WHERE property_id = ? AND status = ? ORDER BY issued_at DESC LIMIT 1'
-    ).get(payment.property_id, 'Pending');
+    // New orders carry their invoice id; older ones fall back to the latest Pending.
+    const invoice = /^inv_/.test(payment.reference_id || '')
+      ? db.prepare("SELECT * FROM invoices WHERE id = ? AND property_id = ? AND status = 'Pending'").get(payment.reference_id, payment.property_id)
+      : db.prepare("SELECT * FROM invoices WHERE property_id = ? AND status = 'Pending' ORDER BY issued_at DESC LIMIT 1").get(payment.property_id);
     if (invoice) {
       db.prepare("UPDATE invoices SET status = 'Paid' WHERE id = ?").run(invoice.id);
       db.prepare('UPDATE payments SET invoice_id = ? WHERE id = ?').run(invoice.id, payment.id);

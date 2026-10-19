@@ -25,11 +25,14 @@ function claim(job, entityId) {
   }
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
+// Schedules follow India time whatever the server's own time zone is (the
+// VPS runs UTC, which put the "08:00–10:00" digest at 13:30 IST).
+const ist = () => new Date(Date.now() + 5.5 * 3600 * 1000); // read with getUTC*()
+const today = () => ist().toISOString().slice(0, 10);
 const isoWeek = () => {
-  const d = new Date();
-  const onejan = new Date(d.getFullYear(), 0, 1);
-  return d.getFullYear() + '-W' + Math.ceil(((d - onejan) / 864e5 + onejan.getDay() + 1) / 7);
+  const d = ist();
+  const onejan = Date.UTC(d.getUTCFullYear(), 0, 1);
+  return d.getUTCFullYear() + '-W' + Math.ceil(((d - onejan) / 864e5 + new Date(onejan).getUTCDay() + 1) / 7);
 };
 
 /* ------------------------------------------------------- 1. nudge the hotel */
@@ -83,7 +86,7 @@ async function requestReviews() {
 
 async function sendOwnerDigests() {
   // Mondays only, once per property per ISO week.
-  if (new Date().getDay() !== 1) return 0;
+  if (ist().getUTCDay() !== 1) return 0;
 
   const props = db.prepare(
     `SELECT p.*, u.name AS owner_name, u.email AS owner_email
@@ -93,7 +96,7 @@ async function sendOwnerDigests() {
 
   let sent = 0;
   for (const p of props) {
-    if (!p.owner_email || !claim('owner-digest', p.id + ':' + isoWeek())) continue;
+    if (!p.owner_email) continue;
 
     const enquiries = db.prepare(
       "SELECT COUNT(*) c FROM enquiries WHERE property_id = ? AND sent_at >= datetime('now','-7 days')"
@@ -111,6 +114,9 @@ async function sendOwnerDigests() {
 
     // Nothing happened and nothing is pending — skip the empty email.
     if (!enquiries && !unanswered && !reviews && !views) continue;
+    // Claimed only when there is something to send: a quiet start-of-day run
+    // used to burn the whole week's slot before any activity arrived.
+    if (!claim('owner-digest', p.id + ':' + isoWeek())) continue;
 
     await sendMail(p.owner_email, 'ownerDigest', {
       name: p.owner_name, hotelName: p.name, enquiries, unanswered, reviews, views, favourites
@@ -123,12 +129,12 @@ async function sendOwnerDigests() {
 /* --------------------------------------------------- 4. daily admin digest */
 
 async function sendAdminDigest() {
-  const hour = new Date().getHours();
-  if (hour < 8 || hour > 10) return 0; // morning window
+  const hour = ist().getUTCHours();
+  if (hour < 8 || hour > 10) return 0; // morning window, India time
   if (!claim('admin-digest', today())) return 0;
 
   const c = (sql) => db.prepare(sql).get().c;
-  await sendMail(env.ADMIN_EMAIL, 'adminDigest', {
+  await sendMail(require('./mailer').opsEmail(), 'adminDigest', {
     enquiries: c("SELECT COUNT(*) c FROM enquiries WHERE sent_at >= datetime('now','-1 day')"),
     unanswered: c("SELECT COUNT(*) c FROM enquiries WHERE status IN ('Sent','Opened') AND sent_at <= datetime('now','-1 day')"),
     leads: c("SELECT COUNT(*) c FROM leads WHERE created_at >= datetime('now','-1 day')"),

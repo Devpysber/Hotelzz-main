@@ -978,9 +978,17 @@
     document.getElementById('leadDrawer').classList.remove('open');
   };
 
+  // Enquiries appear in two places (Leads and Grow Business → Leads): reload
+  // both stores after any change so neither shows a stale status.
+  function reloadLeadStores() {
+    const mkt = window.HotelzzMarketingStore && window.HotelzzMarketingStore.refresh
+      ? window.HotelzzMarketingStore.refresh().catch(() => {}) : Promise.resolve();
+    return Promise.all([data.load(), mkt]);
+  }
+
   window.updateLeadStatus = function (id, status) {
     window.HotelzzAPI.patch('/enquiries/' + encodeURIComponent(id), { status: status })
-      .then(() => data.load())
+      .then(reloadLeadStores)
       .then(() => {
         loadPropertyData(activePropId);
         showToast(`Lead status updated to ${status}.`);
@@ -1009,7 +1017,7 @@
     const text = box ? box.value.trim() : '';
     if (!text) return showToast('Write a response first.', 'warning');
     window.HotelzzAPI.post('/enquiries/' + encodeURIComponent(id) + '/respond', { response: text })
-      .then(() => data.load())
+      .then(reloadLeadStores)
       .then(() => {
         loadPropertyData(activePropId);
         showToast('Response sent to the guest by email.');
@@ -1246,7 +1254,7 @@
 
     const payload = {
       title: v.title,
-      discount: v.discount || (!v.dealPrice ? '15% OFF' : ''),
+      discount: v.discount,
       code: v.code.toUpperCase(),
       description: v.description,
       terms: v.terms,
@@ -1255,8 +1263,9 @@
       validTo: v.validTo,
       status: v.status || 'Active'
     };
-    if (v.originalPrice) payload.originalPrice = Number(v.originalPrice);
-    if (v.dealPrice) payload.dealPrice = Number(v.dealPrice);
+    // On edit an emptied price is sent as null so it is actually cleared.
+    if (v.originalPrice || editingOfferId) payload.originalPrice = v.originalPrice ? Number(v.originalPrice) : null;
+    if (v.dealPrice || editingOfferId) payload.dealPrice = v.dealPrice ? Number(v.dealPrice) : null;
     const call = editingOfferId
       ? data.updateOffer(activePropId, editingOfferId, payload)
       : data.addOffer(activePropId, payload);
@@ -1540,7 +1549,7 @@
       item: inv.plan || 'Hotelzz plan',
       date: inv.date,
       amount: amountOf(inv.amount),
-      amountLabel: inv.amount,
+      amountLabel: hz(inv.amount),
       paid: String(inv.status).toLowerCase() === 'paid',
       statusLabel: inv.status,
       href: '/api/owner/invoices/' + encodeURIComponent(inv.number || inv.id),
@@ -1551,7 +1560,7 @@
       item: `${hz(c.packageName)} · ${c.duration}`,
       date: c.createdAt,
       amount: Number(c.total) || 0,
-      amountLabel: inr(c.total) + ' <small style="color:var(--owner-text-muted);">incl. GST</small>',
+      amountLabel: hz(inr(c.total)) + ' <small style="color:var(--owner-text-muted);">incl. GST</small>',
       paid: !!c.paid,
       statusLabel: c.paid ? 'Paid' : (c.payment && c.payment.status === 'manual' ? 'Awaiting confirmation' : 'Pending'),
       href: '/api/owner/campaigns/' + encodeURIComponent(c.id) + '/invoice',
@@ -1583,7 +1592,7 @@
         <td data-label="Invoice" style="font-weight:700;">${r.number}</td>
         <td data-label="For"><span class="badge ${r.kind === 'Subscription' ? 'badge-info' : 'badge-gray'}">${r.kind}</span><div style="font-size:12.5px; margin-top:4px;">${r.item}</div></td>
         <td data-label="Billed on">${fmt(r.date)}</td>
-        <td data-label="Amount">${hz(r.amountLabel)}</td>
+        <td data-label="Amount">${r.amountLabel}</td>
         <td data-label="Status"><span class="badge ${r.paid ? 'badge-success' : 'badge-warning'}">${r.statusLabel}</span></td>
         <td data-label="Actions" style="white-space:nowrap;">
           <a class="btn-secondary btn-tiny" target="_blank" rel="noopener" href="${r.href}">Download</a>
@@ -1779,8 +1788,8 @@
     if (!container) return;
     container.innerHTML = currentTargetLocations.map(l => `
       <div class="location-chip">
-        <span>📍 ${l}</span>
-        <span class="location-chip-remove" onclick="removeLocationChip('${l}')">×</span>
+        <span>📍 ${hz(l)}</span>
+        <span class="location-chip-remove" onclick="removeLocationChip(${hzArg(l)})">×</span>
       </div>
     `).join('');
   }
@@ -1990,8 +1999,9 @@
   }
 
   window.updateMktLeadStatus = function (id, status) {
-    window.HotelzzMarketingStore.updateLeadStatus(id, status).then(() => {
+    window.HotelzzMarketingStore.updateLeadStatus(id, status).then(() => data.load()).then(() => {
       showToast(`Lead marked ${status}.`);
+      loadPropertyData(activePropId);
       renderOwnerMarketingLeads();
     }).catch(fail);
   };

@@ -477,8 +477,7 @@
                 <select id="csvDupeFilter" class="filter-select" onchange="applyFlexibleCsvFilters()">
                   <option value="all">All Duplicate Statuses</option>
                   <option value="new_only">New Unique Listings Only</option>
-                  <option value="exact_only">Exact Duplicates Only</option>
-                  <option value="possible_only">Possible Duplicates Only</option>
+                  <option value="exact_only">Already Listed Only</option>
                 </select>
 
                 <button class="btn-secondary" onclick="resetFlexibleCsvFilters()">Reset Analytics Filters</button>
@@ -495,12 +494,12 @@
                   <div style="font-size: 18px; font-weight: 800; color: #10B981;" id="calcCompleteness">—</div>
                 </div>
                 <div>
-                  <div style="font-size: 11px; font-weight: 700; color: #6B21A8; text-transform: uppercase;">Potential MRR</div>
+                  <div style="font-size: 11px; font-weight: 700; color: #6B21A8; text-transform: uppercase;">With Website</div>
                   <div style="font-size: 18px; font-weight: 800; color: var(--admin-primary);" id="calcPotentialMRR">—</div>
                 </div>
                 <div>
                   <div style="font-size: 11px; font-weight: 700; color: #6B21A8; text-transform: uppercase;">Average Rating</div>
-                  <div style="font-size: 18px; font-weight: 800; color: #D97706;" id="calcAvgRating">4.38 ★</div>
+                  <div style="font-size: 18px; font-weight: 800; color: #D97706;" id="calcAvgRating">—</div>
                 </div>
               </div>
             </div>
@@ -550,7 +549,7 @@
               <div class="admin-card-header">
                 <div>
                   <div class="card-title">Duplicate Detection Review</div>
-                  <div class="card-subtitle">Found 183 exact duplicates and 247 possible duplicates.</div>
+                  <div class="card-subtitle" id="duplicateSummary">Upload a file to check for duplicates.</div>
                 </div>
               </div>
               <div class="table-responsive">
@@ -643,7 +642,7 @@
                 </div>
               </div>
 
-              <button class="btn-primary" style="width: 100%; padding: 14px; font-size: 16px;" onclick="openImportConfirmModal()">Import 9,842 Listings Now →</button>
+              <button class="btn-primary" style="width: 100%; padding: 14px; font-size: 16px;" onclick="openImportConfirmModal()" id="importNowBtn">Import Listings Now →</button>
             </div>
           </div>
 
@@ -890,7 +889,7 @@
 
         <section class="admin-page-view" id="view-activity">
           <div class="page-header"><h1>Activity Audit Trail</h1></div>
-          <div class="table-responsive"><table class="admin-table"><thead><tr><th>Date & Time</th><th>Administrator</th><th>Action</th><th>Target</th><th>IP Address</th><th>Result</th></tr></thead><tbody id="activityTableBody"></tbody></table></div>
+          <div class="table-responsive"><table class="admin-table"><thead><tr><th>Date & Time</th><th>Who</th><th>Action</th><th>Target</th><th>IP Address</th><th>Result</th></tr></thead><tbody id="activityTableBody"></tbody></table></div>
         </section>
 
         <section class="admin-page-view" id="view-admins">

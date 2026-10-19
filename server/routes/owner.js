@@ -87,7 +87,10 @@ function shapeProperty(p) {
     .reduce((n, list) => n + (Array.isArray(list) ? list.length : 0), 0);
   const offers = db.prepare('SELECT * FROM offers WHERE property_id = ? ORDER BY created_at DESC').all(p.id);
   const reviews = db.prepare('SELECT * FROM reviews WHERE property_id = ? ORDER BY created_at DESC').all(p.id);
-  const leads = db.prepare('SELECT * FROM enquiries WHERE property_id = ? ORDER BY sent_at DESC').all(p.id);
+  // Guest contact details belong to the verified owner only: a claimant whose
+  // claim is still pending sees the listing but not who enquired.
+  const mayReadGuests = own.canManage(p);
+  const leads = mayReadGuests ? db.prepare('SELECT * FROM enquiries WHERE property_id = ? ORDER BY sent_at DESC').all(p.id) : [];
   const sub = db.prepare('SELECT * FROM subscriptions WHERE property_id = ?').get(p.id);
   const invoices = db.prepare('SELECT * FROM invoices WHERE property_id = ? ORDER BY issued_at DESC').all(p.id);
 
@@ -187,7 +190,7 @@ function shapeProperty(p) {
       originalPrice: o.original_price || null, dealPrice: o.deal_price || null, featured: !!o.featured,
       rooms: 'All Rooms', views: o.views || 0, clicks: o.grabs || 0, status: o.status
     })),
-    dealLeads: db.prepare(
+    dealLeads: !mayReadGuests ? [] : db.prepare(
       `SELECT g.name, g.email, g.phone, g.created_at, o.title FROM deal_grabs g JOIN offers o ON o.id = g.offer_id
         WHERE g.property_id = ? ORDER BY g.created_at DESC LIMIT 100`
     ).all(p.id).map((g) => ({ name: g.name, email: g.email, phone: g.phone, deal: g.title, date: g.created_at })),
@@ -286,17 +289,22 @@ router.patch('/properties/:id',
     const p = req.property;
     const details = Object.assign(json(p.details, {}), b.details || {});
 
+    // Optional fields sent as "" are cleared; fields left out are kept.
+    const keep = (v) => (v === undefined ? null : 1);
+    const val = (v) => (v === undefined || v === '' ? null : v);
     db.prepare(
       `UPDATE properties SET name = COALESCE(?, name), location = COALESCE(?, location),
-              address = COALESCE(?, address), pincode = COALESCE(?, pincode),
-              phone = COALESCE(?, phone), email = COALESCE(?, email), website = COALESCE(?, website),
+              address = CASE WHEN ? IS NULL THEN address ELSE ? END,
+              pincode = CASE WHEN ? IS NULL THEN pincode ELSE ? END,
+              phone = COALESCE(?, phone), email = COALESCE(?, email),
+              website = CASE WHEN ? IS NULL THEN website ELSE ? END,
               image_url = COALESCE(?, image_url), status_label = COALESCE(?, status_label),
               property_type = COALESCE(?, property_type),
               city_slug = CASE WHEN ? IS NOT NULL THEN ? ELSE city_slug END,
               details = ?, updated_at = datetime('now')
         WHERE id = ?`
-    ).run(b.name || null, b.city || null, b.address || null, b.pincode || null, b.phone || null,
-          b.email || null, b.website || null, b.coverPhoto || null, b.status || null,
+    ).run(b.name || null, b.city || null, keep(b.address), val(b.address), keep(b.pincode), val(b.pincode),
+          b.phone || null, b.email || null, keep(b.website), val(b.website), b.coverPhoto || null, b.status || null,
           // The public page reads property_type — keep it in step with the
           // owner's category instead of only storing it inside details.
           (b.details && b.details.category) || null,
@@ -329,7 +337,21 @@ const roomSchema = z.object({
   size: z.string().trim().optional(),
   beds: z.string().trim().optional(),
   amenities: z.array(z.string()).optional(),
-  active: z.coerce.boolean().optional()
+  // A real boolean: the string "false" must not count as true.
+  active: require('../lib/http').bool.optional()
+});
+// Edits change only what is sent: the create schema's defaults (price 0,
+// 2 guests, 1 room) used to overwrite real values on every partial update.
+const roomPatchSchema = z.object({
+  name: z.string().trim().min(2, 'Enter a room name').optional(),
+  type: z.string().trim().optional(),
+  price: z.coerce.number().min(0).optional(),
+  capacity: z.coerce.number().int().min(1).optional(),
+  count: z.coerce.number().int().min(1).optional(),
+  size: z.string().trim().optional(),
+  beds: z.string().trim().optional(),
+  amenities: z.array(z.string()).optional(),
+  active: roomSchema.shape.active
 });
 
 router.post('/properties/:id/rooms', guard, validate(roomSchema), (req, res) => {
@@ -343,7 +365,7 @@ router.post('/properties/:id/rooms', guard, validate(roomSchema), (req, res) => 
   res.status(201).json({ ok: true, property: shapeProperty(req.property) });
 });
 
-router.patch('/properties/:id/rooms/:roomId', guard, validate(roomSchema.partial()), (req, res) => {
+router.patch('/properties/:id/rooms/:roomId', guard, validate(roomPatchSchema), (req, res) => {
   const b = req.body;
   const room = db.prepare('SELECT * FROM rooms WHERE id = ? AND property_id = ?').get(req.params.roomId, req.property.id);
   if (!room) return res.status(404).json({ ok: false, error: 'Room not found.' });
@@ -391,8 +413,12 @@ router.post('/properties/:id/photos/:photoId/cover', guard, (req, res) => {
 });
 
 router.delete('/properties/:id/photos/:photoId', guard, (req, res) => {
-  db.prepare('DELETE FROM photos WHERE id = ? AND property_id = ?').run(req.params.photoId, req.property.id);
-  res.json({ ok: true, property: shapeProperty(req.property) });
+  const photo = db.prepare('SELECT * FROM photos WHERE id = ? AND property_id = ?').get(req.params.photoId, req.property.id);
+  if (!photo) return res.status(404).json({ ok: false, error: 'Photo not found.' });
+  // Same as the uploads route: the cover moves on and the file is cleaned up.
+  require('./uploads').removePhoto(req.property.id, photo);
+  audit(req.user.id, 'photo.delete', 'property', req.property.id, { photoId: photo.id }, req.ip);
+  res.json({ ok: true, property: shapeProperty(db.prepare('SELECT * FROM properties WHERE id = ?').get(req.property.id)) });
 });
 
 /* ------------------------------------------------------------------ offers */
@@ -407,8 +433,9 @@ const offerSchema = z.object({
   category: z.string().trim().max(40).optional(),
   imageUrl: z.string().trim().max(500).optional(),
   terms: z.string().trim().max(2000).optional(),
-  originalPrice: z.coerce.number().min(0).optional(),
-  dealPrice: z.coerce.number().min(0).optional(),
+  // "" or null clears a price on edit.
+  originalPrice: z.preprocess((v) => (v === '' ? null : v), z.coerce.number().min(0).nullable()).optional(),
+  dealPrice: z.preprocess((v) => (v === '' ? null : v), z.coerce.number().min(0).nullable()).optional(),
   status: z.enum(['Active', 'Scheduled', 'Expired', 'Paused']).optional()
 });
 
@@ -432,12 +459,15 @@ router.patch('/properties/:id/offers/:offerId', guard, validate(offerSchema.part
     `UPDATE offers SET title=COALESCE(?,title), description=COALESCE(?,description),
             discount=COALESCE(?,discount), code=COALESCE(?,code), valid_from=COALESCE(?,valid_from),
             valid_to=COALESCE(?,valid_to), status=COALESCE(?,status), category=COALESCE(?,category),
-            image_url=COALESCE(?,image_url), terms=COALESCE(?,terms), original_price=COALESCE(?,original_price),
-            deal_price=COALESCE(?,deal_price), updated_at=datetime('now')
+            image_url=COALESCE(?,image_url), terms=COALESCE(?,terms),
+            original_price=CASE WHEN ? THEN ? ELSE original_price END,
+            deal_price=CASE WHEN ? THEN ? ELSE deal_price END, updated_at=datetime('now')
       WHERE id = ?`
   ).run(b.title ?? null, b.description ?? null, b.discount ?? null, b.code ?? null,
         b.validFrom ?? null, b.validTo ?? null, b.status ?? null, b.category ?? null,
-        b.imageUrl ?? null, b.terms ?? null, b.originalPrice ?? null, b.dealPrice ?? null, offer.id);
+        b.imageUrl ?? null, b.terms ?? null,
+        b.originalPrice === undefined ? 0 : 1, b.originalPrice ?? null,
+        b.dealPrice === undefined ? 0 : 1, b.dealPrice ?? null, offer.id);
   res.json({ ok: true, property: shapeProperty(req.property) });
 });
 
@@ -468,24 +498,31 @@ router.post('/properties/:id/subscription',
       billingCycle: plan.period === 'forever' ? 'Forever' : 'Monthly',
       features: json(plan.features, [])
     };
-    // Free plans switch on now; paid plans once the payment lands (payments.js activate()).
-    const status = amount > 0 ? 'Pending' : 'Active';
-    const renewal = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
-    db.prepare(
-      `INSERT INTO subscriptions (property_id, plan_name, price, billing_cycle, status, renewal_date, features)
-       VALUES (?,?,?,?,?,?,?)
-       ON CONFLICT(property_id) DO UPDATE SET plan_name=excluded.plan_name, price=excluded.price,
-         billing_cycle=excluded.billing_cycle, status=excluded.status, renewal_date=excluded.renewal_date,
-         features=excluded.features, updated_at=datetime('now')`
-    ).run(req.property.id, b.planName, b.price, b.billingCycle, status, renewal, JSON.stringify(b.features));
+    // Free plans switch on now. A paid plan is raised as an invoice and only
+    // replaces the current plan once that invoice is paid (payments.js
+    // activate()), so an abandoned upgrade never costs the owner a plan they
+    // already paid for.
+    const current = db.prepare('SELECT * FROM subscriptions WHERE property_id = ?').get(req.property.id);
+    const currentIsPaid = current && current.status === 'Active' && (parseFloat(String(current.price || '').replace(/[^\d.]/g, '')) || 0) > 0;
+    // Only the newly chosen plan is ever due.
+    db.prepare("DELETE FROM invoices WHERE property_id = ? AND status = 'Pending'").run(req.property.id);
+
+    if (amount <= 0 || !currentIsPaid) {
+      db.prepare(
+        `INSERT INTO subscriptions (property_id, plan_name, price, billing_cycle, status, renewal_date, features)
+         VALUES (?,?,?,?,?,?,?)
+         ON CONFLICT(property_id) DO UPDATE SET plan_name=excluded.plan_name, price=excluded.price,
+           billing_cycle=excluded.billing_cycle, status=excluded.status, renewal_date=excluded.renewal_date,
+           features=excluded.features, updated_at=datetime('now')`
+      ).run(req.property.id, b.planName, b.price, b.billingCycle, amount > 0 ? 'Pending' : 'Active',
+            new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10), JSON.stringify(b.features));
+    }
 
     let invoiceNumber = null;
     if (amount > 0) {
-      // Replace any older unpaid plan invoice so only the chosen plan is due.
-      db.prepare("DELETE FROM invoices WHERE property_id = ? AND status = 'Pending'").run(req.property.id);
       invoiceNumber = 'HZ-' + Date.now().toString().slice(-8);
-      db.prepare('INSERT INTO invoices (id, property_id, number, amount, plan, status) VALUES (?,?,?,?,?,?)')
-        .run(uid('inv'), req.property.id, invoiceNumber, b.price, b.planName, 'Pending');
+      db.prepare('INSERT INTO invoices (id, property_id, number, amount, plan, status, details) VALUES (?,?,?,?,?,?,?)')
+        .run(uid('inv'), req.property.id, invoiceNumber, b.price, b.planName, 'Pending', JSON.stringify(b));
     } else {
       db.prepare(`UPDATE properties SET plan = ?, updated_at = datetime('now') WHERE id = ?`).run(b.planName, req.property.id);
     }
@@ -493,7 +530,9 @@ router.post('/properties/:id/subscription',
 
     const ownerUser = req.property.owner_id ? db.prepare('SELECT * FROM users WHERE id = ?').get(req.property.owner_id) : null;
     if (ownerUser) {
-      sendMailAsync(ownerUser.email, 'subscriptionChanged', { name: ownerUser.name, hotelName: req.property.name, planName: b.planName, price: b.price });
+      // "You're now on X" only when it's true; a paid plan gets its invoice now
+      // and the purchase confirmation once paid.
+      if (!invoiceNumber) sendMailAsync(ownerUser.email, 'subscriptionChanged', { name: ownerUser.name, hotelName: req.property.name, planName: b.planName, price: b.price });
       if (invoiceNumber) sendMailAsync(ownerUser.email, 'invoiceIssued', { name: ownerUser.name, hotelName: req.property.name, invoiceNumber, amount: b.price, planName: b.planName });
     }
 

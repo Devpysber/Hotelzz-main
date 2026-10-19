@@ -67,7 +67,9 @@
   }
 
   function normalize(h) {
-    h.rating = parseFloat(h.rating) || 4.5;
+    // Listings without a rating yet show "New" — never an invented 4.5.
+    h.rating = parseFloat(h.rating) || 0;
+    h.isNew = !h.rating;
     if (!h.city_slug && h.location) h.city_slug = slugify(h.location);
     // Real amenities only — the API sends a flat array (possibly empty) when
     // the owner has set any; Sheet rows never carry this field at all. Pages

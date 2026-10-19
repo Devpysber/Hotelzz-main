@@ -65,31 +65,41 @@ router.delete('/properties/:id/photos/:photoId',
     const photo = db.prepare('SELECT * FROM photos WHERE id = ? AND property_id = ?')
       .get(req.params.photoId, req.params.id);
     if (!photo) return res.status(404).json({ ok: false, error: 'Photo not found.' });
-
-    db.prepare('DELETE FROM photos WHERE id = ?').run(photo.id);
-    // Only delete the file when nothing else points at it — a photo row can
-    // reference any /uploads/ path, including another hotel's picture.
-    const stillUsed = db.prepare('SELECT 1 FROM photos WHERE url = ? LIMIT 1').get(photo.url) ||
-      db.prepare('SELECT 1 FROM properties WHERE image_url = ? LIMIT 1').get(photo.url) ||
-      db.prepare('SELECT 1 FROM offers WHERE image_url = ? LIMIT 1').get(photo.url);
-    const ownUpload = db.prepare(
-      "SELECT 1 FROM audit_log WHERE action = 'photo.upload' AND entity_id = ? AND meta LIKE ? LIMIT 1"
-    ).get(req.params.id, '%' + photo.url.replace(/[%_]/g, '') + '%');
-    if (!stillUsed && ownUpload) remove(photo.url);
-    if (photo.is_cover) {
-      const next = db.prepare('SELECT url FROM photos WHERE property_id = ? ORDER BY created_at LIMIT 1')
-        .get(req.params.id);
-      db.prepare("UPDATE properties SET image_url = ?, updated_at = datetime('now') WHERE id = ?")
-        .run(next ? next.url : null, req.params.id);
-      if (next) db.prepare('UPDATE photos SET is_cover = 1 WHERE property_id = ? AND url = ?').run(req.params.id, next.url);
-      invalidateCatalog();
-    }
+    removePhoto(req.params.id, photo);
     audit(req.user.id, 'photo.delete', 'property', req.params.id, { photoId: photo.id }, req.ip);
     res.json({ ok: true });
   });
+
+/**
+ * Deletes a listing photo: the file (when nothing else uses it and it was
+ * uploaded for this listing), and the cover moves to the next photo. Used by
+ * this router and by the owner dashboard's Remove button (routes/owner.js).
+ */
+function removePhoto(propertyId, photo) {
+  db.prepare('DELETE FROM photos WHERE id = ?').run(photo.id);
+  // The cover moves first, so the old cover's file can be cleaned up below.
+  const prop = db.prepare('SELECT image_url FROM properties WHERE id = ?').get(propertyId);
+  if (photo.is_cover || (prop && prop.image_url === photo.url)) {
+    const next = db.prepare('SELECT url FROM photos WHERE property_id = ? ORDER BY created_at LIMIT 1').get(propertyId);
+    db.prepare("UPDATE properties SET image_url = ?, updated_at = datetime('now') WHERE id = ?")
+      .run(next ? next.url : null, propertyId);
+    if (next) db.prepare('UPDATE photos SET is_cover = 1 WHERE property_id = ? AND url = ?').run(propertyId, next.url);
+  }
+  // Only delete the file when nothing else points at it — a photo row can
+  // reference any /uploads/ path, including another hotel's picture.
+  const stillUsed = db.prepare('SELECT 1 FROM photos WHERE url = ? LIMIT 1').get(photo.url) ||
+    db.prepare('SELECT 1 FROM properties WHERE image_url = ? LIMIT 1').get(photo.url) ||
+    db.prepare('SELECT 1 FROM offers WHERE image_url = ? LIMIT 1').get(photo.url);
+  const ownUpload = db.prepare(
+    "SELECT 1 FROM audit_log WHERE action = 'photo.upload' AND entity_id = ? AND meta LIKE ? LIMIT 1"
+  ).get(propertyId, '%' + photo.url.replace(/[%_]/g, '') + '%');
+  if (!stillUsed && ownUpload) remove(photo.url);
+  invalidateCatalog();
+}
 
 router.get('/limits', (_req, res) => {
   res.json({ ok: true, maxBytes: MAX_BYTES, maxFiles: 10, types: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'] });
 });
 
 module.exports = router;
+module.exports.removePhoto = removePhoto;

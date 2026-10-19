@@ -68,7 +68,7 @@ function normalizeRow(o) {
   const h = (o.id && o.name) ? o : (o.name && !o['Company name'] ? Object.assign({}, o, { id: slugify(o.name) }) : mapScrapeRow(o));
   if (!h || !h.id || !h.name) return null;
   const rating = parseFloat(h.rating);
-  return {
+  const row = {
     id: String(h.id).trim(),
     name: String(h.name).trim(),
     location: blank(h.location),
@@ -87,6 +87,10 @@ function normalizeRow(o) {
     gmb_link: blank(h.gmb_link),
     active: truthy(h.active) ? 1 : 0
   };
+  // Sheet rows skip the request sanitizer, so strip markup here: a "<img
+  // onerror=…>" in a city name used to run inside the admin panel.
+  Object.keys(row).forEach((k) => { if (typeof row[k] === 'string') row[k] = row[k].replace(/[<>]/g, ''); });
+  return row;
 }
 
 const FIELDS = ['name', 'location', 'city_slug', 'address', 'phone', 'email', 'website', 'rating', 'pincode',
@@ -98,7 +102,7 @@ const stmts = {
   insert: db.prepare(
     `INSERT INTO properties (id, name, location, city_slug, address, phone, email, website, rating, pincode,
                              image_url, property_type, google_cid, google_review_count, google_summary, gmb_link, active)
-     VALUES (@id,@name,@location,@city_slug,@address,@phone,@email,@website,COALESCE(@rating,4.5),@pincode,
+     VALUES (@id,@name,@location,@city_slug,@address,@phone,@email,@website,@rating,@pincode,
              @image_url,@property_type,@google_cid,COALESCE(@google_review_count,0),@google_summary,@gmb_link,@active)`
   )
 };

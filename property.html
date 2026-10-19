@@ -313,7 +313,7 @@
           <div>\
             <h1>' + esc(hotel.name) + '</h1>\
             <div class="meta-row">\
-              <span class="rating-pill">★ ' + hotel.rating.toFixed(1) + '</span>\
+              <span class="rating-pill">' + (hotel.rating ? '★ ' + hotel.rating.toFixed(1) : 'New listing') + '</span>\
               ' + (hotel.google_cid && hotel.google_review_count ? '<a href="https://www.google.com/maps?cid=' + hotel.google_cid + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);padding:3px 8px 3px 5px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text);text-decoration:none;"><span style="background:var(--success);color:#fff;padding:2px 6px;border-radius:4px;font-weight:800;font-size:11px;">' + hotel.rating.toFixed(1) + '/5</span><span class="glogo-big" style="font-size:12px;"><span class="gB">G</span><span class="go1">o</span><span class="go2">o</span><span class="gg">g</span><span class="gl">l</span><span class="ge">e</span></span><span style="color:var(--primary);">View ' + hotel.google_review_count + ' ratings</span></a>' : '') + '\
               <span>' + (hotel.rating >= 4.7 ? 'Exceptional' : hotel.rating >= 4.3 ? 'Very Good' : 'Good') + (hotel.claim_status === 'verified' ? ' · Verified Property' : '') + '</span>\
               <span>·</span>\
@@ -322,7 +322,7 @@
           </div>\
           <div class="share-row">\
             <button class="share-btn" onclick="navigator.share ? navigator.share({title: document.title, url: location.href}) : navigator.clipboard.writeText(location.href).then(function(){alert(\'Link copied!\');})">↗ Share</button>\
-            <button class="share-btn" onclick="alert(\'Saved! Sign up coming soon.\')">♡ Save</button>\
+            <button class="share-btn" id="saveHotelBtn" data-id="' + esc(hotel.id) + '" onclick="toggleSaveHotel(this)">♡ Save</button>\
           </div>\
         </div>\
         <div class="gallery" id="pdGallery">\
@@ -351,7 +351,7 @@
             ' + (hotel.google_cid ? '<section>\
               <h2>View on Google</h2>\
               <div class="greviews-head">\
-                <div class="greviews-score">' + hotel.rating.toFixed(1) + '<small>/5</small></div>\
+                <div class="greviews-score">' + (hotel.rating ? hotel.rating.toFixed(1) : '–') + '<small>/5</small></div>\
                 <div class="glogo-big">\
                   <span class="gB">G</span><span class="go1">o</span><span class="go2">o</span><span class="gg">g</span><span class="gl">l</span><span class="ge">e</span><br>\
                   <a href="https://www.google.com/maps?cid=' + hotel.google_cid + '" target="_blank" rel="noopener">' + (hotel.google_review_count ? 'View ' + hotel.google_review_count + ' ratings →' : 'View on Google Maps →') + '</a>\
@@ -369,7 +369,7 @@
                 <div class="info-block"><strong>Location</strong><span>' + esc(hotel.location) + '</span></div>\
                 <div class="info-block"><strong>Pincode</strong><span>' + esc(hotel.pincode || '—') + '</span></div>\
                 <div class="info-block"><strong>Property type</strong><span id="pdTypeVal">' + esc(hotel.property_type || 'Verified Stay') + '</span></div>\
-                <div class="info-block"><strong>Guest rating</strong><span>★ ' + hotel.rating.toFixed(1) + ' / 5</span></div>\
+                <div class="info-block"><strong>Guest rating</strong><span>' + (hotel.rating ? '★ ' + hotel.rating.toFixed(1) + ' / 5' : 'Not rated yet') + '</span></div>\
               </div>\
             </section>\
             <section>\
@@ -741,5 +741,36 @@
 </script>
   <script src="cookie-consent.js"></script>
 <script src="mobile-nav.js" defer></script>
+<script>
+/* "♡ Save" on a listing: saves to the traveller's account (My Saved Hotels);
+   signed-out visitors are sent to sign in and come straight back. */
+(function () {
+  function label(btn, saved) { btn.textContent = saved ? '♥ Saved' : '♡ Save'; btn.setAttribute('aria-pressed', saved ? 'true' : 'false'); }
+  function me() { return window.HotelzzAPI.get('/auth/me').then(function (r) { return r.user; }).catch(function () { return null; }); }
+  window.toggleSaveHotel = function (btn) {
+    var id = btn.getAttribute('data-id');
+    me().then(function (user) {
+      if (!user || user.role !== 'traveler') {
+        location.href = 'login.html?type=traveler&next=' + encodeURIComponent(location.pathname + location.search);
+        return;
+      }
+      btn.disabled = true;
+      window.HotelzzEnquiryStore.toggleSavedHotel(id)
+        .then(function (saved) { label(btn, saved); })
+        .catch(function (e) { alert(e.message || 'Could not save right now.'); })
+        .then(function () { btn.disabled = false; });
+    });
+  };
+  // Show the saved state once the page (and the button) has rendered.
+  window.addEventListener('load', function () {
+    var btn = document.getElementById('saveHotelBtn');
+    if (!btn) return;
+    me().then(function (user) {
+      if (!user || user.role !== 'traveler') return;
+      window.HotelzzEnquiryStore.ready().then(function () { label(btn, window.HotelzzEnquiryStore.isSaved(btn.getAttribute('data-id'))); }).catch(function () {});
+    });
+  });
+})();
+</script>
 </body>
 </html>

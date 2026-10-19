@@ -14,10 +14,11 @@
  *     every "necessary cookies" carve-out.
  *   - localStorage for cart/catalogue caching (hotelzz_catalog_v2) and this
  *     banner's own choice — not third-party, not tracking.
- * There is no third-party analytics/ads script on this site today, so
- * "Decline" and "Accept" currently behave the same functionally — the
- * banner exists for transparency and to have the hook ready (window.hzCookieConsent)
- * the moment a real analytics/ads pixel is added, without a second rollout.
+ *   - Google Analytics 4 (added by the server, Admin → Site Kit), run in
+ *     Google Consent Mode: "Decline" switches analytics storage off on this
+ *     browser; ad cookies stay off unless the visitor accepts.
+ * The GA snippet reads the stored choice before it loads, and the buttons
+ * below update consent immediately.
  */
 (function () {
   var KEY = 'hotelzz_cookie_consent'; // 'accepted' | 'declined'
@@ -65,8 +66,8 @@
     el.setAttribute('role', 'region');
     el.setAttribute('aria-label', 'Cookie notice');
     el.innerHTML =
-      '<p>We use essential cookies to keep you signed in, and local storage to load listings faster. ' +
-      'No third-party tracking today — see our <a href="privacy.html">Privacy Policy</a>.</p>' +
+      '<p>We use essential cookies to keep you signed in, and Google Analytics to see which pages help travellers. ' +
+      'Decline turns analytics off on this device — see our <a href="privacy.html">Privacy Policy</a>.</p>' +
       '<div class="hz-cc-actions">' +
       '<button type="button" class="hz-cc-decline">Decline</button>' +
       '<button type="button" class="hz-cc-accept">Accept</button>' +
@@ -75,6 +76,11 @@
 
     function dismiss(choice) {
       setChoice(choice);
+      if (typeof window.gtag === 'function') {
+        var on = choice === 'accepted';
+        window.gtag('consent', 'update', { analytics_storage: on ? 'granted' : 'denied', ad_storage: on ? 'granted' : 'denied',
+          ad_user_data: on ? 'granted' : 'denied', ad_personalization: on ? 'granted' : 'denied' });
+      }
       el.remove();
     }
     el.querySelector('.hz-cc-accept').addEventListener('click', function () { dismiss('accepted'); });

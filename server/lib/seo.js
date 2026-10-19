@@ -39,8 +39,9 @@ function render(file, meta) {
   let html = template(file);
   // data-ssr tells the page script the server already wrote the head, so it
   // must not overwrite it (Site Kit overrides would otherwise be lost).
-  html = html.replace(/<title([^>]*)>[\s\S]*?<\/title>/i, `<title data-ssr$1>${esc(meta.title)}</title>`);
-  html = html.replace(/<meta\s+name="description"([^>]*?)content="[^"]*"/i, `<meta name="description" data-ssr$1content="${esc(meta.description)}"`);
+  // Replacer functions throughout: listing names and admin text may contain "$&" / "$'".
+  html = html.replace(/<title([^>]*)>[\s\S]*?<\/title>/i, (_, a) => `<title data-ssr${a}>${esc(meta.title)}</title>`);
+  html = html.replace(/<meta\s+name="description"([^>]*?)content="[^"]*"/i, (_, a) => `<meta name="description" data-ssr${a}content="${esc(meta.description)}"`);
   const tags = [
     `<link rel="canonical" href="${esc(meta.url)}" />`,
     meta.robots ? `<meta name="robots" content="${esc(meta.robots)}" />` : '',
@@ -57,8 +58,8 @@ function render(file, meta) {
     `<meta name="twitter:image" content="${esc(meta.image || DEFAULT_IMAGE)}" />`
   ].concat((meta.jsonld || []).map(ld)).filter(Boolean).join('\n');
   if (meta.robots) html = html.replace(/<meta\s+name="robots"[^>]*>\s*/gi, '');
-  html = html.replace(/<\/head>/i, tags + '\n</head>');
-  if (meta.ssr) html = html.replace('<div id="content">', '<div id="content">' + meta.ssr);
+  html = html.replace(/<\/head>/i, () => tags + '\n</head>');
+  if (meta.ssr) html = html.replace('<div id="content">', () => '<div id="content">' + meta.ssr);
   return kit.decorate(html, { key: meta.key || '/' + file, section: meta.section, faqs: meta.faqs, vars: meta.vars, skipMeta: true });
 }
 
@@ -288,7 +289,7 @@ function cityAnswers(slug, all, place, count) {
   const section = `<section class="aeo" id="answers" aria-labelledby="aeo-h"><div class="aeo-in">
 <h2 id="aeo-h">${all ? 'Hotels in India' : 'Hotels in ' + E(place)}: quick answers</h2>
 <p class="aeo-lead">${E(lead)}</p>
-${top.length ? `<h3>Top-rated stays${all ? '' : ' in ' + E(place)}</h3><ol class="aeo-top">${top.map((h) => `<li><a href="property.html?id=${encodeURIComponent(h.id)}">${E(h.name)}</a><span>★ ${h.rating}${h.rc ? ' · ' + fmt(h.rc) : ''}</span></li>`).join('')}</ol>` : ''}
+${top.length ? `<h3>Top-rated stays${all ? '' : ' in ' + E(place)}</h3><ol class="aeo-top">${top.map((h) => `<li><a href="property.html?id=${encodeURIComponent(h.id)}">${E(h.name)}</a><span>${h.rating ? '★ ' + h.rating + (h.rc ? ' · ' + fmt(h.rc) : '') : 'New'}</span></li>`).join('')}</ol>` : ''}
 <h3>Frequently asked</h3>
 ${kit.faqHtml(faqs)}<!--aeo-extra-->
 <p class="aeo-upd">Updated ${today()} from live listings.</p>
@@ -304,7 +305,7 @@ function sitemap(_req, res) {
     const today = new Date().toISOString().slice(0, 10);
     const day = (d) => (d ? String(d).slice(0, 10) : today);
     const urls = [];
-    const add = (loc, lastmod, changefreq, priority, image) => urls.push(
+    const add = (loc, lastmod, changefreq, priority, image) => kit.isHidden(loc) || urls.push(
       `  <url><loc>${esc(loc)}</loc><lastmod>${lastmod}</lastmod><changefreq>${changefreq}</changefreq><priority>${priority}</priority>` +
       (image ? `<image:image><image:loc>${esc(image)}</image:loc></image:image>` : '') + '</url>');
 

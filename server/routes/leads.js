@@ -47,10 +47,10 @@ router.post('/',
     pushLeadToSheet({
       name: b.name, hotel: b.hotelName, location: b.city, phone: b.phone, email: b.email,
       service: b.plan || b.type || 'marketing', notes: b.message, source: b.source || 'website',
-      page: b.type === 'ota' ? 'ota-listing' : 'marketing'
+      page: /^ota/.test(b.type || '') ? 'ota-listing' : 'marketing'
     });
     if (b.email) sendMailAsync(b.email, 'leadReceipt', { name: b.name, plan: b.plan });
-    sendMailAsync(env.ADMIN_EMAIL, 'adminNewLead', {
+    sendMailAsync(require('../lib/mailer').opsEmail(), 'adminNewLead', {
       name: b.name, email: b.email, phone: b.phone, hotelName: b.hotelName,
       city: b.city, plan: b.plan, message: b.message
     });

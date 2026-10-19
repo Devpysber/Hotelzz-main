@@ -104,13 +104,32 @@ const settingsSchema = z.object({
   })).max(200).optional(),
   redirects: z.array(z.object({
     from: z.string().trim().max(200).regex(/^\/[A-Za-z0-9_\-./%]*$/, 'Redirect "from" is a path like /old-page.html (no ?query)')
-      .refine((v) => !/^\/(api|admin|owner|uploads|\.well-known)(\/|\.|$)/.test(v) && v !== '/', 'That path cannot be redirected'),
+      // Sign-in pages, panels, the API and the SEO files must always answer.
+      .refine((v) => v !== '/' && !/^\/(api|admin|owner|uploads|\.well-known|login|dashboard-login|reset-password|user-portal)([/.\-]|$)/.test(v) &&
+        !/^\/(robots\.txt|sitemap\.xml|llms\.txt|index\.html)$/.test(v), 'That path cannot be redirected'),
     to: z.string().trim().max(300).refine((v) => /^\/[^\s]*$/.test(v) || /^https:\/\/[^\s]+$/.test(v), 'Redirect "to" is a /path or an https:// URL')
   })).max(300).optional()
 });
 
+/**
+ * One spelling per page, the same one the page lookup uses: "/deals" →
+ * "/deals.html", "/city.html?city=Pune" → "/city.html?city=pune"; other query
+ * strings are dropped (static pages ignore them).
+ */
+function normPageKey(raw) {
+  const [path, query = ''] = String(raw).split('?');
+  if (path === '/city') return '/city';
+  const key = kit.pageKey(path);
+  const params = new URLSearchParams(query);
+  if (key === '/city.html' && params.get('city')) return key + '?city=' + params.get('city').toLowerCase();
+  if (key === '/property.html' && params.get('id')) return key + '?id=' + params.get('id');
+  return key;
+}
+
 router.put('/', validate(settingsSchema), (req, res) => {
   const b = req.body;
+  if (b.pages) b.pages = Object.fromEntries(Object.entries(b.pages).map(([k, v]) => [normPageKey(k), v]));
+  if (b.faqs) b.faqs = b.faqs.map((f) => Object.assign({}, f, { page: normPageKey(f.page) }));
   if (b.redirects) {
     const froms = new Set();
     for (const r of b.redirects) {
@@ -267,7 +286,7 @@ router.get('/content', (req, res) => {
   const counts = Object.entries(ISSUES).map(([key, v]) => ({
     key, label: v.label, hint: v.hint, count: db.prepare(`SELECT COUNT(*) c FROM properties p WHERE p.active = 1 AND ${v.where}`).get().c
   }));
-  const issue = ISSUES[req.query.issue] ? req.query.issue : null;
+  const issue = Object.prototype.hasOwnProperty.call(ISSUES, req.query.issue) ? req.query.issue : null;
   const rows = issue ? db.prepare(
     `SELECT p.id, p.name, p.location, p.property_type, p.phone, p.claim_status, p.rating, p.google_review_count
        FROM properties p WHERE p.active = 1 AND ${ISSUES[issue].where}
@@ -286,7 +305,7 @@ router.get('/content', (req, res) => {
 
 router.post('/indexnow', validate(z.object({
   scope: z.enum(['changed', 'key', 'urls']),
-  urls: z.array(z.string().trim().url()).max(500).optional()
+  urls: z.array(z.string().trim().max(500).refine((u) => u.startsWith(SITE + '/'), 'Only hotelzz.in addresses can be submitted')).max(500).optional()
 })), wrap(async (req, res) => {
   const s = kit.load();
   const urls = req.body.scope === 'changed' ? kit.changedUrls(s.lastIndexNowAt)
@@ -322,7 +341,8 @@ router.get('/google', wrap(async (req, res) => {
       ? google.analytics(s.ga4PropertyId, days).then((d) => { out.analytics = d; }).catch((e) => { out.analyticsError = e.message; })
       : Promise.resolve((out.analyticsError = 'Add the GA4 property id in Connections to see traffic here.'))
   ]);
-  googleCache = { key: cacheKey, at: Date.now(), body: out };
+  // Only good answers are cached, so fixing a permission shows up on the next load.
+  googleCache = out.searchError || (out.analyticsError && /^\d/.test(s.ga4PropertyId || '')) ? null : { key: cacheKey, at: Date.now(), body: out };
   res.json(out);
 }));
 

@@ -14,6 +14,11 @@ const limiter = (max, windowMinutes) => rateLimit({
   message: { ok: false, error: 'Too many requests. Try again later.' }
 });
 
+// A real boolean, or the strings "true"/"false"/"1"/"0" — z.coerce.boolean()
+// turned "false" into true.
+const { z } = require('zod');
+const bool = z.union([z.boolean(), z.enum(['true', 'false', '1', '0']).transform((v) => v === 'true' || v === '1')]);
+
 const validate = (schema) => (req, res, next) => {
   const parsed = schema.safeParse(req.body || {});
   if (!parsed.success) {
@@ -40,4 +45,4 @@ const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).cat
 const slugify = (s) => String(s || '').toLowerCase()
   .replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
 
-module.exports = { limiter, validate, validateQuery, wrap, slugify };
+module.exports = { bool, limiter, validate, validateQuery, wrap, slugify };

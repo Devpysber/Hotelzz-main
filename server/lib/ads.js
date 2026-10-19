@@ -197,10 +197,16 @@ async function launch(campaignId) {
     details.externalId = created.externalId;
     details.platform = adapter.name;
 
+    // Same as an admin switching it Active: the paid window starts now.
+    let dates = [campaign.start_date, campaign.end_date];
+    if (!details.activatedAt) {
+      details.activatedAt = new Date().toISOString();
+      dates = [new Date().toISOString().slice(0, 10), new Date(Date.now() + (details.totalDays || 30) * 864e5).toISOString().slice(0, 10)];
+    }
     db.prepare(
-      `UPDATE campaigns SET details = ?, channel = ?, status = 'Active', updated_at = datetime('now')
+      `UPDATE campaigns SET details = ?, channel = ?, status = 'Active', start_date = ?, end_date = ?, updated_at = datetime('now')
         WHERE id = ?`
-    ).run(JSON.stringify(details), adapter.name, campaignId);
+    ).run(JSON.stringify(details), adapter.name, dates[0], dates[1], campaignId);
 
     event(campaignId, 'Submitted to ' + adapter.name,
           `Created as ${created.externalId}, paused pending platform review.`);
@@ -218,7 +224,7 @@ async function launch(campaignId) {
   } catch (err) {
     event(campaignId, 'Platform submission failed', err.message);
     audit(campaign.owner_id, 'campaign.launch.failed', 'campaign', campaignId, { error: err.message }, null);
-    sendMailAsync(env.ADMIN_EMAIL, 'adminNewLead', {
+    sendMailAsync(require('./mailer').opsEmail(), 'adminNewLead', {
       name: 'Ad platform error', hotelName: campaign.name, plan: adapter.name,
       message: `Campaign ${campaignId} could not be created: ${err.message}`
     });

@@ -152,6 +152,11 @@ function analyticsTags(s) {
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
+  // Consent Mode v2 with the cookie banner (cookie-consent.js): analytics is on
+  // unless the visitor declined; ad cookies only after they accept.
+  (function(){var c=null;try{c=localStorage.getItem('hotelzz_cookie_consent');}catch(e){}
+    gtag('consent','default',{analytics_storage:c==='declined'?'denied':'granted',ad_storage:c==='accepted'?'granted':'denied',
+      ad_user_data:c==='accepted'?'granted':'denied',ad_personalization:c==='accepted'?'granted':'denied'});})();
   gtag('js', new Date());
   gtag('config', '${s.ga4Id}');
 </script>`);
@@ -198,7 +203,7 @@ function faqsFor(key, vars) {
   const s = load();
   const v = vars || {};
   return (s.faqs || []).filter((f) => f && f.q && f.a && (f.page === key || (f.page === '/city' && key.startsWith('/city') && v.city)))
-    .map((f) => ({ q: f.q.replace(/\{city\}/g, v.city || ''), a: f.a.replace(/\{city\}/g, v.city || '') }));
+    .map((f) => ({ q: f.q.replace(/\{city\}/g, () => v.city || ''), a: f.a.replace(/\{city\}/g, () => v.city || '') }));
 }
 
 /** FAQ items already written into a page as <details class="faq-item"><summary>Q</summary>A</details>. */
@@ -273,12 +278,13 @@ function decorate(html, opts) {
   html = html.replace(/<!--\s*Google tag \(gtag\.js\)[^>]*-->\s*<script[^>]*googletagmanager[^>]*><\/script>\s*<script>[\s\S]*?<\/script>/gi, '');
 
   if (o.title) {
-    html = html.replace(/<title([^>]*)>[\s\S]*?<\/title>/i, `<title$1>${esc(o.title)}</title>`)
-      .replace(/(<meta\s+(?:property|name)="(?:og|twitter):title"\s+content=")[^"]*"/gi, `$1${esc(o.title)}"`);
+    // Replacer functions: admin text may contain "$&" / "$'" patterns.
+    html = html.replace(/<title([^>]*)>[\s\S]*?<\/title>/i, (_, a) => `<title${a}>${esc(o.title)}</title>`)
+      .replace(/(<meta\s+(?:property|name)="(?:og|twitter):title"\s+content=")[^"]*"/gi, (_, a) => `${a}${esc(o.title)}"`);
   }
   if (o.description) {
-    html = html.replace(/(<meta\s+name="description"[^>]*?content=")[^"]*"/i, `$1${esc(o.description)}"`)
-      .replace(/(<meta\s+(?:property|name)="(?:og|twitter):description"\s+content=")[^"]*"/gi, `$1${esc(o.description)}"`);
+    html = html.replace(/(<meta\s+name="description"[^>]*?content=")[^"]*"/i, (_, a) => `${a}${esc(o.description)}"`)
+      .replace(/(<meta\s+(?:property|name)="(?:og|twitter):description"\s+content=")[^"]*"/gi, (_, a) => `${a}${esc(o.description)}"`);
   }
   const robots = o.noindex ? 'noindex, follow' : opts.robots;
   if (robots) {
@@ -316,7 +322,7 @@ function decorate(html, opts) {
     section = `<section class="aeo" id="answers" aria-labelledby="aeo-h"><div class="aeo-in"><h2 id="aeo-h">Quick answers</h2>${faqHtml(extra)}</div></section>`;
     shown = shown.concat(extra);
   } else if (extra.length) {
-    section = section.replace('<!--aeo-extra-->', faqHtml(extra));
+    section = section.replace('<!--aeo-extra-->', () => faqHtml(extra));
     shown = shown.concat(extra);
   } else {
     section = section.replace('<!--aeo-extra-->', '');
@@ -326,11 +332,11 @@ function decorate(html, opts) {
   if (all.length && !/"FAQPage"/.test(html)) head.push(ld(faqLd(dedupe(all))));
   if (section) {
     head.push(AEO_CSS);
-    html = /<footer[\s>]/i.test(html) ? html.replace(/<footer([\s>])/i, section + '\n<footer$1') : html.replace(/<\/body>/i, section + '\n</body>');
+    html = /<footer[\s>]/i.test(html) ? html.replace(/<footer([\s>])/i, (_, a) => section + '\n<footer' + a) : html.replace(/<\/body>/i, () => section + '\n</body>');
   }
 
   head.push(...analyticsTags(s));
-  return html.replace(/<\/head>/i, head.join('\n') + '\n</head>');
+  return html.replace(/<\/head>/i, () => head.join('\n') + '\n</head>');
 }
 
 function dedupe(items) {
@@ -448,7 +454,7 @@ function llmsTxt() {
 /** Sends URLs to IndexNow (Bing, Yandex, Seznam, Naver share submissions). */
 async function indexNow(urls, userId) {
   const s = load();
-  const list = Array.from(new Set(urls)).filter((u) => u.startsWith(SITE + '/')).slice(0, 10000);
+  const list = Array.from(new Set(urls)).filter((u) => u.startsWith(SITE + '/') && !isHidden(u)).slice(0, 10000);
   if (!list.length) return { ok: true, submitted: 0, note: 'Nothing new to submit.' };
   if (!env.isProd) return { ok: true, skipped: true, submitted: 0, note: 'Not sent: IndexNow runs only on the live site (NODE_ENV=production on hotelzz.in).' };
   let result;
@@ -463,9 +469,13 @@ async function indexNow(urls, userId) {
       ? { ok: true, submitted: list.length, status: r.status }
       : { ok: false, submitted: 0, status: r.status, error: 'IndexNow answered HTTP ' + r.status + (r.status === 403 ? ' (key file not reachable yet)' : '') };
   } catch (e) {
-    result = { ok: false, submitted: 0, error: e.message };
+    const why = e.cause && (e.cause.code || e.cause.message);
+    result = { ok: false, submitted: 0, error: 'Could not reach IndexNow' + (why ? ' (' + why + ')' : ': ' + e.message) + ' — check the server\'s outbound internet.' };
   }
-  save({ lastIndexNowAt: new Date().toISOString(), lastIndexNowResult: result.ok ? `${result.submitted} URLs accepted` : result.error }, userId);
+  // The "changed since" mark only moves on success, so a failed hour is retried.
+  const stamp = new Date().toISOString();
+  save(result.ok ? { lastIndexNowAt: stamp, lastIndexNowResult: `${result.submitted} URLs accepted` }
+    : { lastIndexNowTriedAt: stamp, lastIndexNowResult: 'Failed: ' + result.error }, userId);
   return result;
 }
 
@@ -499,10 +509,23 @@ function startAutoIndexNow() {
   setInterval(tick, 60 * 60 * 1000).unref();
 }
 
+/**
+ * True when Site Kit takes a URL out of search: a noindex override, or a
+ * redirect away from it. Such URLs are left out of the sitemap and IndexNow.
+ */
+function isHidden(url) {
+  const s = load();
+  const rel = String(url).replace(SITE, '') || '/';
+  const pathOnly = rel.split('?')[0];
+  const key = rel.includes('?') ? pageKey(pathOnly) + rel.slice(rel.indexOf('?')) : pageKey(pathOnly);
+  if (s.pages[key] && s.pages[key].noindex) return true;
+  return (s.redirects || []).some((r) => r.from === pathOnly || (pathOnly === '/' && r.from === '/index.html'));
+}
+
 function invalidate() { llmsCache = null; }
 
 module.exports = {
   SITE, AI_CRAWLERS, DEFAULTS, PUBLIC_PAGES,
   load, save, decorate, pageKey, staticPages, redirects, robotsTxt, llmsTxt,
-  indexNow, changedUrls, keyUrls, startAutoIndexNow, invalidate, faqsFor, faqHtml, esc
+  indexNow, changedUrls, keyUrls, startAutoIndexNow, invalidate, isHidden, faqsFor, faqHtml, esc
 };

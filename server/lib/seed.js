@@ -71,7 +71,7 @@ function seedCatalogue() {
   const added = db.transaction((list) => list.reduce((n, h) => n + insert.run({
     id: h.id, name: h.name, location: h.location || null, city_slug: h.city_slug || slugify(h.location),
     address: h.address || null, phone: h.phone || null, website: h.website || null,
-    rating: parseFloat(h.rating) || 4.5, pincode: h.pincode || null, image_url: h.image_url || null,
+    rating: parseFloat(h.rating) || null, pincode: h.pincode || null, image_url: h.image_url || null,
     property_type: h.property_type || null, google_cid: String(h.google_cid || '').replace(/\D/g, '') || null,
     google_review_count: parseInt(h.google_review_count, 10) || 0, google_summary: h.google_summary || null,
     gmb_link: h.gmb_link || null, active: truthy(h.active) ? 1 : 0

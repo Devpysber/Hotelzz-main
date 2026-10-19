@@ -20,7 +20,8 @@ const shape = (p) => {
     amount: p.amount, currency: p.currency, status: p.status, provider: p.provider,
     orderId: p.provider_order, invoiceId: p.invoice_id, createdAt: p.created_at,
     planName: notes.planName || null, buyerName: notes.buyerName || null,
-    buyerEmail: notes.buyerEmail || null, buyerPhone: notes.buyerPhone || null
+    buyerEmail: notes.buyerEmail || null, buyerPhone: notes.buyerPhone || null,
+    needsReview: notes.needsReview || null
   };
 };
 
@@ -119,6 +120,8 @@ router.post('/orders',
 
     // The amount always comes from the server's own records, never the client.
     let amount = 0;
+    let ref = referenceId;
+    const notes = { hotel: property.name };
     if (purpose === 'campaign') {
       const camp = db.prepare('SELECT * FROM campaigns WHERE id = ?').get(referenceId);
       if (!camp) return res.status(404).json({ ok: false, error: 'Campaign not found.' });
@@ -126,6 +129,10 @@ router.post('/orders',
         return res.status(403).json({ ok: false, error: 'Not your campaign.' });
       }
       const details = JSON.parse(camp.details || '{}');
+      const paid = db.prepare("SELECT 1 FROM payments WHERE purpose = 'campaign' AND reference_id = ? AND status = 'paid'").get(camp.id);
+      if (paid || details.paymentStatus === 'Payment received') {
+        return res.status(409).json({ ok: false, error: 'This campaign is already paid.' });
+      }
       amount = details.total || camp.budget;
     } else {
       const invoice = db.prepare(
@@ -133,13 +140,28 @@ router.post('/orders',
       ).get(propertyId);
       if (!invoice) return res.status(404).json({ ok: false, error: 'No pending invoice for this property.' });
       amount = parseFloat(String(invoice.amount).replace(/[^\d.]/g, '')) || 0;
+      // Tie the order to this exact invoice: paying it must not settle a
+      // different (dearer) plan chosen afterwards.
+      ref = invoice.id;
+      notes.planName = invoice.plan;
     }
     if (amount <= 0) return res.status(400).json({ ok: false, error: 'Nothing to pay for.' });
 
-    const order = await pay.createOrder({
-      userId: req.user.id, propertyId, purpose, referenceId, amount,
-      notes: { hotel: property.name }
-    });
+    // "Pay now" clicked again: hand back the open order instead of creating
+    // another one (and another pair of order emails).
+    const open = db.prepare(
+      "SELECT * FROM payments WHERE purpose = ? AND reference_id = ? AND amount = ? AND status IN ('manual','created') ORDER BY created_at DESC LIMIT 1"
+    ).get(purpose, ref, amount);
+    if (open && (open.provider === 'manual') === !pay.isConfigured()) {
+      const order = open.provider === 'manual'
+        ? { mode: 'manual', paymentId: open.id, amount, currency: open.currency, reused: true,
+            message: 'Already recorded. Our team will send you a payment link and activate this on confirmation.' }
+        : { mode: 'razorpay', paymentId: open.id, keyId: env.RAZORPAY_KEY_ID, orderId: open.provider_order,
+            amount, amountMinor: Math.round(amount * 100), currency: open.currency, reused: true };
+      return res.json({ ok: true, order });
+    }
+
+    const order = await pay.createOrder({ userId: req.user.id, propertyId, purpose, referenceId: ref, amount, notes });
     audit(req.user.id, 'payment.order', 'payment', order.paymentId, { purpose, amount }, req.ip);
     if (order.mode === 'manual') {
       notifyPurchase(db.prepare('SELECT * FROM payments WHERE id = ?').get(order.paymentId), 'Awaiting payment');
@@ -167,7 +189,7 @@ router.post('/verify',
     const wasPaid = row.status === 'paid';
     const updated = pay.markPaid(row, paymentId);
     if (!wasPaid) await activate(updated, req.ip);
-    res.json({ ok: true, payment: shape(updated) });
+    res.json({ ok: true, payment: shape(db.prepare('SELECT * FROM payments WHERE id = ?').get(row.id)) });
   }));
 
 /**
@@ -198,10 +220,33 @@ router.post('/webhook', wrap(async (req, res) => {
 /** Turns a paid order into the thing the customer bought. */
 async function activate(payment, ip) {
   if (payment.purpose === 'subscription') {
-    db.prepare("UPDATE subscriptions SET status = 'Active', updated_at = datetime('now') WHERE property_id = ?")
-      .run(payment.property_id);
+    // Activate only the plan this payment's invoice was for. If the owner
+    // switched plans after ordering, the money is flagged for the team.
+    const invoice = payment.invoice_id ? db.prepare('SELECT * FROM invoices WHERE id = ?').get(payment.invoice_id) : null;
     const sub = db.prepare('SELECT plan_name FROM subscriptions WHERE property_id = ?').get(payment.property_id);
-    if (sub) db.prepare("UPDATE properties SET plan = ?, updated_at = datetime('now') WHERE id = ?").run(sub.plan_name, payment.property_id);
+    let plan = null;
+    try { plan = invoice && invoice.details ? JSON.parse(invoice.details) : null; } catch (_) { plan = null; }
+    if (!plan && invoice && sub && (!invoice.plan || invoice.plan === sub.plan_name)) plan = { planName: sub.plan_name }; // older invoices
+    if (plan) {
+      const renewal = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+      db.prepare(
+        `INSERT INTO subscriptions (property_id, plan_name, price, billing_cycle, status, renewal_date, features)
+         VALUES (?,?,?,?, 'Active', ?, ?)
+         ON CONFLICT(property_id) DO UPDATE SET plan_name = excluded.plan_name,
+           price = COALESCE(excluded.price, subscriptions.price), billing_cycle = COALESCE(excluded.billing_cycle, subscriptions.billing_cycle),
+           status = 'Active', renewal_date = excluded.renewal_date,
+           features = COALESCE(excluded.features, subscriptions.features), updated_at = datetime('now')`
+      ).run(payment.property_id, plan.planName, plan.price || null, plan.billingCycle || null, renewal,
+            plan.features ? JSON.stringify(plan.features) : null);
+      db.prepare("UPDATE properties SET plan = ?, updated_at = datetime('now') WHERE id = ?").run(plan.planName, payment.property_id);
+    } else {
+      const notes = Object.assign(notesOf(payment), { needsReview: 'Paid, but the plan was changed before payment. Apply the paid plan or refund.' });
+      db.prepare('UPDATE payments SET notes = ? WHERE id = ?').run(JSON.stringify(notes), payment.id);
+      payment = db.prepare('SELECT * FROM payments WHERE id = ?').get(payment.id);
+      audit(payment.user_id, 'payment.needs_review', 'payment', payment.id, { reason: 'plan changed' }, ip);
+      notifyPurchase(payment, 'Paid — needs review (plan changed after ordering)');
+      return;
+    }
   }
 
   if (payment.purpose === 'campaign') {
@@ -216,18 +261,9 @@ async function activate(payment, ip) {
     }
   }
 
+  // One confirmation per purchase (it already says paid, amount and order);
+  // a separate "payment receipt" used to arrive alongside it.
   notifyPurchase(payment, 'Paid');
-
-  const user = payment.user_id ? db.prepare('SELECT * FROM users WHERE id = ?').get(payment.user_id) : null;
-  if (user && payment.purpose !== 'plan') {
-    sendMailAsync(user.email, 'paymentReceipt', {
-      name: user.name,
-      amount: payment.amount,
-      currency: payment.currency,
-      purpose: payment.purpose === 'campaign' ? 'campaign' : 'subscription',
-      reference: payment.reference_id || payment.id
-    });
-  }
   audit(payment.user_id, 'payment.paid', 'payment', payment.id, { amount: payment.amount }, ip);
 }
 
@@ -297,7 +333,7 @@ router.get('/', A.requireAuth('admin'), (_req, res) => {
 const csvCell = (v) => {
   let s = v === null || v === undefined ? '' : String(v);
   // Spreadsheet apps run cells starting with = + - @ as formulas.
-  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  if (/^[=+\-@\t\r]/.test(s) && !/^\+?\d[\d\s-]{6,}$/.test(s)) s = "'" + s;
   return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 };
 
@@ -332,10 +368,11 @@ router.post('/:id/mark-paid', A.requireAuth('admin'), wrap(async (req, res) => {
   const row = db.prepare('SELECT * FROM payments WHERE id = ?').get(req.params.id);
   if (!row) return res.status(404).json({ ok: false, error: 'Payment not found.' });
   if (row.status === 'paid') return res.json({ ok: true, payment: shape(row) });
-  const updated = pay.markPaid(row, 'manual-' + req.user.id);
+  // The admin who settled it is in the audit log; customers just see "manual".
+  const updated = pay.markPaid(row, 'manual');
   await activate(updated, req.ip);
   audit(req.user.id, 'payment.manual', 'payment', row.id, null, req.ip);
-  res.json({ ok: true, payment: shape(updated) });
+  res.json({ ok: true, payment: shape(db.prepare('SELECT * FROM payments WHERE id = ?').get(row.id)) });
 }));
 
 module.exports = router;

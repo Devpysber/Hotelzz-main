@@ -145,8 +145,9 @@
       validFrom: val('dealFrom'), validTo: val('dealTo'), imageUrl: val('dealImage'),
       description: val('dealDesc'), terms: val('dealTerms'), featured: document.getElementById('dealFeatured').checked
     };
-    if (val('dealOrig')) payload.originalPrice = Number(val('dealOrig'));
-    if (val('dealPrice')) payload.dealPrice = Number(val('dealPrice'));
+    // On edit an emptied price is sent as null so it is actually cleared.
+    if (val('dealOrig') || state.editing) payload.originalPrice = val('dealOrig') ? Number(val('dealOrig')) : null;
+    if (val('dealPrice') || state.editing) payload.dealPrice = val('dealPrice') ? Number(val('dealPrice')) : null;
     if (!payload.propertyId) { err.textContent = 'Choose a hotel.'; return; }
     if (payload.title.length < 2) { err.textContent = 'Enter a title.'; return; }
     if (payload.validFrom && payload.validTo && payload.validTo < payload.validFrom) { err.textContent = '"Valid until" must be after "Valid from".'; return; }
