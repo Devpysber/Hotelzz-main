@@ -126,10 +126,13 @@ async function auditPage(page, label, views) {
       seen.add(h.code);
       const before = errs.length;
       const url = page.url();
-      await page.evaluate((i) => {
-        const el = document.querySelectorAll('[onclick],[onsubmit],[onchange],[oninput],[onkeyup]')[i];
+      // Find the element by its handler at click time: indexes collected
+      // earlier go stale once a click re-renders part of the page.
+      await page.evaluate((code) => {
+        const el = [...document.querySelectorAll('[onclick]')].find((e) => e.getAttribute('onclick') === code &&
+          (e.offsetParent || e.getClientRects().length));
         if (el) el.click();
-      }, h.idx).catch(() => {});
+      }, h.code).catch(() => {});
       clicks++;
       await page.waitForTimeout(150);
       if (errs.length > before) report(label, `clicking "${h.label}" (${h.code}) → ${errs.slice(before).join(' | ')}`);
@@ -385,10 +388,16 @@ async function flows(browser) {
   });
 
   await step('Security: owner cannot set their own plan price', async () => {
+    const before = (await api('get', '/owner/bootstrap')).properties[ownerProp].subscription;
     await api('post', `/owner/properties/${encodeURIComponent(ownerProp)}/subscription`, { planName: 'Premium Plan', price: '₹1' });
     const boot = await api('get', '/owner/bootstrap');
     const sub = boot.properties[ownerProp].subscription;
-    if (/^₹1$/.test(sub.price) || sub.status === 'Active') throw new Error('price/status taken from client: ' + sub.price + ' ' + sub.status);
+    // The price always comes from the plan list, and a paid plan only turns
+    // Active once its invoice is paid (unless it was already paid for).
+    const alreadyPaid = before.planName === 'Premium Plan' && before.status === 'Active';
+    if (/^₹1$/.test(sub.price) || (sub.status === 'Active' && !alreadyPaid)) throw new Error('price/status taken from client: ' + sub.price + ' ' + sub.status);
+    const inv = (sub.invoices || [])[0];
+    if (!inv || /₹1$/.test(String(inv.amount))) throw new Error('invoice amount taken from client: ' + JSON.stringify(inv));
   });
 
   await step('Security: owner cannot claim a listing someone else manages', async () => {

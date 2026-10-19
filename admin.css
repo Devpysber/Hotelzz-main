@@ -1690,3 +1690,9 @@ body.admin-body {
   .sk-score{flex-direction:column;text-align:center}
   .sk-range span{margin-left:0;width:100%}
 }
+
+/* Very small phones: the header icons fit without clipping. */
+@media (max-width: 400px) {
+  .header-right { gap: 6px; min-width: 0; flex-shrink: 1; }
+  .header-right .header-btn { padding-left: 8px; padding-right: 8px; }
+}

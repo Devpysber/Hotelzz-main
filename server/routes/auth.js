@@ -404,7 +404,8 @@ router.patch('/me',
   A.requireAuth(),
   validate(z.object({
     name: z.string().trim().min(2).optional(),
-    phone: phoneSchema.optional(),
+    // "" leaves the phone unchanged (the profile form sends every field).
+    phone: z.union([z.literal(''), phoneSchema]).optional(),
     city: z.string().trim().optional()
   })),
   (req, res) => {
